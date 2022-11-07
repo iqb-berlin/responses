@@ -1,0 +1,25 @@
+{
+  "name": "@iqb/responses",
+  "version": "0.2.0",
+  "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
+  "license": "MIT",
+  "description": "Data interfaces for verona related assessments",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "publish": "npm publish --access public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iqb-berlin/responses.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iqb-berlin/responses/issues"
+  },
+  "homepage": "https://github.com/iqb-berlin/responses#readme"
+}
