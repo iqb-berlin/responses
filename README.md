@@ -1,3 +1,4 @@
 # Responses
 
-info coming soon
+This package contains of type definitions for processing of assessment data.
+

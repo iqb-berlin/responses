@@ -7,6 +7,7 @@ export interface ResponseData {
   id: string,
   status: CodingStatus;
   value: ValueType;
+  entity?: string,
   code?: number;
   score?: number
 }
