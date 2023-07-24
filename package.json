@@ -1,6 +1,6 @@
 {
   "name": "@iqb/responses",
-  "version": "0.3.0",
+  "version": "0.4.0-beta",
   "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
   "license": "MIT",
   "description": "Data interfaces for verona related assessments",
@@ -10,9 +10,10 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
-    "prepare": "npm run build",
-    "publish": "npm publish --access public"
+    "run test": "node ./response/test.ts",
+    "format": "prettier . --write",
+    "lint:prettier": "prettier .",
+    "test": "./test.sh"
   },
   "repository": {
     "type": "git",
@@ -21,5 +22,12 @@
   "bugs": {
     "url": "https://github.com/iqb-berlin/responses/issues"
   },
-  "homepage": "https://github.com/iqb-berlin/responses#readme"
+  "homepage": "https://github.com/iqb-berlin/responses#readme",
+  "devDependencies": {
+    "@types/node": "^20.4.4",
+    "ajv-cli": "^5.0.0",
+    "ajv-formats": "^2.1.1",
+    "prettier": "^2.8.8",
+    "prettier-plugin-sh": "^0.12.8"
+  }
 }

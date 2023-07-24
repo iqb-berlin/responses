@@ -1,0 +1,75 @@
+{
+  "$id": "https://w3id.org/iqb/responses/response/response.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Response",
+  "description": "Data structure produced by verona players",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Identifier for the data source (variable)"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["UNSET", "NOT_REACHED", "DISPLAYED", "VALUE_CHANGED", "VALUE_DERIVED",
+        "SOURCE_MISSING", "DERIVE_ERROR", "CODING_COMPLETE", "NO_CODING", "CODING_INCOMPLETE", "CODING_ERROR"],
+      "description": "Status as stage in the workflow of creating and coding a variable's value"
+    },
+    "value": {
+      "oneOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        }
+      ]
+    },
+    "entity": {
+      "type": "string",
+      "description": "If sources emit multiple values each related to one common object, this object/entity can be named here."
+    },
+    "code": {
+      "type": "integer",
+      "description": "Code representing the category of the value"
+    },
+    "score": {
+      "type": "integer",
+      "description": "This value represents the result evaluation of the code."
+    }
+  },
+  "required": ["id", "status", "value"]
+}
