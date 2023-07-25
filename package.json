@@ -10,7 +10,7 @@
     "dist"
   ],
   "scripts": {
-    "run test": "node ./response/test.ts",
+    "run test": "ts-node ./response/test.ts",
     "format": "prettier . --write",
     "lint:prettier": "prettier .",
     "test": "./test.sh"
@@ -28,6 +28,7 @@
     "ajv-cli": "^5.0.0",
     "ajv-formats": "^2.1.1",
     "prettier": "^2.8.8",
-    "prettier-plugin-sh": "^0.12.8"
+    "prettier-plugin-sh": "^0.12.8",
+    "ts-node": "^10.9.1"
   }
 }
