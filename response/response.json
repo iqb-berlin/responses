@@ -7,7 +7,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "minLength": 1,
+      "pattern": "^[0-9a-zA-Z_]+$",
       "description": "Identifier for the data source (variable)"
     },
     "status": {
@@ -17,19 +17,7 @@
       "description": "Status as stage in the workflow of creating and coding a variable's value"
     },
     "value": {
-      "oneOf": [
-        {
-          "type": "integer"
-        },
-        {
-          "type": "string"
-        },
-        {
-          "type": "null"
-        },
-        {
-          "type": "boolean"
-        },
+      "anyOf": [
         {
           "type": "array",
           "items": {
@@ -43,7 +31,7 @@
           "type": "array",
           "items": {
             "type": [
-              "integer",
+              "number",
               "null"
             ]
           }
@@ -56,6 +44,18 @@
               "null"
             ]
           }
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
         }
       ]
     },
