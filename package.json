@@ -10,7 +10,8 @@
     "dist"
   ],
   "scripts": {
-    "run test": "ts-node ./response/test.ts",
+    "run test response": "ts-node ./test.ts response",
+    "run test variable-list": "ts-node ./test.ts variable-list",
     "format": "prettier . --write",
     "lint:prettier": "prettier .",
     "test": "./test.sh"

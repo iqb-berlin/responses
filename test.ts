@@ -1,6 +1,7 @@
-const schema_filename = `${__dirname}/response.json`;
-const valid_folder = `${__dirname}/test_valid`;
-const invalid_folder = `${__dirname}/test_invalid`;
+const schema_folder = `${__dirname}/${process.argv[2]}`;
+const schema_filename = `${schema_folder}/${process.argv[2]}.json`;
+const valid_folder = `${schema_folder}/test_valid`;
+const invalid_folder = `${schema_folder}/test_invalid`;
 
 const Ajv = require("ajv")
 const ajv = new Ajv() // options can be passed, e.g. {allErrors: true}

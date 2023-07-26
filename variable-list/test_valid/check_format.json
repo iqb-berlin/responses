@@ -1,0 +1,47 @@
+[
+  {
+    "id": "M1",
+    "type": "string",
+    "format": "text-selection"
+  },
+  {
+    "id": "M2",
+    "type": "string",
+    "format": "image"
+  },
+  {
+    "id": "M3",
+    "type": "string",
+    "format": "capture-image"
+  },
+  {
+    "id": "M4",
+    "type": "string",
+    "format": "audio"
+  },
+  {
+    "id": "M5",
+    "type": "string",
+    "format": "ggb-file"
+  },
+  {
+    "id": "M6",
+    "type": "string",
+    "format": "non-negative"
+  },
+  {
+    "id": "M7",
+    "type": "string",
+    "format": ""
+  },
+  {
+    "id": "M8",
+    "type": "string",
+    "format": "on-negative"
+  },
+  {
+    "id": "M9",
+    "type": "string",
+    "format": "--34non-negative"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {
+    "id": "M1",
+    "type": "string"
+  },
+  {
+    "id": "M2",
+    "type": "integer"
+  },
+  {
+    "id": "M3",
+    "type": "number"
+  },
+  {
+    "id": "M4",
+    "type": "boolean"
+  },
+  {
+    "id": "M5",
+    "type": "attachment"
+  }
+]
