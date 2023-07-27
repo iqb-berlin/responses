@@ -1,0 +1,7 @@
+image: node:bullseye-slim
+
+all_tests:
+  script:
+    - npm install
+    - ts-node ./test.ts response
+    - ts-node ./test.ts variable-list
