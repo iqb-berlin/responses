@@ -3,5 +3,5 @@ image: node:bullseye-slim
 all_tests:
   script:
     - npm install
-    - ts-node ./test.ts response
-    - ts-node ./test.ts variable-list
+    - npm run test_response
+    - npm run test_variable_list
