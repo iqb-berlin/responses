@@ -69,11 +69,21 @@
             "value"
           ]
         },
+        "description": "List of all known possible values with labels if given.",
+        "default": []
+      },
+      "valuePositionLabels": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "If value is of type array, there might be a fixed array length with fixed labelled positions.",
         "default": []
       },
       "valuesComplete": {
         "type": "boolean",
-        "default": false
+        "default": false,
+        "description": "If true, there is not other possible value except the listed ones."
       }
     },
     "required": ["id", "type"]
