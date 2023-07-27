@@ -25,22 +25,14 @@
       },
       "format": {
         "type": "string",
-        "anyOf": [
-          {
-            "enum": [
-              "text-selection",
-              "image",
-              "capture-image",
-              "audio",
-              "ggb-file",
-              "non-negative"
-            ]
-          },
-          {
-            "pattern": "^[a-z0-9-]*$"
-          }
+        "enum": [
+          "text-selection",
+          "image",
+          "capture-image",
+          "audio",
+          "ggb-file",
+          "non-negative"
         ],
-        "default": "",
         "description": "More specification for value type"
       },
       "multiple": {
@@ -59,7 +51,11 @@
           "type": "object",
           "properties": {
             "value": {
-              "type": "string"
+              "oneOf": [
+                {"type": "boolean"},
+                {"type": "number"},
+                {"type": "string"}
+              ]
             },
             "label": {
               "type": "string"
@@ -75,7 +71,8 @@
       "valuePositionLabels": {
         "type": "array",
         "items": {
-          "type": "string"
+          "type": "string",
+          "minLength": 1
         },
         "description": "If value is of type array, there might be a fixed array length with fixed labelled positions.",
         "default": []

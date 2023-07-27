@@ -28,20 +28,5 @@
     "id": "M6",
     "type": "string",
     "format": "non-negative"
-  },
-  {
-    "id": "M7",
-    "type": "string",
-    "format": ""
-  },
-  {
-    "id": "M8",
-    "type": "string",
-    "format": "on-negative"
-  },
-  {
-    "id": "M9",
-    "type": "string",
-    "format": "--34non-negative"
   }
 ]

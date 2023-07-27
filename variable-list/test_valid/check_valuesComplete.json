@@ -1,0 +1,12 @@
+[
+  {
+    "id": "M1",
+    "type": "string",
+    "valuesComplete": true
+  },
+  {
+    "id": "M2",
+    "type": "string",
+    "valuesComplete": false
+  }
+]
