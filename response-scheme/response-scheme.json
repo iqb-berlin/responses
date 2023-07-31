@@ -71,44 +71,44 @@
             },
             "score": {
               "type": "integer"
-            }
-          },
-          "manualInstruction": {
-            "type": "string",
-            "description": "Instructions for manual coding."
-          },
-          "rules": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "method": {
-                  "type": "string",
-                  "enum": [
-                    "MATCH",
-                    "MATCH_REGEX",
-                    "NUMERIC_RANGE",
-                    "NUMERIC_LESS_THEN",
-                    "NUMERIC_MORE_THEN",
-                    "NUMERIC_MAX",
-                    "NUMERIC_MIN",
-                    "IS_EMPTY",
-                    "ELSE"
-                  ]
-                },
-                "parameters": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
+            },
+            "manualInstruction": {
+              "type": "string",
+              "description": "Instructions for manual coding."
+            },
+            "rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "method": {
+                    "type": "string",
+                    "enum": [
+                      "MATCH",
+                      "MATCH_REGEX",
+                      "NUMERIC_RANGE",
+                      "NUMERIC_LESS_THEN",
+                      "NUMERIC_MORE_THEN",
+                      "NUMERIC_MAX",
+                      "NUMERIC_MIN",
+                      "IS_EMPTY",
+                      "ELSE"
+                    ]
+                  },
+                  "parameters": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 }
               }
             }
-          }
-        },
-        "required": [
-          "id"
-        ]
+          },
+          "required": [
+            "id"
+          ]
+        }
       }
     }
   }

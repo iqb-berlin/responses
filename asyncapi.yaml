@@ -34,7 +34,7 @@ channels:
       operationId: 'response scheme'
       description: Rules for processing responses.
       message:
-        messageId: response_schema
+        messageId: response_scheme
         contentType: application/json
         payload:
           $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/response-scheme/response-scheme.json'
