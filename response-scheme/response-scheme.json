@@ -1,0 +1,115 @@
+{
+  "$id": "https://w3id.org/iqb/responses/response-scheme/response-scheme.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Response Scheme",
+  "description": "Data structure to specify all processing steps of response data in order to get coded and scored data for analyses.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "pattern": "^[0-9a-zA-Z_]+$",
+        "description": "Identifier for the variable. In case of a scheme for a base variable, this id is identical with the source variable's id. In case of derivation, the processing data create a new derived variable. All ids of a response scheme should be unique."
+      },
+      "label": {
+        "type": "string",
+        "description": "Some additional info for UI"
+      },
+      "sourceType": {
+        "type": "string",
+        "enum": [
+          "BASE",
+          "DERIVE_CONCAT",
+          "DERIVE_SUM"
+        ],
+        "description": "CONCAT means concatenate all source values as string, SUM takes all source values as numeric and calculates a sum."
+      },
+      "deriveSources": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^[0-9a-zA-Z_]+$"
+        }
+      },
+      "deriveSourceType": {
+        "type": "string",
+        "enum": [
+          "VALUE",
+          "CODE",
+          "SCORE"
+        ],
+        "description": "This parameter defines what part of the source variable should be taken to the next step."
+      },
+      "valueTransformations": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "TO_UPPER",
+            "REMOVE_WHITE_SPACES",
+            "DATE_TO_ISO",
+            "TIME_TO_ISO"
+          ]
+        },
+        "description": "This parameter defines what transformation should be done with the source value before evaluation."
+      },
+      "manualInstruction": {
+        "type": "string",
+        "description": "Instructions for manual coding."
+      },
+      "codes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "label": {
+              "type": "string"
+            },
+            "score": {
+              "type": "integer"
+            }
+          },
+          "manualInstruction": {
+            "type": "string",
+            "description": "Instructions for manual coding."
+          },
+          "rules": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "MATCH",
+                    "MATCH_REGEX",
+                    "NUMERIC_RANGE",
+                    "NUMERIC_LESS_THEN",
+                    "NUMERIC_MORE_THEN",
+                    "NUMERIC_MAX",
+                    "NUMERIC_MIN",
+                    "IS_EMPTY",
+                    "ELSE"
+                  ]
+                },
+                "parameters": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "id"
+        ]
+      }
+    }
+  }
+}

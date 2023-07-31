@@ -1,7 +1,7 @@
 asyncapi: 2.5.0
 info:
   title: Object specifications for response data
-  description: The Verona Interfaces specifications do not describe data structures for response processing. Responses in Verona are strings - serialized objects of unknow structure. This way, we have maximal flexibility. But in order to develop efficient routines for data analyses, the IQB introduces some specs of data. Browse this document to learn about concepts and procedures for data processing AFTER the assessment is done. Click on "Payload" to expand the data structure.
+  description: The Verona Interfaces specifications do not describe data structures for response processing. Responses in Verona are strings - serialized objects of unknown structure. This way, we have maximal flexibility. But in order to develop efficient routines for data analyses, the IQB introduces some specs of data. Browse this document to learn about concepts and procedures for data processing AFTER the assessment is done. Click on "Payload" to expand the data structure.
   version: 0.4.0-beta
   license:
     name: CC BY-SA 4.0
@@ -11,7 +11,7 @@ info:
     url: https://www.iqb.hu-berlin.de
     email: iqb-tbadev@hu-berlin.de
 channels:
-  variable list:
+  variable_list:
     subscribe:
       operationId: 'variable list'
       description: A variable is a data source in units during tests. This list describes these sources to prepare processing steps.
@@ -20,7 +20,6 @@ channels:
         contentType: application/json
         payload:
           $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/variable-list/variable-list.json'
-
   response:
     subscribe:
       operationId: 'response'
@@ -30,3 +29,12 @@ channels:
         contentType: application/json
         payload:
           $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/response/response.json'
+  response_scheme:
+    subscribe:
+      operationId: 'response scheme'
+      description: Rules for processing responses.
+      message:
+        messageId: response_schema
+        contentType: application/json
+        payload:
+          $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/response-scheme/response-scheme.json'
