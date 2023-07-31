@@ -8,5 +8,4 @@ pages:
     - npm run generate_docs
   artifacts:
     paths:
-      - docs
-    expose_as: 'public'
+      - public
