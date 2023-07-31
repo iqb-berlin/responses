@@ -1,6 +1,6 @@
 image: node:bullseye-slim
 
-all_tests:
+pages:
   script:
     - npm install
     - npm run test_response
