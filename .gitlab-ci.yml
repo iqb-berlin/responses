@@ -9,3 +9,4 @@ all_tests:
   artifacts:
     paths:
       - docs
+    expose_as: 'public'
