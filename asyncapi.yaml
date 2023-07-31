@@ -1,23 +1,32 @@
 asyncapi: 2.5.0
 info:
   title: Object specifications for response data
-  description: The Verona Interfaces specifications do not describe data structures for response processing. This in important, because this gives us all freedom we need. But in order to develop efficient routines for data analyses, the IQB introduces some specs of data. Browse this document to learn about concepts and procedures for data processing AFTER the assessment is done.
+  description: The Verona Interfaces specifications do not describe data structures for response processing. Responses in Verona are strings - serialized objects of unknow structure. This way, we have maximal flexibility. But in order to develop efficient routines for data analyses, the IQB introduces some specs of data. Browse this document to learn about concepts and procedures for data processing AFTER the assessment is done. Click on "Payload" to expand the data structure.
   version: 0.4.0-beta
+  license:
+    name: CC BY-SA 4.0
+    url: https://creativecommons.org/licenses/by-sa/4.0/
+  contact:
+    name: Institute for Educational Quality Improvement (IQB)
+    url: https://www.iqb.hu-berlin.de
+    email: iqb-tbadev@hu-berlin.de
 channels:
-  variableList:
+  variable list:
     subscribe:
-      operationId: 'variableList'
-      description: This list describes all possible variables in the unit, e. g. all possible response values.
+      operationId: 'variable list'
+      description: A variable is a data source in units during tests. This list describes these sources to prepare processing steps.
       message:
+        messageId: variableList
         contentType: application/json
         payload:
           $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/variable-list/variable-list.json'
 
-  responseData:
+  response:
     subscribe:
-      operationId: 'responseData'
-      description: This structure carries the data produced be the player.
+      operationId: 'response'
+      description: During the test, response values are saved, restored, coded and scored using this data structure.
       message:
+        messageId: response
         contentType: application/json
         payload:
           $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/response/response.json'
