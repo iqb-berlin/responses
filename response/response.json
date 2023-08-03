@@ -59,9 +59,9 @@
         }
       ]
     },
-    "entity": {
+    "subform": {
       "type": "string",
-      "description": "If sources emit multiple values each related to one common object, this object/entity can be named here."
+      "description": "If variables i. e. data source ids are not unique in the unit, 'subform' can specify the sub object related to the specific variable."
     },
     "code": {
       "type": "integer",

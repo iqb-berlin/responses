@@ -1,3 +1,5 @@
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
+
 This package contains of type definitions for processing assessment data.
 
 Browse through [this document](https://pages.cms.hu-berlin.de/iqb/ci_cd/responses) to learn about the data structures of IQB.

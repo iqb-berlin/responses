@@ -1,22 +1,14 @@
 {
   "name": "@iqb/responses",
-  "version": "0.4.0-beta",
+  "version": "0.5.0",
   "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
-  "license": "MIT",
+  "license": "CC-BY-4.0",
   "description": "Data interfaces for verona related assessment applications",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "test_response": "ts-node ./test.ts response",
     "test_variable_list": "ts-node ./test.ts variable-list",
     "test_response_scheme": "ts-node ./test.ts response-scheme",
-    "generate_docs": "asyncapi generate fromTemplate ./asyncapi.yaml @asyncapi/html-template -o ./public --force-write && cat ./add.css >> ./public/css/global.min.css",
-    "format": "prettier . --write",
-    "lint:prettier": "prettier .",
-    "test": "./test.sh"
+    "generate_docs": "asyncapi generate fromTemplate ./asyncapi.yaml @asyncapi/html-template -o ./public --force-write && cat ./add.css >> ./public/css/global.min.css"
   },
   "repository": {
     "type": "git",
