@@ -2,6 +2,6 @@
 	display: none;
 }
 
-.sidebar-content > ul > li:nth-child(2) {
+.sidebar--content > ul > li:nth-child(2) {
 	display: none;
 }
