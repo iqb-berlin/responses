@@ -13,7 +13,7 @@
     "test_response": "ts-node ./test.ts response",
     "test_variable_list": "ts-node ./test.ts variable-list",
     "test_response_scheme": "ts-node ./test.ts response-scheme",
-    "generate_docs": "asyncapi generate fromTemplate ./asyncapi.yaml @asyncapi/html-template -o ./public --force-write",
+    "generate_docs": "asyncapi generate fromTemplate ./asyncapi.yaml @asyncapi/html-template -o ./public --force-write && cat ./add.css >> ./public/css/global.min.css",
     "format": "prettier . --write",
     "lint:prettier": "prettier .",
     "test": "./test.sh"
