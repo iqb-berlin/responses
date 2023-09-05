@@ -23,5 +23,6 @@
     "@asyncapi/html-template": "^0.28.3",
     "ajv": "^8.12.0",
     "ts-node": "^10.9.1"
-  }
+  },
+  "types": "index.d.ts"
 }
