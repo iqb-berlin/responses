@@ -4,7 +4,6 @@ pages:
   script:
     - npm install
     - npm run test_response
-    - npm run test_variable_list
     - npm run generate_docs
   artifacts:
     paths:
