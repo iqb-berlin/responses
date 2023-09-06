@@ -2,12 +2,13 @@
   "name": "@iqb/responses",
   "version": "0.6.0",
   "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
-  "license": "CC-BY-4.0",
-  "description": "Data interfaces for verona related assessment applications",
+  "license": "CC-BY-SA-4.0",
+  "description": "Data interfaces for assessment applications",
   "scripts": {
     "test_response": "ts-node ./test.ts response",
     "test_response_scheme": "ts-node ./test.ts response-scheme",
-    "generate_docs": "asyncapi generate fromTemplate json_schema/asyncapi.yaml @asyncapi/html-template -o ./public --force-write && cat json_schema/add.css >> ./public/css/global.min.css"
+    "generate_docs": "asyncapi generate fromTemplate json_schema/asyncapi.yaml @asyncapi/html-template -o ./public --force-write && cat json_schema/add.css >> ./public/css/global.min.css",
+    "generate_npm_publish": "tsc && npm publish"
   },
   "repository": {
     "type": "git",
@@ -24,5 +25,6 @@
     "ajv": "^8.12.0",
     "ts-node": "^10.9.1"
   },
-  "types": "index.d.ts"
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts"
 }

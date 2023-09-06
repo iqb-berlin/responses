@@ -2,7 +2,9 @@
 
 This package contains of type definitions for processing assessment data.
 
-Browse through [this document](https://pages.cms.hu-berlin.de/iqb/ci_cd/responses) to learn about the data structures of IQB.
+
+# JSON Schema
+The definitions are available as JSON schema files. This way, you can validate your data. The schema files are also the source of documentation: [See here](https://pages.cms.hu-berlin.de/iqb/ci_cd/responses) to learn about the data structures.
 
 # For developers
 

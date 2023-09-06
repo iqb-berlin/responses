@@ -22,6 +22,6 @@ channels:
 components:
   schemas:
     response:
-      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/response/response.json'
+      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/response/response.json'
     response_scheme:
-      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/response-scheme/response-scheme.json'
+      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/response-scheme/response-scheme.json'
