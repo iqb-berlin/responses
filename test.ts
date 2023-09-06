@@ -1,4 +1,4 @@
-const schema_folder = `${__dirname}/${process.argv[2]}`;
+const schema_folder = `${__dirname}/json_schema/${process.argv[2]}`;
 const schema_filename = `${schema_folder}/${process.argv[2]}.json`;
 const valid_folder = `${schema_folder}/test_valid`;
 const invalid_folder = `${schema_folder}/test_invalid`;
@@ -36,7 +36,7 @@ function evaluateFileOk(filename: string, checkForInvalid: boolean): boolean {
     }
 }
 
-let schema = null;
+let schema;
 try {
     schema = fs.readFileSync(schema_filename, 'utf8');
 } catch (err) {

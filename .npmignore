@@ -11,8 +11,7 @@
 .DS_Store
 Thumbs.db
 /public/**
-test_invalid/
-test_valid/
+/json_schema
 test.ts
 add.css
 .gitlab-ci.yml
