@@ -1,5 +1,6 @@
 import {Response} from "../response/response";
 import {CoderVariable} from "./coder-variable";
+import {VariableInfo} from "../variable-list/variable-list";
 
 export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THEN' | 'NUMERIC_MORE_THEN' |
     'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE';
@@ -30,6 +31,8 @@ export interface VariableCodingData {
     codes: CodeData[];
 }
 
+
+
 export class ResponseScheme {
     public variableCodings: VariableCodingData[] = [];
 
@@ -58,5 +61,23 @@ export class ResponseScheme {
         }
         if (cycleCount >= 1000) console.log('iteration cancelled');
         return coderVariables;
+    }
+
+    public static fromVariableInfo(varInfo: VariableInfo): VariableCodingData {
+        return <VariableCodingData>{
+            id: varInfo.id,
+            label: varInfo.id,
+            sourceType: 'BASE',
+            deriveSources: [],
+            deriveSourceType: 'CODE',
+            valueTransformations: [],
+            manualInstruction: '',
+            codes: []
+        };
+    }
+
+    public static copy(source: VariableCodingData): VariableCodingData {
+        const dataSerialized = JSON.stringify(source); // decouple objects
+        return JSON.parse(dataSerialized);
     }
 }
