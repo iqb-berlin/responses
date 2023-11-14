@@ -1,14 +1,14 @@
 {
   "name": "@iqb/responses",
-  "version": "0.9.0",
   "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
   "license": "CC-BY-SA-4.0",
-  "description": "Data interfaces for assessment applications",
+  "description": "Data interfaces for processing assessment data.",
   "scripts": {
     "test_response": "ts-node ./test.ts response",
     "test_response_scheme": "ts-node ./test.ts response-scheme",
     "generate_docs": "asyncapi generate fromTemplate json_schema/asyncapi.yaml @asyncapi/html-template -o ./public --force-write && cat json_schema/add.css >> ./public/css/global.min.css",
-    "generate_npm_publish": "tsc && npm publish"
+    "prepare_publish": "rm -rf dist/* && tsc && cp ./package_npm.json ./dist/package.json && cp ./README.md ./dist",
+    "npm_publish": "cd dist && npm publish --access public"
   },
   "repository": {
     "type": "git",
@@ -24,7 +24,5 @@
     "@asyncapi/html-template": "^0.28.3",
     "ajv": "^8.12.0",
     "ts-node": "^10.9.1"
-  },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts"
+  }
 }

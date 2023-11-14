@@ -7,6 +7,8 @@ export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_RANGE' | 'NUMERIC_LE
 
 export type ValueTransformation = 'TO_UPPER' | 'REMOVE_WHITE_SPACES' | 'DATE_TO_ISO' | 'TIME_TO_ISO';
 
+export type CodingPattern = null | 'CHOICE' | 'INPUT_INTEGER' | 'INPUT_STRING';
+
 export interface CodingRule {
     method: RuleMethod,
     parameters: string[],
@@ -23,9 +25,10 @@ export interface CodeData {
 export interface VariableCodingData {
     id: string;
     label: string;
+    pattern: CodingPattern;
     sourceType: 'BASE' | 'DERIVE_CONCAT' | 'DERIVE_SUM';
     deriveSources: string[];
-    deriveSourceType: 'VALUE' | 'CODE' | 'SCORE';
+    deriveSourceType: null | 'VALUE' | 'CODE' | 'SCORE';
     valueTransformations: ValueTransformation[];
     manualInstruction: string;
     codes: CodeData[];
@@ -66,10 +69,11 @@ export class ResponseScheme {
     public static fromVariableInfo(varInfo: VariableInfo): VariableCodingData {
         return <VariableCodingData>{
             id: varInfo.id,
-            label: varInfo.id,
+            label: '',
+            pattern: null,
             sourceType: 'BASE',
             deriveSources: [],
-            deriveSourceType: 'CODE',
+            deriveSourceType: null,
             valueTransformations: [],
             manualInstruction: '',
             codes: []

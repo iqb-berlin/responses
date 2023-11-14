@@ -16,6 +16,15 @@
         "type": "string",
         "description": "Some additional info for UI"
       },
+      "pattern": {
+        "type": "string",
+        "enum": [
+          "CHOICE",
+          "INPUT_INTEGER",
+          "INPUT_STRING"
+        ],
+        "description": "Info for applications to simplify UI"
+      },
       "sourceType": {
         "type": "string",
         "enum": [
@@ -110,6 +119,9 @@
           ]
         }
       }
-    }
+    },
+    "required": [
+      "id", "sourceType"
+    ]
   }
 }
