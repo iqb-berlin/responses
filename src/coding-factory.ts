@@ -18,10 +18,37 @@ export abstract class CodingFactory {
         return newVariable
     }
 
+    private static deriveValue(coding: VariableCodingData, allResponses: Response[]): ValueType {
+        // raises exceptions if deriving fails
+        // ensure before, that sourceType is not 'BASE' and there are enough valid sources
+        switch (coding.sourceType) {
+            case 'COPY_FIRST_VALUE':
+                const sourceResponse = allResponses.find(r => r.id === coding.deriveSources[0]);
+                if (sourceResponse) {
+                    const stringifiedValue = JSON.stringify(sourceResponse.value);
+                    return JSON.parse(stringifiedValue);
+                }
+                break;
+            case 'CONCAT_CODE':
+                return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
+                    .map(r => r.code ? r.code.toString() : '')
+                    .join();
+            case 'SUM_CODE':
+                return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
+                    .map(r => r.code ? r.code : 0)
+                    .reduce((sum, current) => sum + current, 0);
+            case 'SUM_SCORE':
+                return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
+                    .map(r => r.score ? r.score : 0)
+                    .reduce((sum, current) => sum + current, 0);
+        }
+        throw new TypeError('deriving failed');
+    }
+
     private static transformValue(value: ValueType, transformations: ValueTransformation[]): ValueType {
         // raises exceptions if transformation fails
-        // todo: clone if array
-        let newValue = value;
+        const stringifiedValue = JSON.stringify(value);
+        let newValue = JSON.parse(stringifiedValue);
         if (typeof newValue === 'string' && transformations && transformations.length > 0) {
             if (transformations.indexOf('TO_UPPER') >= 0) {
                 newValue = newValue.toUpperCase();
@@ -40,7 +67,7 @@ export abstract class CodingFactory {
     }
 
     private static findString(parameters: string[], value: ValueType): boolean {
-        if (typeof value === 'string') {
+        if (typeof value === 'string' && value.length > 0) {
             let allStrings: string[] = [];
             parameters.forEach(p => {
                 allStrings = allStrings.concat(p.split('\n'));
@@ -51,7 +78,7 @@ export abstract class CodingFactory {
     }
 
     private static findStringRegEx(parameters: string[], value: ValueType): boolean {
-        if (typeof value === 'string') {
+        if (typeof value === 'string' && value.length > 0) {
             let allStrings: string[] = [];
             parameters.forEach(p => {
                 allStrings = allStrings.concat(p.split('\n'));
