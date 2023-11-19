@@ -1,50 +1,11 @@
-import {Response} from "../response/response";
-import {CoderVariable} from "./coder-variable";
-import {VariableInfo} from "../variable-list/variable-list";
-
-export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THEN' | 'NUMERIC_MORE_THEN' |
-    'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL';
-export const RuleMethodParameterCount = {
-    'MATCH': -1, 'MATCH_REGEX': -1, 'NUMERIC_RANGE': 2, 'NUMERIC_LESS_THEN': 1, 'NUMERIC_MORE_THEN': 1,
-    'NUMERIC_MAX': 1, 'NUMERIC_MIN': 1, 'IS_EMPTY': 0, 'ELSE': 0, 'IS_NULL': 0
-}
-export type ValueTransformation = 'TO_UPPER' | 'REMOVE_WHITE_SPACES' | 'TO_NUMBER';
-export type CodeModel = null | 'CHOICE' | 'INPUT_INTEGER' | 'INPUT_STRING';
-export type SourceType = 'BASE' | 'COPY_FIRST_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
-export type CodingSchemeProblemType = 'VACANT' | 'SOURCE_MISSING' | 'INVALID_SOURCE' | 'RULE_PARAMETER_COUNT_MISMATCH'
-    | 'MORE_THEN_ONE_SOURCE' | 'ONLY_ONE_SOURCE' | 'VALUE_COPY_NOT_FROM_BASE';
-
-export interface CodingRule {
-    method: RuleMethod,
-    parameters: string[],
-}
-
-export interface CodeData {
-    id: number,
-    label: string,
-    score: number,
-    rules: CodingRule[],
-    manualInstruction: string
-}
-
-export interface VariableCodingData {
-    id: string;
-    label: string;
-    sourceType: SourceType;
-    deriveSources: string[];
-    valueTransformations: ValueTransformation[];
-    manualInstruction: string;
-    codeModel: CodeModel;
-    codeModelParameters: string[],
-    codes: CodeData[];
-}
-
-export interface CodingSchemeProblem {
-    type: CodingSchemeProblemType,
-    breaking: boolean,
-    variable_id: string,
-    code?: number
-}
+import {
+    VariableCodingData,
+    Response,
+    VariableInfo,
+    CodingSchemeProblem,
+    RuleMethodParameterCount
+} from "./coding-interfaces";
+import {CodingFactory} from "./coding-factory";
 
 export class CodingScheme {
     public variableCodings: VariableCodingData[] = [];
@@ -87,32 +48,72 @@ export class CodingScheme {
         })
     }
 
-    code(sourceValues: Response[]): Response[] {
-
-        const usedSources: string[] = [];
-        const coderVariables: CoderVariable[] = [];
-        sourceValues.forEach(v => {
-            let myCodingScheme: VariableCodingData | null = null;
-            this.variableCodings.forEach(cs => {
-                if (cs.id === v.id) myCodingScheme = cs;
-            });
-            coderVariables.push(new CoderVariable(v, myCodingScheme));
-            usedSources.push(v.id);
-        });
-        this.variableCodings.forEach(cs => {
-            if (usedSources.indexOf(cs.id) < 0) coderVariables.push(new CoderVariable(null, cs));
-        });
+    code(unitResponses: Response[]): Response[] {
+        const stringifiedResponses = JSON.stringify(unitResponses);
+        const newResponses: Response[] = JSON.parse(stringifiedResponses);
         let changed = true;
         let cycleCount = 0;
         while (changed && cycleCount < 1000) {
             changed = false;
             cycleCount += 1;
-            coderVariables.forEach(cv => {
-                if (cv.deriveAndCode_changesMade(coderVariables)) changed = true;
+            this.variableCodings.forEach(coding => {
+                let newResponse = newResponses.find(r => r.id === coding.id);
+                if (coding.sourceType === 'BASE' && newResponse
+                    && newResponse.status === 'VALUE_CHANGED' && coding.codes.length > 0) {
+                    const codedResponse = CodingFactory.code(newResponse, coding);
+                    if (codedResponse.status !== newResponse.status) {
+                        newResponse.status = codedResponse.status;
+                        newResponse.code = codedResponse.code;
+                        newResponse.score = codedResponse.score;
+                        changed = true;
+                    }
+                } else if (coding.deriveSources.length > 0) {
+                    if (!newResponse) {
+                        newResponse = {
+                            id: coding.id,
+                            value: null,
+                            status: "SOURCE_MISSING"
+                        }
+                        newResponses.push(newResponse);
+                        changed = true;
+                    }
+                    if (newResponse.status === "SOURCE_MISSING") {
+                        if (coding.sourceType === 'COPY_FIRST_VALUE') {
+                            const sourceResponse = newResponses.find(r => r.id === coding.deriveSources[0]);
+                            if (sourceResponse && ['VALUE_CHANGED', 'CODING_COMPLETE', 'VALUE_DERIVED'].indexOf(sourceResponse.status) >= 0) {
+                                newResponse.value = JSON.stringify(sourceResponse.value);
+                                newResponse.status = 'VALUE_DERIVED';
+                                changed = true;
+                            }
+                        } else {
+                            const deriveSources = newResponses.filter(r => coding.deriveSources
+                                .indexOf(r.id) >= 0 && r.status === 'CODING_COMPLETE');
+                            if (deriveSources.length === coding.deriveSources.length) {
+                                try {
+                                    newResponse.value = CodingFactory.deriveValue(coding, newResponses);
+                                    newResponse.status = 'VALUE_DERIVED';
+                                    changed = true;
+                                } catch (e) {
+                                    newResponse.status = 'DERIVE_ERROR';
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+                    if (newResponse.status === 'VALUE_DERIVED') {
+                        const codedResponse = CodingFactory.code(newResponse, coding);
+                        if (codedResponse.status !== newResponse.status) {
+                            newResponse.status = codedResponse.status;
+                            newResponse.code = codedResponse.code;
+                            newResponse.score = codedResponse.score;
+                            changed = true;
+                        }
+                    }
+                }
             });
         }
         if (cycleCount >= 1000) console.log('iteration cancelled');
-        return coderVariables;
+        return newResponses;
     }
 
     validate(baseVariables: VariableInfo[]): CodingSchemeProblem[] {

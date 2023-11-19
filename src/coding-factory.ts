@@ -1,13 +1,4 @@
-import {
-    CodeData,
-    CodeModel,
-    RuleMethod,
-    SourceType,
-    ValueTransformation,
-    VariableCodingData
-} from "./coding-scheme/coding-scheme";
-import {VariableInfo} from "./variable-list/variable-list";
-import {ValueType, Response} from "./response/response";
+import {ValueType, VariableCodingData, VariableInfo, Response, ValueTransformation} from "./coding-interfaces";
 
 export abstract class CodingFactory {
     public static createCodingVariableFromVarInfo(varInfo: VariableInfo): VariableCodingData {
@@ -29,13 +20,6 @@ export abstract class CodingFactory {
         // raises exceptions if deriving fails
         // ensure before, that sourceType is not 'BASE' and there are enough valid sources
         switch (coding.sourceType) {
-            case 'COPY_FIRST_VALUE':
-                const sourceResponse = allResponses.find(r => r.id === coding.deriveSources[0]);
-                if (sourceResponse) {
-                    const stringifiedValue = JSON.stringify(sourceResponse.value);
-                    return JSON.parse(stringifiedValue);
-                }
-                break;
             case 'CONCAT_CODE':
                 return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
                     .map(r => r.code ? r.code.toString() : '')
