@@ -1,4 +1,11 @@
-import {CodeData, CodeModel, SourceType, ValueTransformation, VariableCodingData} from "./coding-scheme/coding-scheme";
+import {
+    CodeData,
+    CodeModel,
+    RuleMethod,
+    SourceType,
+    ValueTransformation,
+    VariableCodingData
+} from "./coding-scheme/coding-scheme";
 import {VariableInfo} from "./variable-list/variable-list";
 import {ValueType, Response} from "./response/response";
 
@@ -18,7 +25,7 @@ export abstract class CodingFactory {
         return newVariable
     }
 
-    private static deriveValue(coding: VariableCodingData, allResponses: Response[]): ValueType {
+    public static deriveValue(coding: VariableCodingData, allResponses: Response[]): ValueType {
         // raises exceptions if deriving fails
         // ensure before, that sourceType is not 'BASE' and there are enough valid sources
         switch (coding.sourceType) {
