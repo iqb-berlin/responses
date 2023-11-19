@@ -4,10 +4,14 @@ import {VariableInfo} from "../variable-list/variable-list";
 
 export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THEN' | 'NUMERIC_MORE_THEN' |
     'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL';
+export const RuleMethodParameterCount = {
+    'MATCH': -1, 'MATCH_REGEX': -1, 'NUMERIC_RANGE': 2, 'NUMERIC_LESS_THEN': 1, 'NUMERIC_MORE_THEN': 1,
+    'NUMERIC_MAX': 1, 'NUMERIC_MIN': 1, 'IS_EMPTY': 0, 'ELSE': 0, 'IS_NULL': 0
+}
 export type ValueTransformation = 'TO_UPPER' | 'REMOVE_WHITE_SPACES' | 'TO_NUMBER';
 export type CodeModel = null | 'CHOICE' | 'INPUT_INTEGER' | 'INPUT_STRING';
 export type SourceType = 'BASE' | 'COPY_FIRST_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
-export type CodingSchemeProblemType = 'VACANT' | 'SOURCE_MISSING' | 'INVALID_SOURCE' | 'CODE_PARAMETER_MISSING'
+export type CodingSchemeProblemType = 'VACANT' | 'SOURCE_MISSING' | 'INVALID_SOURCE' | 'RULE_PARAMETER_COUNT_MISMATCH'
     | 'MORE_THEN_ONE_SOURCE' | 'ONLY_ONE_SOURCE' | 'VALUE_COPY_NOT_FROM_BASE';
 
 export interface CodingRule {
@@ -111,14 +115,16 @@ export class CodingScheme {
         return coderVariables;
     }
 
-    validate(baseVariables: string[]): CodingSchemeProblem[] {
+    validate(baseVariables: VariableInfo[]): CodingSchemeProblem[] {
         // todo: check against VarInfo
         let problems: CodingSchemeProblem[] = [];
-        const allDerivedVariables: string[] = [];
+        let allDerivedVariables: string[];
+        allDerivedVariables = [];
         this.variableCodings.forEach(vc => allDerivedVariables.concat(vc.deriveSources));
+        const allBaseVariableIds = baseVariables.map(bv => bv.id);
         this.variableCodings.forEach(c => {
             if (c.sourceType === 'BASE') {
-                if (baseVariables.indexOf(c.id) < 0) problems.push({
+                if (allBaseVariableIds.indexOf(c.id) < 0) problems.push({
                     type: "SOURCE_MISSING",
                     breaking: true,
                     variable_id: c.id
@@ -171,7 +177,25 @@ export class CodingScheme {
             }
             if (c.codes.length > 0) {
                 c.codes.forEach(code => {
-
+                    code.rules.forEach(r => {
+                        if (RuleMethodParameterCount[r.method] < 0) {
+                            if (r.parameters.length < 1) problems.push({
+                                type: "RULE_PARAMETER_COUNT_MISMATCH",
+                                breaking: true,
+                                variable_id: c.id,
+                                code: code.id
+                            });
+                        } else {
+                            if (RuleMethodParameterCount[r.method] !== r.parameters.length) {
+                                problems.push({
+                                    type: "RULE_PARAMETER_COUNT_MISMATCH",
+                                    breaking: true,
+                                    variable_id: c.id,
+                                    code: code.id
+                                });
+                            }
+                        }
+                    })
                 })
             } else if (allDerivedVariables.indexOf(c.id) < 0) {
                 problems.push({
@@ -181,8 +205,6 @@ export class CodingScheme {
                 })
             }
         })
-
-
         return problems;
     }
 }
