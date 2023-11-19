@@ -1,6 +1,6 @@
 import {CodeData, CodeModel, SourceType, ValueTransformation, VariableCodingData} from "./coding-scheme/coding-scheme";
 import {VariableInfo} from "./variable-list/variable-list";
-import {ValueType} from "./response/response";
+import {ValueType, Response} from "./response/response";
 
 export abstract class CodingFactory {
     public static createCodingVariableFromVarInfo(varInfo: VariableInfo): VariableCodingData {
@@ -18,7 +18,7 @@ export abstract class CodingFactory {
         return newVariable
     }
 
-    public static transformValue(value: ValueType, transformations: ValueTransformation[]): ValueType {
+    private static transformValue(value: ValueType, transformations: ValueTransformation[]): ValueType {
         // raises exceptions if transformation fails
         // todo: clone if array
         let newValue = value;
@@ -31,9 +31,197 @@ export abstract class CodingFactory {
             }
             if (transformations.indexOf('TO_NUMBER') >= 0) {
                 newValue = Number.parseFloat(newValue.replace(',', '.'));
+                if (Number.isNaN(newValue)) {
+                    throw new TypeError('response value type conversion to number failed')
+                }
             }
         }
         return newValue;
+    }
+
+    private static findString(parameters: string[], value: ValueType): boolean {
+        if (typeof value === 'string') {
+            let allStrings: string[] = [];
+            parameters.forEach(p => {
+                allStrings = allStrings.concat(p.split('\n'));
+            });
+            return allStrings.indexOf(value as string) >= 0;
+        }
+        return false
+    }
+
+    private static findStringRegEx(parameters: string[], value: ValueType): boolean {
+        if (typeof value === 'string') {
+            let allStrings: string[] = [];
+            parameters.forEach(p => {
+                allStrings = allStrings.concat(p.split('\n'));
+            });
+            allStrings.forEach(s => {
+                const regEx = new RegExp(s);
+                if (regEx.exec(value)) return true;
+            })
+        }
+        return false
+    }
+
+    public static code(response: Response, coding: VariableCodingData): Response {
+        const stringifiedResponse = JSON.stringify(response);
+        let newResponse = JSON.parse(stringifiedResponse);
+        if (coding && coding.codes.length > 0 && !Array.isArray(newResponse.value)) {
+            let valueToCheck: ValueType;
+            try {
+                valueToCheck = this.transformValue(newResponse.value, coding.valueTransformations);
+            } catch (e) {
+                newResponse.status = 'CODING_ERROR';
+                valueToCheck = null
+            }
+            if (newResponse.status !== 'CODING_ERROR') {
+                let hasElse = false;
+                let elseCode = 0;
+                let elseScore = 0;
+                let changed = false;
+                coding.codes.forEach(c => {
+                    if (!changed) {
+                        c.rules.forEach(r => {
+                            if (!changed) {
+                                // eslint-disable-next-line default-case
+                                switch (r.method) {
+                                    case 'ELSE':
+                                        hasElse = true;
+                                        elseCode = c.id;
+                                        elseScore = c.score;
+                                        break;
+                                    case 'IS_NULL':
+                                        if (valueToCheck === null) {
+                                            newResponse.code = c.id;
+                                            newResponse.score = c.score;
+                                            newResponse.status = 'CODING_COMPLETE';
+                                            changed = true;
+                                        }
+                                        break;
+                                    case 'IS_EMPTY':
+                                        if (valueToCheck === '') {
+                                            newResponse.code = c.id;
+                                            newResponse.score = c.score;
+                                            newResponse.status = 'CODING_COMPLETE';
+                                            changed = true;
+                                        }
+                                        break;
+                                    case 'MATCH':
+                                        if (this.findString(r.parameters, valueToCheck)) {
+                                            newResponse.code = c.id;
+                                            newResponse.score = c.score;
+                                            newResponse.status = 'CODING_COMPLETE';
+                                            changed = true;
+                                        }
+                                        break;
+                                    case 'MATCH_REGEX':
+                                        if (this.findStringRegEx(r.parameters, valueToCheck)) {
+                                            newResponse.code = c.id;
+                                            newResponse.score = c.score;
+                                            newResponse.status = 'CODING_COMPLETE';
+                                            changed = true;
+                                        }
+                                        break;
+                                    case 'NUMERIC_LESS_THEN':
+                                        if (typeof valueToCheck === 'number') {
+                                            const valueAsNumeric = valueToCheck as number;
+                                            const compareValue = Number.parseFloat(r.parameters[0]);
+                                            if (valueAsNumeric < compareValue) {
+                                                newResponse.code = c.id;
+                                                newResponse.score = c.score;
+                                                newResponse.status = 'CODING_COMPLETE';
+                                                changed = true;
+                                            }
+                                        } else {
+                                            newResponse.status = 'CODING_ERROR';
+                                            changed = true;
+                                        }
+                                        break;
+                                    case 'NUMERIC_MAX':
+                                        if (typeof valueToCheck === 'number') {
+                                            const valueAsNumeric = valueToCheck as number;
+                                            const compareValue = Number.parseFloat(r.parameters[0]);
+                                            if (valueAsNumeric <= compareValue) {
+                                                newResponse.code = c.id;
+                                                newResponse.score = c.score;
+                                                newResponse.status = 'CODING_COMPLETE';
+                                                changed = true;
+                                            }
+                                        } else {
+                                            newResponse.status = 'CODING_ERROR';
+                                            changed = true;
+                                        }
+                                        break;
+                                    case 'NUMERIC_MORE_THEN':
+                                        if (typeof valueToCheck === 'number') {
+                                            const valueAsNumeric = valueToCheck as number;
+                                            const compareValue = Number.parseFloat(r.parameters[0]);
+                                            if (valueAsNumeric > compareValue) {
+                                                newResponse.code = c.id;
+                                                newResponse.score = c.score;
+                                                newResponse.status = 'CODING_COMPLETE';
+                                                changed = true;
+                                            }
+                                        } else {
+                                            newResponse.status = 'CODING_ERROR';
+                                            changed = true;
+                                        }
+                                        break;
+                                    case 'NUMERIC_MIN':
+                                        if (typeof valueToCheck === 'number') {
+                                            const valueAsNumeric = valueToCheck as number;
+                                            const compareValue = Number.parseFloat(r.parameters[0]);
+                                            if (valueAsNumeric >= compareValue) {
+                                                newResponse.code = c.id;
+                                                newResponse.score = c.score;
+                                                newResponse.status = 'CODING_COMPLETE';
+                                                changed = true;
+                                            }
+                                        } else {
+                                            newResponse.status = 'CODING_ERROR';
+                                            changed = true;
+                                        }
+                                        break;
+                                    case 'NUMERIC_RANGE':
+                                        if (typeof valueToCheck === 'number') {
+                                            const valueAsNumeric = valueToCheck as number;
+                                            const compareValueLL = Number.parseFloat(r.parameters[0]);
+                                            const compareValueUL = Number.parseFloat(r.parameters[1]);
+                                            if (valueAsNumeric > compareValueLL && valueAsNumeric <= compareValueUL) {
+                                                newResponse.code = c.id;
+                                                newResponse.score = c.score;
+                                                newResponse.status = 'CODING_COMPLETE';
+                                                changed = true;
+                                            }
+                                        } else {
+                                            newResponse.status = 'CODING_ERROR';
+                                            changed = true;
+                                        }
+                                        break;
+                                }
+                            }
+                        });
+                    }
+                });
+                if (!changed) {
+                    if (hasElse) {
+                        newResponse.code = elseCode;
+                        newResponse.score = elseScore;
+                        newResponse.status = 'CODING_COMPLETE';
+                        changed = true;
+                    } else {
+                        newResponse.code = 0;
+                        newResponse.score = 0;
+                        newResponse.status = 'CODING_INCOMPLETE';
+                        changed = true;
+                    }
+                }
+            }
+        } else  {
+            newResponse.status = 'NO_CODING';
+        }
+        return newResponse;
     }
 }
 
