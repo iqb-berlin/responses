@@ -247,19 +247,6 @@ export class CoderVariable implements Response {
         return changed;
     }
 
-    private transformValue(): ValueType {
-        let returnValue = this.value;
-        if (typeof returnValue === 'string' && this.codingScheme) {
-            if (this.codingScheme?.valueTransformations.indexOf('TO_UPPER') >= 0) {
-                returnValue = returnValue.toUpperCase();
-            }
-            if (this.codingScheme?.valueTransformations.indexOf('REMOVE_WHITE_SPACES') >= 0) {
-                returnValue = returnValue.trim();
-            }
-        }
-        return returnValue;
-    }
-
     private static getMatchStrings(parameter: string[]): string[] {
         let result: string[] = [];
         parameter.forEach(p => {

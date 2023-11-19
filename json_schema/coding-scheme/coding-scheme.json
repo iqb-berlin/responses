@@ -37,8 +37,7 @@
           "enum": [
             "TO_UPPER",
             "REMOVE_WHITE_SPACES",
-            "DATE_TO_ISO",
-            "TIME_TO_ISO"
+            "TO_NUMBER"
           ]
         },
         "description": "This parameter defines what transformation should be done with the source value before evaluation."

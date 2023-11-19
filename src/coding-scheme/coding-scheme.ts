@@ -4,7 +4,7 @@ import {VariableInfo} from "../variable-list/variable-list";
 
 export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THEN' | 'NUMERIC_MORE_THEN' |
     'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE';
-export type ValueTransformation = 'TO_UPPER' | 'REMOVE_WHITE_SPACES' | 'DATE_TO_ISO' | 'TIME_TO_ISO';
+export type ValueTransformation = 'TO_UPPER' | 'REMOVE_WHITE_SPACES' | 'TO_NUMBER';
 export type CodeModel = null | 'CHOICE' | 'INPUT_INTEGER' | 'INPUT_STRING';
 export type SourceType = 'BASE' | 'COPY_FIRST_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
 
