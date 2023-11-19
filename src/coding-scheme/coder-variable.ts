@@ -1,5 +1,5 @@
 import {CodingStatus, Response, ValueType} from "../response/response";
-import {VariableCodingData} from "./response-scheme";
+import {VariableCodingData} from "./coding-scheme";
 
 export class CoderVariable implements Response {
     id: string;

@@ -16,21 +16,10 @@
         "type": "string",
         "description": "Some additional info for UI"
       },
-      "pattern": {
-        "type": "string",
-        "enum": [
-          "CHOICE",
-          "INPUT_INTEGER",
-          "INPUT_STRING"
-        ],
-        "description": "Info for applications to simplify UI"
-      },
       "sourceType": {
         "type": "string",
         "enum": [
-          "BASE",
-          "DERIVE_CONCAT",
-          "DERIVE_SUM"
+          "BASE", "COPY_FIRST_VALUE", "CONCAT_CODE", "SUM_CODE", "SUM_SCORE"
         ],
         "description": "CONCAT means concatenate all source values as string, SUM takes all source values as numeric and calculates a sum."
       },
@@ -40,15 +29,6 @@
           "type": "string",
           "pattern": "^[0-9a-zA-Z_]+$"
         }
-      },
-      "deriveSourceType": {
-        "type": "string",
-        "enum": [
-          "VALUE",
-          "CODE",
-          "SCORE"
-        ],
-        "description": "This parameter defines what part of the source variable should be taken to the next step."
       },
       "valueTransformations": {
         "type": "array",
@@ -66,6 +46,21 @@
       "manualInstruction": {
         "type": "string",
         "description": "Instructions for manual coding."
+      },
+      "codeModel": {
+        "type": "string",
+        "enum": [
+          "CHOICE",
+          "INPUT_INTEGER",
+          "INPUT_STRING"
+        ],
+        "description": "Info for applications to simplify UI"
+      },
+      "codeModelParameters": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
       },
       "codes": {
         "type": "array",
