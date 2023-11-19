@@ -1,0 +1,46 @@
+[
+  {
+    "id": "M1",
+    "type": "string",
+    "format": "",
+    "multiple": false,
+    "nullable": false,
+    "values": [],
+    "valuePositionLabels": [],
+    "valuesComplete": false,
+    "page": ""
+  },
+  {
+    "id": "M2",
+    "type": "string",
+    "format": "",
+    "multiple": false,
+    "nullable": false,
+    "values": [],
+    "valuePositionLabels": [],
+    "valuesComplete": false,
+    "page": ""
+  },
+  {
+    "id": "M3",
+    "type": "string",
+    "format": "",
+    "multiple": false,
+    "nullable": false,
+    "values": [],
+    "valuePositionLabels": [],
+    "valuesComplete": false,
+    "page": ""
+  },
+  {
+    "id": "M4",
+    "type": "string",
+    "format": "",
+    "multiple": false,
+    "nullable": false,
+    "values": [],
+    "valuePositionLabels": [],
+    "valuesComplete": false,
+    "page": ""
+  }
+]

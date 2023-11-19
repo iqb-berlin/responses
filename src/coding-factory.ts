@@ -23,7 +23,7 @@ export abstract class CodingFactory {
             case 'CONCAT_CODE':
                 return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
                     .map(r => r.code ? r.code.toString() : '')
-                    .join();
+                    .join('_');
             case 'SUM_CODE':
                 return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
                     .map(r => r.code ? r.code : 0)

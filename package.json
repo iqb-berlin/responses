@@ -6,6 +6,7 @@
   "scripts": {
     "test_response": "ts-node ./test.ts response",
     "test_response_scheme": "ts-node ./test.ts response-scheme",
+    "test_coding": "cd test && ts-node test-coding case1",
     "generate_docs": "asyncapi generate fromTemplate json_schema/asyncapi.yaml @asyncapi/html-template -o ./public --force-write && cat json_schema/add.css >> ./public/css/global.min.css",
     "prepare_publish": "rm -rf dist/* && tsc && cp ./package_npm.json ./dist/package.json && cp ./README.md ./dist",
     "npm_publish": "cd dist && npm publish --access public"
