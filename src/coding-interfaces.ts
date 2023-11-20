@@ -1,12 +1,12 @@
-export type StatusType = 'UNSET' | 'NOT_REACHED' | 'DISPLAYED' | 'VALUE_CHANGED' | 'VALUE_DERIVED' |
+export type ResponseStatusType = 'UNSET' | 'NOT_REACHED' | 'DISPLAYED' | 'VALUE_CHANGED' | 'VALUE_DERIVED' |
     'SOURCE_MISSING' | 'DERIVE_ERROR' | 'CODING_COMPLETE' | 'NO_CODING' | 'CODING_INCOMPLETE' | 'CODING_ERROR';
 
-export type ValueType = null | string | number | boolean | string[] | number[] | boolean[];
+export type ResponseValueType = null | string | number | boolean | string[] | number[] | boolean[];
 
 export interface Response {
     id: string,
-    status: StatusType;
-    value: ValueType;
+    status: ResponseStatusType;
+    value: ResponseValueType;
     subform?: string,
     code?: number;
     score?: number
@@ -19,14 +19,14 @@ export const RuleMethodParameterCount = {
     'NUMERIC_MAX': 1, 'NUMERIC_MIN': 1, 'IS_EMPTY': 0, 'ELSE': 0, 'IS_NULL': 0
 }
 export type ValueTransformation = 'TO_UPPER' | 'REMOVE_WHITE_SPACES' | 'TO_NUMBER';
-export type CodeModel = null | 'CHOICE' | 'INPUT_INTEGER' | 'INPUT_STRING';
+export type CodeModel = null | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL';
 export type SourceType = 'BASE' | 'COPY_FIRST_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
 export type CodingSchemeProblemType = 'VACANT' | 'SOURCE_MISSING' | 'INVALID_SOURCE' | 'RULE_PARAMETER_COUNT_MISMATCH'
     | 'MORE_THEN_ONE_SOURCE' | 'ONLY_ONE_SOURCE' | 'VALUE_COPY_NOT_FROM_BASE';
 
 export interface CodingRule {
     method: RuleMethod,
-    parameters: string[],
+    parameters?: string[],
 }
 
 export interface CodeData {
@@ -44,8 +44,8 @@ export interface VariableCodingData {
     deriveSources: string[];
     valueTransformations: ValueTransformation[];
     manualInstruction: string;
-    codeModel: CodeModel;
-    codeModelParameters: string[],
+    codeModel?: CodeModel;
+    codeModelParameters?: string[],
     codes: CodeData[];
 }
 
@@ -56,10 +56,10 @@ export interface CodingSchemeProblem {
     code?: number
 }
 
-export type VariableListValueType = string | number | boolean;
+export type VariableInfoValueType = string | number | boolean;
 
 export interface VariableValue {
-    value: VariableListValueType;
+    value: VariableInfoValueType;
     label: string
 }
 export interface VariableInfo {

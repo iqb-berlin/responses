@@ -1,4 +1,4 @@
-import {ValueType, VariableCodingData, VariableInfo, Response, ValueTransformation} from "./coding-interfaces";
+import {ResponseValueType, VariableCodingData, VariableInfo, Response, ValueTransformation} from "./coding-interfaces";
 
 export abstract class CodingFactory {
     public static createCodingVariableFromVarInfo(varInfo: VariableInfo): VariableCodingData {
@@ -16,7 +16,7 @@ export abstract class CodingFactory {
         return newVariable
     }
 
-    public static deriveValue(coding: VariableCodingData, allResponses: Response[]): ValueType {
+    public static deriveValue(coding: VariableCodingData, allResponses: Response[]): ResponseValueType {
         // raises exceptions if deriving fails
         // ensure before, that sourceType is not 'BASE' and there are enough valid sources
         switch (coding.sourceType) {
@@ -36,7 +36,7 @@ export abstract class CodingFactory {
         throw new TypeError('deriving failed');
     }
 
-    private static transformValue(value: ValueType, transformations: ValueTransformation[]): ValueType {
+    private static transformValue(value: ResponseValueType, transformations: ValueTransformation[]): ResponseValueType {
         // raises exceptions if transformation fails
         const stringifiedValue = JSON.stringify(value);
         let newValue = JSON.parse(stringifiedValue);
@@ -57,7 +57,7 @@ export abstract class CodingFactory {
         return newValue;
     }
 
-    private static findString(parameters: string[], value: ValueType): boolean {
+    private static findString(parameters: string[], value: ResponseValueType): boolean {
         if (typeof value === 'string' && value.length > 0) {
             let allStrings: string[] = [];
             parameters.forEach(p => {
@@ -68,7 +68,7 @@ export abstract class CodingFactory {
         return false
     }
 
-    private static findStringRegEx(parameters: string[], value: ValueType): boolean {
+    private static findStringRegEx(parameters: string[], value: ResponseValueType): boolean {
         if (typeof value === 'string' && value.length > 0) {
             let allStrings: string[] = [];
             parameters.forEach(p => {
@@ -86,7 +86,7 @@ export abstract class CodingFactory {
         const stringifiedResponse = JSON.stringify(response);
         let newResponse = JSON.parse(stringifiedResponse);
         if (coding && coding.codes.length > 0 && !Array.isArray(newResponse.value)) {
-            let valueToCheck: ValueType;
+            let valueToCheck: ResponseValueType;
             try {
                 valueToCheck = this.transformValue(newResponse.value, coding.valueTransformations);
             } catch (e) {
