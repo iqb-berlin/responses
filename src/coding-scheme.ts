@@ -3,7 +3,7 @@ import {
   Response,
   VariableInfo,
   CodingSchemeProblem,
-  RuleMethodParameterCount
+  RuleMethodParameterCount, CodingAsText
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 
@@ -124,7 +124,7 @@ export class CodingScheme {
     // todo: check against VarInfo
     const problems: CodingSchemeProblem[] = [];
     const allDerivedVariables: string[] = [];
-    this.variableCodings.forEach(vc => allDerivedVariables.concat(vc.deriveSources));
+    this.variableCodings.forEach(vc => allDerivedVariables.push(...vc.deriveSources));
     const allBaseVariableIds = baseVariables.map(bv => bv.id);
     this.variableCodings.forEach(c => {
       if (c.sourceType === 'BASE') {
@@ -216,5 +216,33 @@ export class CodingScheme {
       }
     });
     return problems;
+  }
+
+  asText(): CodingAsText[] {
+    const returnTexts: CodingAsText[] = [];
+    this.variableCodings.forEach(c => {
+      const newCodingText: CodingAsText = {
+        id: c.id,
+        source: CodingFactory.sourceAsText(c.id, c.sourceType, c.deriveSources),
+        transformations: CodingFactory.transformationsAsText(c.valueTransformations),
+        codes: c.codes.map(code => CodingFactory.codeAsText(code))
+      };
+      const allScores = newCodingText.codes.map(ct => ct.score);
+      const maxScore = Math.max(...allScores);
+      const minScore = Math.min(...allScores);
+      if (minScore < maxScore) {
+        newCodingText.codes.forEach(code => {
+          if (code.score === maxScore) {
+            code.scoreLabel = 'RICHTIG';
+          } else if (code.score === minScore) {
+            code.scoreLabel = 'FALSCH';
+          } else {
+            code.scoreLabel = 'teilw. RICHTIG';
+          }
+        });
+      }
+      returnTexts.push(newCodingText);
+    });
+    return returnTexts;
   }
 }

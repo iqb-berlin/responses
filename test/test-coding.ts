@@ -27,6 +27,12 @@ if (responses && codingScheme && varList) {
   const fatalErrors = problems.filter(p => p.breaking);
   if (fatalErrors.length === 0) {
     console.log(codings.code(responses));
+    codings.asText().forEach(c => {
+      console.log(`\x1b[0;34m${c.id}\x1b[0m`);
+      console.log(c.source);
+      if (c.transformations) console.log(c.transformations);
+      console.log(c.codes);
+    });
   } else {
     console.log(
       `\x1b[0;31mERROR\x1b[0m invalid scheme: ${fatalErrors.length} ${fatalErrors.length > 1 ? 'errors' : 'error'}`

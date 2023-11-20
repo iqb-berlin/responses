@@ -1,5 +1,12 @@
 import {
-  ResponseValueType, VariableCodingData, VariableInfo, Response, ValueTransformation
+  ResponseValueType,
+  VariableCodingData,
+  VariableInfo,
+  Response,
+  ValueTransformation,
+  DeriveConcatDelimiter,
+  SourceType,
+  CodeData, CodeAsText
 } from './coding-interfaces';
 
 export abstract class CodingFactory {
@@ -25,7 +32,7 @@ export abstract class CodingFactory {
       case 'CONCAT_CODE':
         return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
           .map(r => (r.code ? r.code.toString() : ''))
-          .join('_');
+          .join(DeriveConcatDelimiter);
       case 'SUM_CODE':
         return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
           .map(r => (r.code ? r.code : 0))
@@ -61,9 +68,9 @@ export abstract class CodingFactory {
 
   private static findString(value: ResponseValueType, parameters: string[] = []): boolean {
     if (typeof value === 'string' && value.length > 0) {
-      let allStrings: string[] = [];
+      const allStrings: string[] = [];
       parameters.forEach(p => {
-        allStrings = allStrings.concat(p.split('\n'));
+        allStrings.push(...p.split('\n'));
       });
       return allStrings.indexOf(value as string) >= 0;
     }
@@ -72,9 +79,9 @@ export abstract class CodingFactory {
 
   private static findStringRegEx(value: ResponseValueType, parameters: string[] = []): boolean {
     if (typeof value === 'string' && value.length > 0) {
-      let allStrings: string[] = [];
+      const allStrings: string[] = [];
       parameters.forEach(p => {
-        allStrings = allStrings.concat(p.split('\n'));
+        allStrings.push(...p.split('\n'));
       });
       const trueCases = allStrings.map((s: string): boolean => {
         const regEx = new RegExp(s);
@@ -243,5 +250,179 @@ export abstract class CodingFactory {
       newResponse.status = 'NO_CODING';
     }
     return newResponse;
+  }
+
+  static sourceAsText(variableId: string, sourceType: SourceType, sources: string[]): string {
+    let returnText;
+    switch (sourceType) {
+      case 'BASE':
+        returnText = `Basisvariable '${variableId}'`;
+        break;
+      case 'COPY_FIRST_VALUE':
+        if (sources && sources.length > 0) {
+          returnText = `Kopie von Variable '${sources[0]}'`;
+        } else {
+          returnText = 'Kopie, aber keine Quelle angegeben';
+        }
+        break;
+      case 'CONCAT_CODE':
+        returnText = `Codes von Variablen '${
+          sources.join(', ')}' aneinandergehängt mit Trennzeichen '${DeriveConcatDelimiter}'`;
+        break;
+      case 'SUM_CODE':
+        returnText = `Codes von Variablen '${sources.join(', ')}' summiert`;
+        break;
+      case 'SUM_SCORE':
+        returnText = `Scores von Variablen '${sources.join(', ')}' summiert`;
+        break;
+      default:
+        returnText = 'Unbekannte Quelle';
+    }
+    return returnText;
+  }
+
+  static transformationsAsText(transformations: ValueTransformation[]): string {
+    let returnText = '';
+    if (transformations && transformations.length > 0) {
+      returnText = 'Wert wird vor der Kodierung verändert: ';
+      transformations.forEach((t, i) => {
+        switch (t) {
+          case 'TO_NUMBER':
+            returnText += `${i > 0 ? ', ' : ''}Umwandlung in eine Zahl`;
+            break;
+          case 'TO_UPPER':
+            returnText += `${i > 0 ? ', ' : ''}Umwandlung in Großbuchstaben`;
+            break;
+          case 'REMOVE_WHITE_SPACES':
+            returnText += `${i > 0 ? ', ' : ''}Entfernen von Leerzeichen`;
+            break;
+          default:
+            returnText += `${i > 0 ? ', ' : ''}?? unbekannte Transformation`;
+        }
+      });
+    }
+    return returnText;
+  }
+
+  static codeAsText(code: CodeData): CodeAsText {
+    const codeText: CodeAsText = {
+      code: code.id,
+      score: code.score,
+      scoreLabel: '',
+      description: ''
+    };
+    const matchTexts: string[] = [];
+    const matchRegexTexts: string[] = [];
+    code.rules.forEach(r => {
+      let parameterOk = false;
+      switch (r.method) {
+        case 'MATCH':
+          if (r.parameters) {
+            r.parameters.forEach(p => {
+              matchTexts.push(...p.split('\n'));
+            });
+          }
+          break;
+        case 'MATCH_REGEX':
+          if (r.parameters) {
+            r.parameters.forEach(p => {
+              matchRegexTexts.push(...p.split('\n'));
+            });
+          }
+          break;
+        case 'NUMERIC_RANGE':
+          parameterOk = false;
+          if (r.parameters && r.parameters.length === 2) {
+            const compareValueLL = Number.parseFloat(r.parameters[0]);
+            const compareValueUL = Number.parseFloat(r.parameters[1]);
+            if (!Number.isNaN(compareValueLL) && !Number.isNaN(compareValueUL) && compareValueLL < compareValueUL) {
+              codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+              }Wert ist größer als ${compareValueLL} und kleiner oder gleich ${compareValueUL}`;
+              parameterOk = true;
+            }
+          }
+          if (!parameterOk) {
+            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
+          }
+          break;
+        case 'NUMERIC_LESS_THEN':
+          parameterOk = false;
+          if (r.parameters && r.parameters.length === 1) {
+            const compareValue = Number.parseFloat(r.parameters[0]);
+            if (!Number.isNaN(compareValue)) {
+              codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+              }Wert ist kleiner als ${compareValue}`;
+              parameterOk = true;
+            }
+          }
+          if (!parameterOk) {
+            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
+          }
+          break;
+        case 'NUMERIC_MORE_THEN':
+          parameterOk = false;
+          if (r.parameters && r.parameters.length === 1) {
+            const compareValue = Number.parseFloat(r.parameters[0]);
+            if (!Number.isNaN(compareValue)) {
+              codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+              }Wert ist größer als ${compareValue}`;
+              parameterOk = true;
+            }
+          }
+          if (!parameterOk) {
+            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
+          }
+          break;
+        case 'NUMERIC_MAX':
+          parameterOk = false;
+          if (r.parameters && r.parameters.length === 1) {
+            const compareValue = Number.parseFloat(r.parameters[0]);
+            if (!Number.isNaN(compareValue)) {
+              codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+              }Wert ist maximal gleich ${compareValue}`;
+              parameterOk = true;
+            }
+          }
+          if (!parameterOk) {
+            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
+          }
+          break;
+        case 'NUMERIC_MIN':
+          parameterOk = false;
+          if (r.parameters && r.parameters.length === 1) {
+            const compareValue = Number.parseFloat(r.parameters[0]);
+            if (!Number.isNaN(compareValue)) {
+              codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+              }Wert ist mindestens gleich ${compareValue}`;
+              parameterOk = true;
+            }
+          }
+          if (!parameterOk) {
+            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
+          }
+          break;
+        case 'IS_EMPTY':
+          codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Wert ist leer`;
+          break;
+        case 'ELSE':
+          codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Alle anderen Werte`;
+          break;
+        case 'IS_NULL':
+          codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Technischer Wert 'NULL'`;
+          break;
+        default:
+          codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+          }Problem: unbekannte Regel '${r.method}'`;
+      }
+      if (matchTexts.length > 0) {
+        codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+        }Übereinstimmung mit: '${matchTexts.join('\', \'')}'`;
+      }
+      if (matchRegexTexts.length > 0) {
+        codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+        }Übereinstimmung (match regex) mit: '${matchRegexTexts.join('\', \'')}'`;
+      }
+    });
+    return codeText;
   }
 }

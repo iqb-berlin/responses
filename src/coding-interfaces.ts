@@ -29,6 +29,7 @@ export const RuleMethodParameterCount = {
 export type ValueTransformation = 'TO_UPPER' | 'REMOVE_WHITE_SPACES' | 'TO_NUMBER';
 export type CodeModel = null | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL';
 export type SourceType = 'BASE' | 'COPY_FIRST_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
+export const DeriveConcatDelimiter = '_';
 export type CodingSchemeProblemType = 'VACANT' | 'SOURCE_MISSING' | 'INVALID_SOURCE' | 'RULE_PARAMETER_COUNT_MISMATCH'
 | 'MORE_THEN_ONE_SOURCE' | 'ONLY_ONE_SOURCE' | 'VALUE_COPY_NOT_FROM_BASE';
 
@@ -80,4 +81,18 @@ export interface VariableInfo {
   valuePositionLabels: string[];
   valuesComplete?: boolean;
   page: string;
+}
+
+export interface CodeAsText {
+  code: number,
+  score: number,
+  scoreLabel: string,
+  description: string
+}
+
+export interface CodingAsText {
+  id: string,
+  source: string,
+  transformations?: string,
+  codes: CodeAsText[]
 }
