@@ -19,7 +19,24 @@
     "url": "https://github.com/iqb-berlin/responses/issues"
   },
   "homepage": "https://github.com/iqb-berlin/responses#readme",
+  "eslintConfig": {
+    "overrides": [
+      {
+        "files": [
+          "*.ts"
+        ],
+        "extends": "@iqb/eslint-config"
+      },
+      {
+        "files": [
+          "*.js"
+        ],
+        "extends": "@iqb/eslint-config/javascript"
+      }
+    ]
+  },
   "devDependencies": {
+    "@iqb/eslint-config": "^2.1.1",
     "@types/node": "^20.4.4",
     "@asyncapi/cli": "^0.51.4",
     "@asyncapi/html-template": "^0.28.3",
