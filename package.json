@@ -4,8 +4,8 @@
   "license": "CC-BY-SA-4.0",
   "description": "Data interfaces for processing assessment data.",
   "scripts": {
-    "test_response": "ts-node ./test.ts response",
-    "test_response_scheme": "ts-node ./test.ts response-scheme",
+    "test_response": "ts-node test/test.ts response",
+    "test_response_scheme": "ts-node test/test.ts response-scheme",
     "test_coding": "cd test && ts-node test-coding case1",
     "generate_docs": "asyncapi generate fromTemplate json_schema/asyncapi.yaml @asyncapi/html-template -o ./public --force-write && cat json_schema/add.css >> ./public/css/global.min.css",
     "prepare_publish": "rm -rf dist/* && tsc && cp ./package_npm.json ./dist/package.json && cp ./README.md ./dist",
