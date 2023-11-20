@@ -3,7 +3,7 @@
 import Ajv, { ValidateFunction } from 'ajv';
 import fs from 'fs';
 
-const schemaFolder = `${__dirname}/json_schema/${process.argv[2]}`;
+const schemaFolder = `${__dirname}/../json_schema/${process.argv[2]}`;
 const schemaFilename = `${schemaFolder}/${process.argv[2]}.json`;
 const validFolder = `${schemaFolder}/test_valid`;
 const invalidFolder = `${schemaFolder}/test_invalid`;

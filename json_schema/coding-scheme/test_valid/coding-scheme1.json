@@ -1,0 +1,132 @@
+[
+  {
+    "id": "M1",
+    "label": "",
+    "pattern": null,
+    "sourceType": "BASE",
+    "deriveSoures": [],
+    "valueTransformations": [
+      "TO_UPPER",
+      "REMOVE_WHITE_SPACES"
+    ],
+    "manualInstruction": "",
+    "codes": [
+      {
+        "id": 1,
+        "label": "",
+        "score": 1,
+        "rules": [
+          {
+            "method": "NUMERIC_LESS_THEN",
+            "parameters": [
+              "22222"
+            ]
+          }
+        ],
+        "manualInstruction": ""
+      },
+      {
+        "id": 2,
+        "label": "",
+        "score": 0,
+        "rules": [
+          {
+            "method": "ELSE",
+            "parameters": []
+          }
+        ],
+        "manualInstruction": ""
+      }
+    ]
+  },
+  {
+    "id": "M2",
+    "sourceType": "BASE"
+  },
+  {
+    "id": "M3",
+    "label": "",
+    "pattern": null,
+    "sourceType": "BASE",
+    "deriveSources": [],
+    "valueTransformations": [
+      "TO_UPPER",
+      "REMOVE_WHITE_SPACES"
+    ],
+    "manualInstruction": "",
+    "codes": []
+  },
+  {
+    "id": "M4",
+    "label": "",
+    "pattern": null,
+    "sourceType": "BASE",
+    "deriveSources": [],
+    "valueTransformations": [],
+    "manualInstruction": "",
+    "codes": []
+  },
+  {
+    "id": "MD1",
+    "label": "",
+    "pattern": null,
+    "sourceType": "CONCAT_CODE",
+    "deriveSources": ["M1", "MD2"],
+    "valueTransformations": [],
+    "manualInstruction": "",
+    "codes": [
+      {
+        "id": 1,
+        "label": "",
+        "score": 0,
+        "rules": [
+          {
+            "method": "MATCH",
+            "parameters": [
+              "22222"
+            ]
+          }
+        ],
+        "manualInstruction": ""
+      }
+    ]
+  },
+  {
+    "id": "MD2",
+    "label": "",
+    "pattern": null,
+    "sourceType": "COPY_FIRST_VALUE",
+    "deriveSources": ["M2"],
+    "valueTransformations": [],
+    "manualInstruction": "",
+    "codes": [
+      {
+        "id": 1,
+        "label": "",
+        "score": 0,
+        "rules": [
+          {
+            "method": "MATCH",
+            "parameters": [
+              "22222"
+            ]
+          }
+        ],
+        "manualInstruction": ""
+      },
+      {
+        "id": 2,
+        "label": "",
+        "score": 1,
+        "rules": [
+          {
+            "method": "ELSE",
+            "parameters": []
+          }
+        ],
+        "manualInstruction": ""
+      }
+    ]
+  }
+]
+
