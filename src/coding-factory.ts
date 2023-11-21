@@ -3,7 +3,7 @@ import {
   VariableCodingData,
   VariableInfo,
   Response,
-  ValueTransformation,
+  ProcessingParameterType,
   DeriveConcatDelimiter,
   SourceType,
   CodeData, CodeAsText
@@ -16,9 +16,9 @@ export abstract class CodingFactory {
       label: '',
       sourceType: 'BASE',
       deriveSources: [],
-      valueTransformations: [],
+      processing: [],
       manualInstruction: '',
-      codeModel: null,
+      codeModel: 'NONE',
       codeModelParameters: [],
       codes: []
     };
@@ -45,34 +45,27 @@ export abstract class CodingFactory {
     throw new TypeError('deriving failed');
   }
 
-  private static transformValue(value: ResponseValueType, transformations: ValueTransformation[]): ResponseValueType {
+  private static transformValue(value: ResponseValueType, processing: ProcessingParameterType[]): ResponseValueType {
     // raises exceptions if transformation fails
     const stringifiedValue = JSON.stringify(value);
     let newValue = JSON.parse(stringifiedValue);
-    if (typeof newValue === 'string' && transformations && transformations.length > 0) {
-      if (transformations.indexOf('TO_UPPER') >= 0) {
-        newValue = newValue.toUpperCase();
-      }
-      if (transformations.indexOf('REMOVE_WHITE_SPACES') >= 0) {
+    if (typeof newValue === 'string' && processing && processing.length > 0) {
+      if (processing.indexOf('REMOVE_WHITE_SPACES') >= 0) {
         newValue = newValue.trim();
-      }
-      if (transformations.indexOf('TO_NUMBER') >= 0) {
-        newValue = Number.parseFloat(newValue.replace(',', '.'));
-        if (Number.isNaN(newValue)) {
-          throw new TypeError('response value type conversion to number failed');
-        }
       }
     }
     return newValue;
   }
 
-  private static findString(value: ResponseValueType, parameters: string[] = []): boolean {
+  private static findString(value: ResponseValueType, ignoreCase: boolean, parameters: string[] = []): boolean {
     if (typeof value === 'string' && value.length > 0) {
       const allStrings: string[] = [];
       parameters.forEach(p => {
         allStrings.push(...p.split('\n'));
       });
-      return allStrings.indexOf(value as string) >= 0;
+      const stringToCompare = ignoreCase ? (value as string).toUpperCase() : (value as string);
+      const inList = allStrings.find(s => stringToCompare === (ignoreCase ? s.toUpperCase() : s))
+      return !!inList;
     }
     return false;
   }
@@ -92,13 +85,25 @@ export abstract class CodingFactory {
     return false;
   }
 
+  static getValueAsNumber(value: ResponseValueType): number | null {
+    if (typeof value === 'number') return value;
+    if (typeof value === 'boolean') return (value as boolean) ? 1 : 0;
+    if (typeof value === 'string') {
+      const normalizedString = (value as string).replace(',', '.').trim();
+      const valueAsString = Number.parseFloat(normalizedString);
+      if (Number.isNaN(valueAsString)) return null;
+      return valueAsString;
+    }
+    return null;
+  }
+
   static code(response: Response, coding: VariableCodingData): Response {
     const stringifiedResponse = JSON.stringify(response);
     const newResponse = JSON.parse(stringifiedResponse);
     if (coding && coding.codes.length > 0 && !Array.isArray(newResponse.value)) {
       let valueToCheck: ResponseValueType;
       try {
-        valueToCheck = this.transformValue(newResponse.value, coding.valueTransformations);
+        valueToCheck = this.transformValue(newResponse.value, coding.processing);
       } catch (e) {
         newResponse.status = 'CODING_ERROR';
         valueToCheck = null;
@@ -112,6 +117,7 @@ export abstract class CodingFactory {
           if (!changed) {
             c.rules.forEach(r => {
               if (!changed) {
+                let valueAsNumber: number | null = null;
                 // eslint-disable-next-line default-case
                 switch (r.method) {
                   case 'ELSE':
@@ -136,7 +142,7 @@ export abstract class CodingFactory {
                     }
                     break;
                   case 'MATCH':
-                    if (this.findString(valueToCheck, r.parameters)) {
+                    if (this.findString(valueToCheck, coding.processing.includes('IGNORE_CASE'), r.parameters)) {
                       newResponse.code = c.id;
                       newResponse.score = c.score;
                       newResponse.status = 'CODING_COMPLETE';
@@ -152,14 +158,19 @@ export abstract class CodingFactory {
                     }
                     break;
                   case 'NUMERIC_LESS_THEN':
-                    if (typeof valueToCheck === 'number' && r.parameters) {
-                      const valueAsNumeric = valueToCheck as number;
+                    valueAsNumber = this.getValueAsNumber(valueToCheck);
+                    if (typeof valueAsNumber === 'number' && r.parameters) {
                       const compareValue = Number.parseFloat(r.parameters[0]);
-                      if (valueAsNumeric < compareValue) {
-                        newResponse.code = c.id;
-                        newResponse.score = c.score;
-                        newResponse.status = 'CODING_COMPLETE';
+                      if (Number.isNaN(compareValue)) {
+                        newResponse.status = 'CODING_ERROR';
                         changed = true;
+                      } else {
+                        if (valueAsNumber < compareValue) {
+                          newResponse.code = c.id;
+                          newResponse.score = c.score;
+                          newResponse.status = 'CODING_COMPLETE';
+                          changed = true;
+                        }
                       }
                     } else {
                       newResponse.status = 'CODING_ERROR';
@@ -167,14 +178,19 @@ export abstract class CodingFactory {
                     }
                     break;
                   case 'NUMERIC_MAX':
-                    if (typeof valueToCheck === 'number' && r.parameters) {
-                      const valueAsNumeric = valueToCheck as number;
+                    valueAsNumber = this.getValueAsNumber(valueToCheck);
+                    if (typeof valueAsNumber === 'number' && r.parameters) {
                       const compareValue = Number.parseFloat(r.parameters[0]);
-                      if (valueAsNumeric <= compareValue) {
-                        newResponse.code = c.id;
-                        newResponse.score = c.score;
-                        newResponse.status = 'CODING_COMPLETE';
+                      if (Number.isNaN(compareValue)) {
+                        newResponse.status = 'CODING_ERROR';
                         changed = true;
+                      } else {
+                        if (valueAsNumber <= compareValue) {
+                          newResponse.code = c.id;
+                          newResponse.score = c.score;
+                          newResponse.status = 'CODING_COMPLETE';
+                          changed = true;
+                        }
                       }
                     } else {
                       newResponse.status = 'CODING_ERROR';
@@ -182,14 +198,19 @@ export abstract class CodingFactory {
                     }
                     break;
                   case 'NUMERIC_MORE_THEN':
-                    if (typeof valueToCheck === 'number' && r.parameters) {
-                      const valueAsNumeric = valueToCheck as number;
+                    valueAsNumber = this.getValueAsNumber(valueToCheck);
+                    if (typeof valueAsNumber === 'number' && r.parameters) {
                       const compareValue = Number.parseFloat(r.parameters[0]);
-                      if (valueAsNumeric > compareValue) {
-                        newResponse.code = c.id;
-                        newResponse.score = c.score;
-                        newResponse.status = 'CODING_COMPLETE';
+                      if (Number.isNaN(compareValue)) {
+                        newResponse.status = 'CODING_ERROR';
                         changed = true;
+                      } else {
+                        if (valueAsNumber > compareValue) {
+                          newResponse.code = c.id;
+                          newResponse.score = c.score;
+                          newResponse.status = 'CODING_COMPLETE';
+                          changed = true;
+                        }
                       }
                     } else {
                       newResponse.status = 'CODING_ERROR';
@@ -197,14 +218,19 @@ export abstract class CodingFactory {
                     }
                     break;
                   case 'NUMERIC_MIN':
-                    if (typeof valueToCheck === 'number' && r.parameters) {
-                      const valueAsNumeric = valueToCheck as number;
+                    valueAsNumber = this.getValueAsNumber(valueToCheck);
+                    if (typeof valueAsNumber === 'number' && r.parameters) {
                       const compareValue = Number.parseFloat(r.parameters[0]);
-                      if (valueAsNumeric >= compareValue) {
-                        newResponse.code = c.id;
-                        newResponse.score = c.score;
-                        newResponse.status = 'CODING_COMPLETE';
+                      if (Number.isNaN(compareValue)) {
+                        newResponse.status = 'CODING_ERROR';
                         changed = true;
+                      } else {
+                        if (valueAsNumber >= compareValue) {
+                          newResponse.code = c.id;
+                          newResponse.score = c.score;
+                          newResponse.status = 'CODING_COMPLETE';
+                          changed = true;
+                        }
                       }
                     } else {
                       newResponse.status = 'CODING_ERROR';
@@ -212,17 +238,44 @@ export abstract class CodingFactory {
                     }
                     break;
                   case 'NUMERIC_RANGE':
-                    if (typeof valueToCheck === 'number' && r.parameters) {
-                      const valueAsNumeric = valueToCheck as number;
+                    valueAsNumber = this.getValueAsNumber(valueToCheck);
+                    if (typeof valueAsNumber === 'number' && r.parameters) {
                       const compareValueLL = Number.parseFloat(r.parameters[0]);
                       const compareValueUL = Number.parseFloat(r.parameters[1]);
-                      if (valueAsNumeric > compareValueLL && valueAsNumeric <= compareValueUL) {
-                        newResponse.code = c.id;
-                        newResponse.score = c.score;
-                        newResponse.status = 'CODING_COMPLETE';
+                      if (Number.isNaN(compareValueUL) || Number.isNaN(compareValueLL)) {
+                        newResponse.status = 'CODING_ERROR';
                         changed = true;
+                      } else {
+                        if (valueAsNumber > compareValueLL && valueAsNumber <= compareValueUL) {
+                          newResponse.code = c.id;
+                          newResponse.score = c.score;
+                          newResponse.status = 'CODING_COMPLETE';
+                          changed = true;
+                        }
                       }
                     } else {
+                      newResponse.status = 'CODING_ERROR';
+                      changed = true;
+                    }
+                    break;
+                  case 'IS_TRUE':
+                    if (valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true') {
+                      newResponse.code = c.id;
+                      newResponse.score = c.score;
+                      newResponse.status = 'CODING_COMPLETE';
+                      changed = true;
+                    } else if (valueToCheck !== '0' && valueToCheck !== false && valueToCheck !== 'false' && valueToCheck !== null) {
+                      newResponse.status = 'CODING_ERROR';
+                      changed = true;
+                    }
+                    break;
+                  case 'IS_FALSE':
+                    if (valueToCheck === '0' || valueToCheck === false || valueToCheck === 'false') {
+                      newResponse.code = c.id;
+                      newResponse.score = c.score;
+                      newResponse.status = 'CODING_COMPLETE';
+                      changed = true;
+                    } else if (valueToCheck !== '1' && valueToCheck !== true && valueToCheck !== 'true' && valueToCheck !== null) {
                       newResponse.status = 'CODING_ERROR';
                       changed = true;
                     }
@@ -281,23 +334,26 @@ export abstract class CodingFactory {
     return returnText;
   }
 
-  static transformationsAsText(transformations: ValueTransformation[]): string {
+  static processingAsText(processings: ProcessingParameterType[]): string {
     let returnText = '';
-    if (transformations && transformations.length > 0) {
-      returnText = 'Wert wird vor der Kodierung verändert: ';
-      transformations.forEach((t, i) => {
+    if (processings && processings.length > 0) {
+      returnText = '';
+      processings.forEach((t, i) => {
         switch (t) {
-          case 'TO_NUMBER':
-            returnText += `${i > 0 ? ', ' : ''}Umwandlung in eine Zahl`;
+          case 'REPLAY_REQUIRED':
+            returnText += `${i > 0 ? ', ' : ''}Zur Kodierung ist muss die Antwort mit der Aufgabe angezeigt werden (Replay)`;
             break;
-          case 'TO_UPPER':
-            returnText += `${i > 0 ? ', ' : ''}Umwandlung in Großbuchstaben`;
+          case 'IGNORE_CASE':
+            returnText += `${i > 0 ? ', ' : ''}Groß-/Kleinschreibung wird ignoriert`;
             break;
           case 'REMOVE_WHITE_SPACES':
-            returnText += `${i > 0 ? ', ' : ''}Entfernen von Leerzeichen`;
+            returnText += `${i > 0 ? ', ' : ''}Entfernen von Leerzeichen vor Kodierung`;
+            break;
+          case 'ATTACHMENT':
+            returnText += `${i > 0 ? ', ' : ''}Zur Kodierung ist eine separate Datei erforderlich (Bild, Audio)`;
             break;
           default:
-            returnText += `${i > 0 ? ', ' : ''}?? unbekannte Transformation`;
+            returnText += `${i > 0 ? ', ' : ''}?? unbekannter Wer für Prozessparameter`;
         }
       });
     }
@@ -409,6 +465,12 @@ export abstract class CodingFactory {
           break;
         case 'IS_NULL':
           codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Technischer Wert 'NULL'`;
+          break;
+        case 'IS_TRUE':
+          codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Logischer Wert 'WAHR'`;
+          break;
+        case 'IS_FALSE':
+          codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Logischer Wert 'FALSCH'`;
           break;
         default:
           codeText.description += `${codeText.description.length > 0 ? '; ' : ''

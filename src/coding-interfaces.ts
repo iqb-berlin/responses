@@ -13,7 +13,7 @@ export interface Response {
 }
 
 export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THEN' | 'NUMERIC_MORE_THEN' |
-'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL';
+'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
 export const RuleMethodParameterCount = {
   MATCH: -1,
   MATCH_REGEX: -1,
@@ -24,10 +24,12 @@ export const RuleMethodParameterCount = {
   NUMERIC_MIN: 1,
   IS_EMPTY: 0,
   ELSE: 0,
-  IS_NULL: 0
+  IS_NULL: 0,
+  IS_TRUE: 0,
+  IS_FALSE: 0
 };
-export type ValueTransformation = 'TO_UPPER' | 'REMOVE_WHITE_SPACES' | 'TO_NUMBER';
-export type CodeModel = null | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL';
+export type ProcessingParameterType = 'IGNORE_CASE' | 'REMOVE_WHITE_SPACES' | 'REPLAY_REQUIRED' | 'ATTACHMENT';
+export type CodeModelType = 'NONE' | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL';
 export type SourceType = 'BASE' | 'COPY_FIRST_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
 export const DeriveConcatDelimiter = '_';
 export type CodingSchemeProblemType = 'VACANT' | 'SOURCE_MISSING' | 'INVALID_SOURCE' | 'RULE_PARAMETER_COUNT_MISMATCH'
@@ -51,9 +53,9 @@ export interface VariableCodingData {
   label: string;
   sourceType: SourceType;
   deriveSources: string[];
-  valueTransformations: ValueTransformation[];
+  processing: ProcessingParameterType[];
   manualInstruction: string;
-  codeModel?: CodeModel;
+  codeModel?: CodeModelType;
   codeModelParameters?: string[],
   codes: CodeData[];
 }
@@ -61,7 +63,7 @@ export interface VariableCodingData {
 export interface CodingSchemeProblem {
   type: CodingSchemeProblemType,
   breaking: boolean,
-  variable_id: string,
+  variableId: string,
   code?: number
 }
 
@@ -93,6 +95,6 @@ export interface CodeAsText {
 export interface CodingAsText {
   id: string,
   source: string,
-  transformations?: string,
+  processing?: string,
   codes: CodeAsText[]
 }

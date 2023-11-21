@@ -35,12 +35,13 @@
         "items": {
           "type": "string",
           "enum": [
-            "TO_UPPER",
+            "IGNORE_CASE",
             "REMOVE_WHITE_SPACES",
-            "TO_NUMBER"
+            "REPLAY_REQUIRED",
+            "ATTACHMENT"
           ]
         },
-        "description": "This parameter defines what transformation should be done with the source value before evaluation."
+        "description": "This parameter defines what (pre)processing should be done."
       },
       "manualInstruction": {
         "type": "string",
@@ -49,6 +50,7 @@
       "codeModel": {
         "type": "string",
         "enum": [
+          "NONE",
           "CHOICE",
           "VALUE_LIST",
           "NUMBER",
@@ -97,7 +99,9 @@
                       "NUMERIC_MIN",
                       "IS_EMPTY",
                       "ELSE",
-                      "IS_NULL"
+                      "IS_NULL",
+                      "IS_TRUE",
+                      "IS_FALSE"
                     ]
                   },
                   "parameters": {

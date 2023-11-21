@@ -30,7 +30,7 @@ if (responses && codingScheme && varList) {
     codings.asText().forEach(c => {
       console.log(`\x1b[0;34m${c.id}\x1b[0m`);
       console.log(c.source);
-      if (c.transformations) console.log(c.transformations);
+      if (c.processing) console.log(c.processing);
       console.log(c.codes);
     });
   } else {

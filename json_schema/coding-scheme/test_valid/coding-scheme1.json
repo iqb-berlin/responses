@@ -6,8 +6,10 @@
     "sourceType": "BASE",
     "deriveSoures": [],
     "valueTransformations": [
-      "TO_UPPER",
-      "REMOVE_WHITE_SPACES"
+      "IGNORE_CASE",
+      "REMOVE_WHITE_SPACES",
+      "ATTACHMENT",
+      "REPLAY_REQUIRED"
     ],
     "manualInstruction": "",
     "codes": [
@@ -50,7 +52,6 @@
     "sourceType": "BASE",
     "deriveSources": [],
     "valueTransformations": [
-      "TO_UPPER",
       "REMOVE_WHITE_SPACES"
     ],
     "manualInstruction": "",
