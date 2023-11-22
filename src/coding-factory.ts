@@ -365,6 +365,8 @@ export abstract class CodingFactory {
       code: code.id,
       score: code.score,
       scoreLabel: '',
+      label: code.label,
+      hasManualInstruction: !!code.manualInstruction,
       description: ''
     };
     const matchTexts: string[] = [];
@@ -476,15 +478,15 @@ export abstract class CodingFactory {
           codeText.description += `${codeText.description.length > 0 ? '; ' : ''
           }Problem: unbekannte Regel '${r.method}'`;
       }
-      if (matchTexts.length > 0) {
-        codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-        }Übereinstimmung mit: '${matchTexts.join('\', \'')}'`;
-      }
-      if (matchRegexTexts.length > 0) {
-        codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-        }Übereinstimmung (match regex) mit: '${matchRegexTexts.join('\', \'')}'`;
-      }
     });
+    if (matchTexts.length > 0) {
+      codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+      }Übereinstimmung mit: '${matchTexts.join('\', \'')}'`;
+    }
+    if (matchRegexTexts.length > 0) {
+      codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+      }Übereinstimmung (match regex) mit: '${matchRegexTexts.join('\', \'')}'`;
+    }
     return codeText;
   }
 }

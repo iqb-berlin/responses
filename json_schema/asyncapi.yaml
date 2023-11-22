@@ -5,7 +5,7 @@ info:
     The Verona Interfaces specifications do not describe data structures for response processing. Responses in Verona are strings - serialized objects of unknown structure. This way, we have maximal flexibility. But in order to develop efficient routines for data analyses, the IQB introduces some specs of data. Browse this document to learn about concepts and procedures for data processing AFTER the assessment is done.
     
     Go to the Schema section of this document and select one schema. Expand all nodes and explore.
-  version: 0.13.0
+  version: 0.14.0
   license:
     name: CC BY-SA 4.0
     url: https://creativecommons.org/licenses/by-sa/4.0/

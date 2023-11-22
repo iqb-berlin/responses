@@ -88,13 +88,17 @@ export interface VariableInfo {
 export interface CodeAsText {
   code: number,
   score: number,
+  label: string,
   scoreLabel: string,
+  hasManualInstruction: boolean,
   description: string
 }
 
 export interface CodingAsText {
   id: string,
+  label: string,
   source: string,
   processing?: string,
+  hasManualInstruction: boolean,
   codes: CodeAsText[]
 }

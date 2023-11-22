@@ -228,8 +228,10 @@ export class CodingScheme {
     this.variableCodings.forEach(c => {
       const newCodingText: CodingAsText = {
         id: c.id,
+        label: c.label,
         source: CodingFactory.sourceAsText(c.id, c.sourceType, c.deriveSources),
         processing: CodingFactory.processingAsText(c.processing),
+        hasManualInstruction: !!c.manualInstruction,
         codes: c.codes.map(code => CodingFactory.codeAsText(code))
       };
       const allScores = newCodingText.codes.map(ct => ct.score);
