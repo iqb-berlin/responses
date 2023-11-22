@@ -128,12 +128,15 @@ export class CodingScheme {
   validate(baseVariables: VariableInfo[]): CodingSchemeProblem[] {
     // todo: check against VarInfo
     const problems: CodingSchemeProblem[] = [];
-    const allDerivedVariables: string[] = [];
-    this.variableCodings.forEach(vc => allDerivedVariables.push(...vc.deriveSources));
-    const allBaseVariableIds = baseVariables.map(bv => bv.id);
+    const allDerivedVariableIds: string[] = this.variableCodings
+      .filter(vc => vc.sourceType !== 'BASE')
+      .map(vc => vc.id);
+    const allBaseVariableInfoIds = baseVariables.map(bv => bv.id);
+    const allPossibleSourceIds = [...allBaseVariableInfoIds, ...allDerivedVariableIds];
+    const variableValuesCopied: string[] = [];
     this.variableCodings.forEach(c => {
       if (c.sourceType === 'BASE') {
-        if (allBaseVariableIds.indexOf(c.id) < 0) {
+        if (allBaseVariableInfoIds.indexOf(c.id) < 0) {
           problems.push({
             type: 'SOURCE_MISSING',
             breaking: true,
@@ -142,29 +145,21 @@ export class CodingScheme {
         }
       } else if (c.deriveSources && c.deriveSources.length > 0) {
         if (c.sourceType === 'COPY_FIRST_VALUE') {
+          variableValuesCopied.push(c.deriveSources[0]);
           if (c.deriveSources.length > 1) {
             problems.push({
               type: 'MORE_THEN_ONE_SOURCE',
               breaking: false,
               variableId: c.id
             });
-          } else {
-            const source = this.variableCodings.find(vc => vc.id === c.deriveSources[0]);
-            if (source) {
-              if (source.sourceType !== 'BASE') {
-                problems.push({
-                  type: 'VALUE_COPY_NOT_FROM_BASE',
-                  breaking: false,
-                  variableId: c.id
-                });
-              }
-            } else {
-              problems.push({
-                type: 'SOURCE_MISSING',
-                breaking: true,
-                variableId: c.id
-              });
-            }
+          }
+          if (allPossibleSourceIds.indexOf(c.deriveSources[0]) >= 0 &&
+              allBaseVariableInfoIds.indexOf(c.deriveSources[0]) < 0) {
+            problems.push({
+              type: 'VALUE_COPY_NOT_FROM_BASE',
+              breaking: false,
+              variableId: c.id
+            });
           }
         } else {
           if (c.deriveSources.length === 1) {
@@ -174,15 +169,16 @@ export class CodingScheme {
               variableId: c.id
             });
           }
-          const sources = this.variableCodings.filter(vc => c.deriveSources.indexOf(vc.id) >= 0);
-          if (sources.length !== c.deriveSources.length) {
+        }
+        c.deriveSources.forEach(s => {
+          if (allPossibleSourceIds.indexOf(s) < 0) {
             problems.push({
               type: 'SOURCE_MISSING',
               breaking: true,
               variableId: c.id
             });
           }
-        }
+        });
       } else {
         problems.push({
           type: 'SOURCE_MISSING',
@@ -190,6 +186,7 @@ export class CodingScheme {
           variableId: c.id
         });
       }
+
       if (c.codes.length > 0) {
         c.codes.forEach(code => {
           code.rules.forEach(r => {
@@ -212,7 +209,7 @@ export class CodingScheme {
             }
           });
         });
-      } else if (allDerivedVariables.indexOf(c.id) < 0) {
+      } else if (variableValuesCopied.indexOf(c.id) < 0) {
         problems.push({
           type: 'VACANT',
           breaking: false,
