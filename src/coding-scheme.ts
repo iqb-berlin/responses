@@ -134,6 +134,9 @@ export class CodingScheme {
     const allBaseVariableInfoIds = baseVariables.map(bv => bv.id);
     const allPossibleSourceIds = [...allBaseVariableInfoIds, ...allDerivedVariableIds];
     const variableValuesCopied: string[] = [];
+    this.variableCodings.filter(vc => vc.sourceType === 'COPY_FIRST_VALUE').forEach(vc => {
+      variableValuesCopied.push(...vc.deriveSources);
+    });
     this.variableCodings.forEach(c => {
       if (c.sourceType === 'BASE') {
         if (allBaseVariableInfoIds.indexOf(c.id) < 0) {
@@ -145,7 +148,6 @@ export class CodingScheme {
         }
       } else if (c.deriveSources && c.deriveSources.length > 0) {
         if (c.sourceType === 'COPY_FIRST_VALUE') {
-          variableValuesCopied.push(c.deriveSources[0]);
           if (c.deriveSources.length > 1) {
             problems.push({
               type: 'MORE_THEN_ONE_SOURCE',
