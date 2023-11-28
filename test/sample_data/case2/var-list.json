@@ -1,0 +1,35 @@
+[
+  {
+    "id": "Otto",
+    "type": "string",
+    "format": "",
+    "multiple": false,
+    "nullable": false,
+    "values": [],
+    "valuePositionLabels": [],
+    "valuesComplete": false,
+    "page": ""
+  },
+  {
+    "id": "Paul",
+    "type": "string",
+    "format": "",
+    "multiple": false,
+    "nullable": false,
+    "values": [],
+    "valuePositionLabels": [],
+    "valuesComplete": false,
+    "page": ""
+  },
+  {
+    "id": "Susi",
+    "type": "string",
+    "format": "",
+    "multiple": false,
+    "nullable": false,
+    "values": [],
+    "valuePositionLabels": [],
+    "valuesComplete": false,
+    "page": ""
+  }
+]

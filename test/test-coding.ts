@@ -23,7 +23,6 @@ try {
 if (responses && codingScheme && varList) {
   const codings = new CodingScheme(codingScheme);
   const problems = codings.validate(varList);
-  console.log(problems);
   const fatalErrors = problems.filter(p => p.breaking);
   if (fatalErrors.length === 0) {
     console.log(codings.code(responses));
@@ -35,8 +34,9 @@ if (responses && codingScheme && varList) {
     });
   } else {
     console.log(
-      `\x1b[0;31mERROR\x1b[0m invalid scheme: ${fatalErrors.length} ${fatalErrors.length > 1 ? 'errors' : 'error'}`
+      `\x1b[0;31merrors\x1b[0m in coding scheme:`
     );
+    console.log(problems);
     process.exitCode = 1;
   }
 }
