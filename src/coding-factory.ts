@@ -64,7 +64,7 @@ export abstract class CodingFactory {
         allStrings.push(...p.split('\n'));
       });
       const stringToCompare = ignoreCase ? (value as string).toUpperCase() : (value as string);
-      const inList = allStrings.find(s => stringToCompare === (ignoreCase ? s.toUpperCase() : s))
+      const inList = allStrings.find(s => stringToCompare === (ignoreCase ? s.toUpperCase() : s));
       return !!inList;
     }
     return false;
@@ -142,6 +142,11 @@ export abstract class CodingFactory {
                     }
                     break;
                   case 'MATCH':
+                    if (typeof valueToCheck === 'number') {
+                      valueToCheck = valueToCheck.toString(10);
+                    } else if (typeof valueToCheck === 'boolean') {
+                      valueToCheck = valueToCheck.toString();
+                    }
                     if (this.findString(valueToCheck, coding.processing.includes('IGNORE_CASE'), r.parameters)) {
                       newResponse.code = c.id;
                       newResponse.score = c.score;
@@ -150,6 +155,11 @@ export abstract class CodingFactory {
                     }
                     break;
                   case 'MATCH_REGEX':
+                    if (typeof valueToCheck === 'number') {
+                      valueToCheck = valueToCheck.toString(10);
+                    } else if (typeof valueToCheck === 'boolean') {
+                      valueToCheck = valueToCheck.toString();
+                    }
                     if (this.findStringRegEx(valueToCheck, r.parameters)) {
                       newResponse.code = c.id;
                       newResponse.score = c.score;
@@ -164,13 +174,11 @@ export abstract class CodingFactory {
                       if (Number.isNaN(compareValue)) {
                         newResponse.status = 'CODING_ERROR';
                         changed = true;
-                      } else {
-                        if (valueAsNumber < compareValue) {
-                          newResponse.code = c.id;
-                          newResponse.score = c.score;
-                          newResponse.status = 'CODING_COMPLETE';
-                          changed = true;
-                        }
+                      } else if (valueAsNumber < compareValue) {
+                        newResponse.code = c.id;
+                        newResponse.score = c.score;
+                        newResponse.status = 'CODING_COMPLETE';
+                        changed = true;
                       }
                     } else {
                       newResponse.status = 'CODING_ERROR';
@@ -184,13 +192,11 @@ export abstract class CodingFactory {
                       if (Number.isNaN(compareValue)) {
                         newResponse.status = 'CODING_ERROR';
                         changed = true;
-                      } else {
-                        if (valueAsNumber <= compareValue) {
-                          newResponse.code = c.id;
-                          newResponse.score = c.score;
-                          newResponse.status = 'CODING_COMPLETE';
-                          changed = true;
-                        }
+                      } else if (valueAsNumber <= compareValue) {
+                        newResponse.code = c.id;
+                        newResponse.score = c.score;
+                        newResponse.status = 'CODING_COMPLETE';
+                        changed = true;
                       }
                     } else {
                       newResponse.status = 'CODING_ERROR';
@@ -204,13 +210,11 @@ export abstract class CodingFactory {
                       if (Number.isNaN(compareValue)) {
                         newResponse.status = 'CODING_ERROR';
                         changed = true;
-                      } else {
-                        if (valueAsNumber > compareValue) {
-                          newResponse.code = c.id;
-                          newResponse.score = c.score;
-                          newResponse.status = 'CODING_COMPLETE';
-                          changed = true;
-                        }
+                      } else if (valueAsNumber > compareValue) {
+                        newResponse.code = c.id;
+                        newResponse.score = c.score;
+                        newResponse.status = 'CODING_COMPLETE';
+                        changed = true;
                       }
                     } else {
                       newResponse.status = 'CODING_ERROR';
@@ -224,13 +228,11 @@ export abstract class CodingFactory {
                       if (Number.isNaN(compareValue)) {
                         newResponse.status = 'CODING_ERROR';
                         changed = true;
-                      } else {
-                        if (valueAsNumber >= compareValue) {
-                          newResponse.code = c.id;
-                          newResponse.score = c.score;
-                          newResponse.status = 'CODING_COMPLETE';
-                          changed = true;
-                        }
+                      } else if (valueAsNumber >= compareValue) {
+                        newResponse.code = c.id;
+                        newResponse.score = c.score;
+                        newResponse.status = 'CODING_COMPLETE';
+                        changed = true;
                       }
                     } else {
                       newResponse.status = 'CODING_ERROR';
@@ -245,13 +247,11 @@ export abstract class CodingFactory {
                       if (Number.isNaN(compareValueUL) || Number.isNaN(compareValueLL)) {
                         newResponse.status = 'CODING_ERROR';
                         changed = true;
-                      } else {
-                        if (valueAsNumber > compareValueLL && valueAsNumber <= compareValueUL) {
-                          newResponse.code = c.id;
-                          newResponse.score = c.score;
-                          newResponse.status = 'CODING_COMPLETE';
-                          changed = true;
-                        }
+                      } else if (valueAsNumber > compareValueLL && valueAsNumber <= compareValueUL) {
+                        newResponse.code = c.id;
+                        newResponse.score = c.score;
+                        newResponse.status = 'CODING_COMPLETE';
+                        changed = true;
                       }
                     } else {
                       newResponse.status = 'CODING_ERROR';
@@ -264,7 +264,8 @@ export abstract class CodingFactory {
                       newResponse.score = c.score;
                       newResponse.status = 'CODING_COMPLETE';
                       changed = true;
-                    } else if (valueToCheck !== '0' && valueToCheck !== false && valueToCheck !== 'false' && valueToCheck !== null) {
+                    } else if (valueToCheck !== '0' && valueToCheck !== false &&
+                        valueToCheck !== 'false' && valueToCheck !== null) {
                       newResponse.status = 'CODING_ERROR';
                       changed = true;
                     }
@@ -275,7 +276,8 @@ export abstract class CodingFactory {
                       newResponse.score = c.score;
                       newResponse.status = 'CODING_COMPLETE';
                       changed = true;
-                    } else if (valueToCheck !== '1' && valueToCheck !== true && valueToCheck !== 'true' && valueToCheck !== null) {
+                    } else if (valueToCheck !== '1' && valueToCheck !== true &&
+                        valueToCheck !== 'true' && valueToCheck !== null) {
                       newResponse.status = 'CODING_ERROR';
                       changed = true;
                     }
@@ -341,7 +343,8 @@ export abstract class CodingFactory {
       processings.forEach((t, i) => {
         switch (t) {
           case 'REPLAY_REQUIRED':
-            returnText += `${i > 0 ? ', ' : ''}Zur Kodierung ist muss die Antwort mit der Aufgabe angezeigt werden (Replay)`;
+            returnText += `${i > 0 ? ', ' : ''
+            }Zur Kodierung ist muss die Antwort mit der Aufgabe angezeigt werden (Replay)`;
             break;
           case 'IGNORE_CASE':
             returnText += `${i > 0 ? ', ' : ''}Groß-/Kleinschreibung wird ignoriert`;

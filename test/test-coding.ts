@@ -21,17 +21,11 @@ try {
 }
 
 if (responses && codingScheme && varList) {
-  const codings = new CodingScheme(codingScheme);
+  const codings = new CodingScheme(codingScheme.variableCodings);
   const problems = codings.validate(varList);
   const fatalErrors = problems.filter(p => p.breaking);
   if (fatalErrors.length === 0) {
     console.log(codings.code(responses));
-    codings.asText().forEach(c => {
-      console.log(`\x1b[0;34m${c.id}\x1b[0m`);
-      console.log(c.source);
-      if (c.processing) console.log(c.processing);
-      console.log(c.codes);
-    });
   } else {
     console.log(
       `\x1b[0;31merrors\x1b[0m in coding scheme:`

@@ -9,7 +9,44 @@
       "manualInstruction": "",
       "codeModel": "NONE",
       "codeModelParameters": [ ],
-      "codes": [ ]
+      "codes": [ {
+        "id": 1,
+        "label": "",
+        "score": 0,
+        "rules": [
+          {
+            "method": "MATCH",
+            "parameters": [
+              "3"
+            ]
+          }
+        ],
+        "manualInstruction": ""
+      }]
+    },
+    {
+      "id": "Franz",
+      "label": "",
+      "sourceType": "BASE",
+      "deriveSources": [ ],
+      "processing": [ ],
+      "manualInstruction": "",
+      "codeModel": "NONE",
+      "codeModelParameters": [ ],
+      "codes": [ {
+        "id": 1,
+        "label": "",
+        "score": 0,
+        "rules": [
+          {
+            "method": "MATCH",
+            "parameters": [
+              "3"
+            ]
+          }
+        ],
+        "manualInstruction": ""
+      }]
     },
     {
       "id": "Paul",
@@ -20,8 +57,33 @@
       "manualInstruction": "",
       "codeModel": "NONE",
       "codeModelParameters": [ ],
-      "codes": [ ]
-    },
+      "codes": [ {
+        "id": 1,
+        "label": "",
+        "score": 0,
+        "rules": [
+          {
+            "method": "MATCH",
+            "parameters": [
+              "2"
+            ]
+          }
+            ],
+        "manualInstruction": ""
+      },
+        {
+          "id": 2,
+          "label": "",
+          "score": 0,
+          "rules": [
+            {
+              "method": "MATCH",
+              "parameters": [
+                "4"
+              ]
+            }
+      ]
+    }]},
     {
       "id": "Susi",
       "label": "",
@@ -51,9 +113,9 @@
     {
       "id": "ss",
       "label": "",
-      "sourceType": "COPY_FIRST_VALUE",
+      "sourceType": "SUM_CODE",
       "deriveSources": [
-        "Paul"
+        "Paul", "Otto"
       ],
       "processing": [ ],
       "manualInstruction": "",
@@ -65,9 +127,9 @@
         "score": 0,
         "rules": [
           {
-            "method": "MATCH",
+            "method": "NUMERIC_MAX",
             "parameters": [
-              "22222"
+              "3"
             ]
           }
         ],

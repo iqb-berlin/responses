@@ -58,19 +58,28 @@ export class CodingScheme {
       const changes = this.variableCodings.map((coding): boolean => {
         let codingChanged = false;
         let newResponse = newResponses.find(r => r.id === coding.id);
-        if (coding.sourceType === 'BASE' && newResponse &&
-                    newResponse.status === 'VALUE_CHANGED') {
-          if (coding.codes.length > 0) {
-            const codedResponse = CodingFactory.code(newResponse, coding);
-            if (codedResponse.status !== newResponse.status) {
-              newResponse.status = codedResponse.status;
-              newResponse.code = codedResponse.code;
-              newResponse.score = codedResponse.score;
+        if (coding.sourceType === 'BASE') {
+          if (!newResponse) {
+            newResponse = {
+              id: coding.id,
+              value: null,
+              status: 'UNSET'
+            };
+            newResponses.push(newResponse);
+            codingChanged = true;
+          } else if (newResponse.status === 'VALUE_CHANGED') {
+            if (coding.codes.length > 0) {
+              const codedResponse = CodingFactory.code(newResponse, coding);
+              if (codedResponse.status !== newResponse.status) {
+                newResponse.status = codedResponse.status;
+                newResponse.code = codedResponse.code;
+                newResponse.score = codedResponse.score;
+                codingChanged = true;
+              }
+            } else {
+              newResponse.status = 'NO_CODING';
               codingChanged = true;
             }
-          } else {
-            newResponse.status = 'NO_CODING';
-            codingChanged = true;
           }
         } else if (coding.deriveSources.length > 0) {
           if (!newResponse) {
@@ -163,14 +172,12 @@ export class CodingScheme {
               variableId: c.id
             });
           }
-        } else {
-          if (c.deriveSources.length === 1) {
-            problems.push({
-              type: 'ONLY_ONE_SOURCE',
-              breaking: false,
-              variableId: c.id
-            });
-          }
+        } else if (c.deriveSources.length === 1) {
+          problems.push({
+            type: 'ONLY_ONE_SOURCE',
+            breaking: false,
+            variableId: c.id
+          });
         }
         c.deriveSources.forEach(s => {
           if (allPossibleSourceIds.indexOf(s) < 0) {

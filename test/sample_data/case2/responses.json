@@ -1,0 +1,17 @@
+[
+  {
+    "id": "Otto",
+    "status": "VALUE_CHANGED",
+    "value": "3"
+  },
+  {
+    "id": "Paul",
+    "status": "VALUE_CHANGED",
+    "value": 4
+  },
+  {
+    "id": "Kalle",
+    "status": "VALUE_CHANGED",
+    "value": 4
+  }
+]
