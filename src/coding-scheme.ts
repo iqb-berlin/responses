@@ -6,6 +6,7 @@ import {
   RuleMethodParameterCount, CodingAsText
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
+import { ToTextFactory } from './to-text-factory';
 
 export class CodingScheme {
   variableCodings: VariableCodingData[] = [];
@@ -235,10 +236,10 @@ export class CodingScheme {
       const newCodingText: CodingAsText = {
         id: c.id,
         label: c.label,
-        source: CodingFactory.sourceAsText(c.id, c.sourceType, c.deriveSources),
-        processing: CodingFactory.processingAsText(c.processing),
+        source: ToTextFactory.sourceAsText(c.id, c.sourceType, c.deriveSources),
+        processing: ToTextFactory.processingAsText(c.processing),
         hasManualInstruction: !!c.manualInstruction,
-        codes: c.codes.map(code => CodingFactory.codeAsText(code))
+        codes: c.codes.map(code => ToTextFactory.codeAsText(code))
       };
       const allScores = newCodingText.codes.map(ct => ct.score);
       const maxScore = Math.max(...allScores);

@@ -28,7 +28,8 @@ export const RuleMethodParameterCount = {
   IS_TRUE: 0,
   IS_FALSE: 0
 };
-export type ProcessingParameterType = 'IGNORE_CASE' | 'REMOVE_WHITE_SPACES' | 'REPLAY_REQUIRED' | 'ATTACHMENT';
+export type ProcessingParameterType = 'IGNORE_CASE' | 'REMOVE_WHITE_SPACES' | 'REPLAY_REQUIRED' |
+'ATTACHMENT' | 'SPLIT_POSINT_POSINT_STRING' | 'SPLIT_FLOAT_STRING';
 export type CodeModelType = 'NONE' | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL';
 export type SourceType = 'BASE' | 'COPY_FIRST_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
 export const DeriveConcatDelimiter = '_';
@@ -44,6 +45,7 @@ export interface CodeData {
   id: number,
   label: string,
   score: number,
+  ruleOperatorAnd: boolean,
   rules: CodingRule[],
   manualInstruction: string
 }

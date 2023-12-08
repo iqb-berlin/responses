@@ -38,7 +38,9 @@
             "IGNORE_CASE",
             "REMOVE_WHITE_SPACES",
             "REPLAY_REQUIRED",
-            "ATTACHMENT"
+            "ATTACHMENT",
+            "SPLIT_POSINT_POSINT_STRING",
+            "SPLIT_FLOAT_STRING"
           ]
         },
         "description": "This parameter defines what (pre)processing should be done."
@@ -81,6 +83,10 @@
             "manualInstruction": {
               "type": "string",
               "description": "Instructions for manual coding."
+            },
+            "ruleOperatorAnd": {
+              "type": "boolean",
+              "description": "If true, all rules must match to take that code. Otherwise (default: false), one matching rule will satisfy."
             },
             "rules": {
               "type": "array",
