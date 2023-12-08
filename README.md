@@ -7,6 +7,8 @@ This package contains of type definitions for processing assessment data.
 # JSON Schema
 The definitions are available as JSON schema files. This way, you can validate your data. The schema files are also the source of documentation: [See here](https://pages.cms.hu-berlin.de/iqb/ci_cd/responses) to learn about the data structures.
 
+There is one data structure specified by Verona Interfaces: [variable list](https://github.com/verona-interfaces/editor/blob/master/variable-list/variable-list.json). In this repository `responses`, you find a class to handle variable info of this structure, but the specification is not part of this repo. 
+
 # For developers
 
 * The data is defined via json schema documents. Every folder stands for one definition.

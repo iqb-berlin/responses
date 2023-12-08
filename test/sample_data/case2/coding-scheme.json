@@ -15,14 +15,29 @@
         "score": 0,
         "rules": [
           {
-            "method": "MATCH",
+            "method": "NUMERIC_RANGE",
             "parameters": [
-              "3"
+              "3", "5"
             ]
           }
         ],
         "manualInstruction": ""
-      }]
+      },
+        {
+          "id": 2,
+          "label": "",
+          "score": 0,
+          "rules": [
+            {
+              "method": "NUMERIC_RANGE",
+              "parameters": [
+                "0", "8"
+              ]
+            }
+          ],
+          "manualInstruction": ""
+        }
+      ]
     },
     {
       "id": "Franz",
