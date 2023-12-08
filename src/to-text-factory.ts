@@ -67,6 +67,12 @@ export abstract class ToTextFactory {
           case 'ATTACHMENT':
             returnText += `${i > 0 ? ', ' : ''}Zur Kodierung ist eine separate Datei erforderlich (Bild, Audio)`;
             break;
+          case 'SPLIT_POSINT_POSINT_STRING':
+            returnText += `${i > 0 ? ', ' : ''}Vor der Kodierung wird versucht, den Wert in drei separate Werte aufzuteilen: positive Ganzzahl, positive Ganzzahl und Text`;
+            break;
+          case 'SPLIT_FLOAT_STRING':
+            returnText += `${i > 0 ? ', ' : ''}Vor der Kodierung wird versucht, den Wert in zwei separate Werte aufzuteilen: Fließkommazahl und Text`;
+            break;
           default:
             returnText += `${i > 0 ? ', ' : ''}?? unbekannter Wer für Prozessparameter`;
         }

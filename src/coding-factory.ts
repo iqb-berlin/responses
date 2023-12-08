@@ -4,7 +4,7 @@ import {
   VariableInfo,
   Response,
   ProcessingParameterType,
-  DeriveConcatDelimiter
+  DeriveConcatDelimiter, CodingRule
 } from './coding-interfaces';
 
 export abstract class CodingFactory {
@@ -95,6 +95,105 @@ export abstract class CodingFactory {
     return null;
   }
 
+  static isValidValueForRule(valueToCheck: ResponseValueType, rule: CodingRule): boolean {
+    let returnValue = true;
+    let valueAsNumber: number | null = null;
+    // eslint-disable-next-line default-case
+    switch (rule.method) {
+      case 'NUMERIC_LESS_THEN':
+      case 'NUMERIC_MAX':
+      case 'NUMERIC_MORE_THEN':
+      case 'NUMERIC_MIN':
+      case 'NUMERIC_RANGE':
+        valueAsNumber = this.getValueAsNumber(valueToCheck);
+        returnValue = typeof valueAsNumber === 'number';
+        break;
+      case 'IS_TRUE':
+      case 'IS_FALSE':
+        if (valueToCheck !== '1' && valueToCheck !== true && valueToCheck !== 'true' &&
+            valueToCheck !== '0' && valueToCheck !== false &&
+            valueToCheck !== 'false' && valueToCheck !== null) {
+          returnValue = false;
+        }
+        break;
+    }
+    return returnValue;
+  }
+
+  static checkOneRule(valueToCheck: ResponseValueType, rule: CodingRule, codingProcessing: ProcessingParameterType[]): boolean {
+    let returnValue = false;
+    let valueAsNumber: number | null = null;
+    // eslint-disable-next-line default-case
+    switch (rule.method) {
+      case 'IS_NULL':
+        if (valueToCheck === null) returnValue = true;
+        break;
+      case 'IS_EMPTY':
+        if (valueToCheck === '') returnValue = true;
+        break;
+      case 'MATCH':
+        if (typeof valueToCheck === 'number') {
+          valueToCheck = valueToCheck.toString(10);
+        } else if (typeof valueToCheck === 'boolean') {
+          valueToCheck = valueToCheck.toString();
+        }
+        returnValue = this.findString(valueToCheck, codingProcessing.includes('IGNORE_CASE'), rule.parameters);
+        break;
+      case 'MATCH_REGEX':
+        if (typeof valueToCheck === 'number') {
+          valueToCheck = valueToCheck.toString(10);
+        } else if (typeof valueToCheck === 'boolean') {
+          valueToCheck = valueToCheck.toString();
+        }
+        returnValue = this.findStringRegEx(valueToCheck, rule.parameters);
+        break;
+      case 'NUMERIC_LESS_THEN':
+        valueAsNumber = this.getValueAsNumber(valueToCheck);
+        if (typeof valueAsNumber === 'number' && rule.parameters) {
+          const compareValue = Number.parseFloat(rule.parameters[0]);
+          returnValue = !Number.isNaN(compareValue) && valueAsNumber < compareValue;
+        }
+        break;
+      case 'NUMERIC_MAX':
+        valueAsNumber = this.getValueAsNumber(valueToCheck);
+        if (typeof valueAsNumber === 'number' && rule.parameters) {
+          const compareValue = Number.parseFloat(rule.parameters[0]);
+          returnValue = !Number.isNaN(compareValue) && valueAsNumber <= compareValue;
+        }
+        break;
+      case 'NUMERIC_MORE_THEN':
+        valueAsNumber = this.getValueAsNumber(valueToCheck);
+        if (typeof valueAsNumber === 'number' && rule.parameters) {
+          const compareValue = Number.parseFloat(rule.parameters[0]);
+          returnValue = !Number.isNaN(compareValue) && valueAsNumber > compareValue;
+        }
+        break;
+      case 'NUMERIC_MIN':
+        valueAsNumber = this.getValueAsNumber(valueToCheck);
+        if (typeof valueAsNumber === 'number' && rule.parameters) {
+          const compareValue = Number.parseFloat(rule.parameters[0]);
+          returnValue = !Number.isNaN(compareValue) && valueAsNumber >= compareValue;
+        }
+        break;
+      case 'NUMERIC_RANGE':
+        valueAsNumber = this.getValueAsNumber(valueToCheck);
+        if (typeof valueAsNumber === 'number' && rule.parameters) {
+          const compareValueLL = Number.parseFloat(rule.parameters[0]);
+          const compareValueUL = Number.parseFloat(rule.parameters[1]);
+          returnValue = !Number.isNaN(compareValueUL) && Number.isNaN(compareValueLL) &&
+              valueAsNumber > compareValueLL && valueAsNumber <= compareValueUL;
+        }
+        break;
+      case 'IS_TRUE':
+        returnValue = valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true';
+        break;
+      case 'IS_FALSE':
+        returnValue = valueToCheck === '0' || valueToCheck === false || valueToCheck === 'false';
+        break;
+    }
+    return returnValue;
+  }
+
   static code(response: Response, coding: VariableCodingData): Response {
     const stringifiedResponse = JSON.stringify(response);
     const newResponse = JSON.parse(stringifiedResponse);
@@ -113,176 +212,30 @@ export abstract class CodingFactory {
         let changed = false;
         coding.codes.forEach(c => {
           if (!changed) {
-            c.rules.forEach(r => {
-              if (!changed) {
-                let valueAsNumber: number | null = null;
-                // eslint-disable-next-line default-case
-                switch (r.method) {
-                  case 'ELSE':
-                    hasElse = true;
-                    elseCode = c.id;
-                    elseScore = c.score;
-                    break;
-                  case 'IS_NULL':
-                    if (valueToCheck === null) {
-                      newResponse.code = c.id;
-                      newResponse.score = c.score;
-                      newResponse.status = 'CODING_COMPLETE';
-                      changed = true;
-                    }
-                    break;
-                  case 'IS_EMPTY':
-                    if (valueToCheck === '') {
-                      newResponse.code = c.id;
-                      newResponse.score = c.score;
-                      newResponse.status = 'CODING_COMPLETE';
-                      changed = true;
-                    }
-                    break;
-                  case 'MATCH':
-                    if (typeof valueToCheck === 'number') {
-                      valueToCheck = valueToCheck.toString(10);
-                    } else if (typeof valueToCheck === 'boolean') {
-                      valueToCheck = valueToCheck.toString();
-                    }
-                    if (this.findString(valueToCheck, coding.processing.includes('IGNORE_CASE'), r.parameters)) {
-                      newResponse.code = c.id;
-                      newResponse.score = c.score;
-                      newResponse.status = 'CODING_COMPLETE';
-                      changed = true;
-                    }
-                    break;
-                  case 'MATCH_REGEX':
-                    if (typeof valueToCheck === 'number') {
-                      valueToCheck = valueToCheck.toString(10);
-                    } else if (typeof valueToCheck === 'boolean') {
-                      valueToCheck = valueToCheck.toString();
-                    }
-                    if (this.findStringRegEx(valueToCheck, r.parameters)) {
-                      newResponse.code = c.id;
-                      newResponse.score = c.score;
-                      newResponse.status = 'CODING_COMPLETE';
-                      changed = true;
-                    }
-                    break;
-                  case 'NUMERIC_LESS_THEN':
-                    valueAsNumber = this.getValueAsNumber(valueToCheck);
-                    if (typeof valueAsNumber === 'number' && r.parameters) {
-                      const compareValue = Number.parseFloat(r.parameters[0]);
-                      if (Number.isNaN(compareValue)) {
-                        newResponse.status = 'CODING_ERROR';
-                        changed = true;
-                      } else if (valueAsNumber < compareValue) {
-                        newResponse.code = c.id;
-                        newResponse.score = c.score;
-                        newResponse.status = 'CODING_COMPLETE';
-                        changed = true;
-                      }
-                    } else {
-                      newResponse.status = 'CODING_ERROR';
-                      changed = true;
-                    }
-                    break;
-                  case 'NUMERIC_MAX':
-                    valueAsNumber = this.getValueAsNumber(valueToCheck);
-                    if (typeof valueAsNumber === 'number' && r.parameters) {
-                      const compareValue = Number.parseFloat(r.parameters[0]);
-                      if (Number.isNaN(compareValue)) {
-                        newResponse.status = 'CODING_ERROR';
-                        changed = true;
-                      } else if (valueAsNumber <= compareValue) {
-                        newResponse.code = c.id;
-                        newResponse.score = c.score;
-                        newResponse.status = 'CODING_COMPLETE';
-                        changed = true;
-                      }
-                    } else {
-                      newResponse.status = 'CODING_ERROR';
-                      changed = true;
-                    }
-                    break;
-                  case 'NUMERIC_MORE_THEN':
-                    valueAsNumber = this.getValueAsNumber(valueToCheck);
-                    if (typeof valueAsNumber === 'number' && r.parameters) {
-                      const compareValue = Number.parseFloat(r.parameters[0]);
-                      if (Number.isNaN(compareValue)) {
-                        newResponse.status = 'CODING_ERROR';
-                        changed = true;
-                      } else if (valueAsNumber > compareValue) {
-                        newResponse.code = c.id;
-                        newResponse.score = c.score;
-                        newResponse.status = 'CODING_COMPLETE';
-                        changed = true;
-                      }
-                    } else {
-                      newResponse.status = 'CODING_ERROR';
-                      changed = true;
-                    }
-                    break;
-                  case 'NUMERIC_MIN':
-                    valueAsNumber = this.getValueAsNumber(valueToCheck);
-                    if (typeof valueAsNumber === 'number' && r.parameters) {
-                      const compareValue = Number.parseFloat(r.parameters[0]);
-                      if (Number.isNaN(compareValue)) {
-                        newResponse.status = 'CODING_ERROR';
-                        changed = true;
-                      } else if (valueAsNumber >= compareValue) {
-                        newResponse.code = c.id;
-                        newResponse.score = c.score;
-                        newResponse.status = 'CODING_COMPLETE';
-                        changed = true;
-                      }
-                    } else {
-                      newResponse.status = 'CODING_ERROR';
-                      changed = true;
-                    }
-                    break;
-                  case 'NUMERIC_RANGE':
-                    valueAsNumber = this.getValueAsNumber(valueToCheck);
-                    if (typeof valueAsNumber === 'number' && r.parameters) {
-                      const compareValueLL = Number.parseFloat(r.parameters[0]);
-                      const compareValueUL = Number.parseFloat(r.parameters[1]);
-                      if (Number.isNaN(compareValueUL) || Number.isNaN(compareValueLL)) {
-                        newResponse.status = 'CODING_ERROR';
-                        changed = true;
-                      } else if (valueAsNumber > compareValueLL && valueAsNumber <= compareValueUL) {
-                        newResponse.code = c.id;
-                        newResponse.score = c.score;
-                        newResponse.status = 'CODING_COMPLETE';
-                        changed = true;
-                      }
-                    } else {
-                      newResponse.status = 'CODING_ERROR';
-                      changed = true;
-                    }
-                    break;
-                  case 'IS_TRUE':
-                    if (valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true') {
-                      newResponse.code = c.id;
-                      newResponse.score = c.score;
-                      newResponse.status = 'CODING_COMPLETE';
-                      changed = true;
-                    } else if (valueToCheck !== '0' && valueToCheck !== false &&
-                        valueToCheck !== 'false' && valueToCheck !== null) {
-                      newResponse.status = 'CODING_ERROR';
-                      changed = true;
-                    }
-                    break;
-                  case 'IS_FALSE':
-                    if (valueToCheck === '0' || valueToCheck === false || valueToCheck === 'false') {
-                      newResponse.code = c.id;
-                      newResponse.score = c.score;
-                      newResponse.status = 'CODING_COMPLETE';
-                      changed = true;
-                    } else if (valueToCheck !== '1' && valueToCheck !== true &&
-                        valueToCheck !== 'true' && valueToCheck !== null) {
-                      newResponse.status = 'CODING_ERROR';
-                      changed = true;
-                    }
-                    break;
+            const elseRule = c.rules.find(r => r.method === 'ELSE');
+            // ignore other rules if ELSE-rule found
+            if (elseRule) {
+              hasElse = true;
+              elseCode = c.id;
+              elseScore = c.score;
+            } else {
+              const invalidValue = c.rules.map(r => CodingFactory.isValidValueForRule(valueToCheck, r))
+                  .find(validCheckResult => !validCheckResult);
+              if (invalidValue) {
+                newResponse.status = 'CODING_ERROR';
+                changed = true;
+              } else {
+                const codingMatches = c.rules.map(r => CodingFactory.checkOneRule(valueToCheck, r, coding.processing));
+                const falseMatch = codingMatches.find(m => !m);
+                const trueMatch = codingMatches.find(m => m);
+                if (trueMatch && (!c.ruleOperatorAnd || !falseMatch)) {
+                  newResponse.code = c.id;
+                  newResponse.score = c.score;
+                  newResponse.status = 'CODING_COMPLETE';
+                  changed = true;
                 }
               }
-            });
+            }
           }
         });
         if (!changed) {
