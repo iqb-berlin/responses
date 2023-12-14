@@ -28,8 +28,7 @@ export const RuleMethodParameterCount = {
   IS_TRUE: 0,
   IS_FALSE: 0
 };
-export type ProcessingParameterType = 'IGNORE_CASE' | 'REMOVE_WHITE_SPACES' | 'REPLAY_REQUIRED' |
-'ATTACHMENT' | 'SPLIT_POSINT_POSINT_STRING' | 'SPLIT_FLOAT_STRING';
+export type ProcessingParameterType = 'IGNORE_CASE' | 'REMOVE_WHITE_SPACES' | 'REPLAY_REQUIRED' | 'ATTACHMENT';
 export type CodeModelType = 'NONE' | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL';
 export type SourceType = 'BASE' | 'COPY_FIRST_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
 export const DeriveConcatDelimiter = '_';
@@ -39,33 +38,43 @@ export type CodingSchemeProblemType = 'VACANT' | 'SOURCE_MISSING' | 'INVALID_SOU
 export interface CodingRule {
   method: RuleMethod,
   parameters?: string[],
+  fragment?: number
+}
+
+export interface RuleSet {
+  ruleOperatorAnd: boolean,
+  rules: CodingRule[],
+  valueArrayPos?: number
 }
 
 export interface CodeData {
   id: number,
   label: string,
   score: number,
-  ruleOperatorAnd: boolean,
-  rules: CodingRule[],
+  ruleSetOperatorAnd: boolean,
+  ruleSets: RuleSet[],
   manualInstruction: string
 }
 
 export interface VariableCodingData {
-  id: string;
-  label: string;
-  sourceType: SourceType;
-  deriveSources: string[];
-  processing: ProcessingParameterType[];
-  manualInstruction: string;
-  codeModel?: CodeModelType;
+  id: string,
+  label: string,
+  sourceType: SourceType,
+  deriveSources: string[],
+  processing: ProcessingParameterType[],
+  fragmenting?: string,
+  manualInstruction: string,
+  codeModel?: CodeModelType,
   codeModelParameters?: string[],
-  codes: CodeData[];
+  codes: CodeData[],
+  page: string
 }
 
 export interface CodingSchemeProblem {
   type: CodingSchemeProblemType,
   breaking: boolean,
   variableId: string,
+  variableLabel: string,
   code?: number
 }
 

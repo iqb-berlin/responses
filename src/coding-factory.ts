@@ -18,7 +18,8 @@ export abstract class CodingFactory {
       manualInstruction: '',
       codeModel: 'NONE',
       codeModelParameters: [],
-      codes: []
+      codes: [],
+      page: ''
     };
   }
 

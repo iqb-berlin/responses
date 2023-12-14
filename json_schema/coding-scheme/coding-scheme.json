@@ -21,7 +21,7 @@
         "enum": [
           "BASE", "COPY_FIRST_VALUE", "CONCAT_CODE", "SUM_CODE", "SUM_SCORE"
         ],
-        "description": "CONCAT means concatenate all source values as string, SUM takes all source values as numeric and calculates a sum."
+        "description": "CONCAT means concatenate all source codes as string with delimiter '_', SUM calculates a sum from all source codes or scores."
       },
       "deriveSources": {
         "type": "array",
@@ -38,12 +38,14 @@
             "IGNORE_CASE",
             "REMOVE_WHITE_SPACES",
             "REPLAY_REQUIRED",
-            "ATTACHMENT",
-            "SPLIT_POSINT_POSINT_STRING",
-            "SPLIT_FLOAT_STRING"
+            "ATTACHMENT"
           ]
         },
         "description": "This parameter defines what (pre)processing should be done."
+      },
+      "fragmenting": {
+        "type": "string",
+        "description": "Regular expression to get fragments out of the value if of type string"
       },
       "manualInstruction": {
         "type": "string",
@@ -84,36 +86,56 @@
               "type": "string",
               "description": "Instructions for manual coding."
             },
-            "ruleOperatorAnd": {
+            "ruleSetOperatorAnd": {
               "type": "boolean",
-              "description": "If true, all rules must match to take that code. Otherwise (default: false), one matching rule will satisfy."
+              "description": "If true, all rule sets must match to take that code. Otherwise (default: false), one matching rule set will satisfy."
             },
-            "rules": {
+            "ruleSets": {
               "type": "array",
               "items": {
                 "type": "object",
                 "properties": {
-                  "method": {
-                    "type": "string",
-                    "enum": [
-                      "MATCH",
-                      "MATCH_REGEX",
-                      "NUMERIC_RANGE",
-                      "NUMERIC_LESS_THEN",
-                      "NUMERIC_MORE_THEN",
-                      "NUMERIC_MAX",
-                      "NUMERIC_MIN",
-                      "IS_EMPTY",
-                      "ELSE",
-                      "IS_NULL",
-                      "IS_TRUE",
-                      "IS_FALSE"
-                    ]
+                  "valueArrayPos": {
+                    "type": "integer",
+                    "description": "Refers to a specific position in the value array [0..n] or to any position -1."
                   },
-                  "parameters": {
+                  "ruleOperatorAnd": {
+                    "type": "boolean",
+                    "description": "If true, all rules must match to take that code. Otherwise (default: false), one matching rule will satisfy."
+                  },
+                  "rules": {
                     "type": "array",
                     "items": {
-                      "type": "string"
+                      "type": "object",
+                      "properties": {
+                        "fragment": {
+                          "type": "integer",
+                          "description": "Refers to a specific fragment of the value [0..n] or to any -1."
+                        },
+                        "method": {
+                          "type": "string",
+                          "enum": [
+                            "MATCH",
+                            "MATCH_REGEX",
+                            "NUMERIC_RANGE",
+                            "NUMERIC_LESS_THEN",
+                            "NUMERIC_MORE_THEN",
+                            "NUMERIC_MAX",
+                            "NUMERIC_MIN",
+                            "IS_EMPTY",
+                            "ELSE",
+                            "IS_NULL",
+                            "IS_TRUE",
+                            "IS_FALSE"
+                          ]
+                        },
+                        "parameters": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      }
                     }
                   }
                 }

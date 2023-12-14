@@ -21,10 +21,12 @@ export class CodingScheme {
         sourceType: 'BASE',
         deriveSources: c.deriveSources || [],
         processing: c.preProcessing || c.valueTransformations || [],
+        fragmenting: c.fragmenting || '',
         manualInstruction: c.manualInstruction || '',
         codeModel: c.codeModel || 'NONE',
         codeModelParameters: c.codeModelParameters || [],
-        codes: c.codes || []
+        codes: c.codes || [],
+        page: c.page || ''
       };
       if (c.sourceType === 'DERIVE_CONCAT') {
         if (c.deriveSourceType === 'VALUE') {
@@ -153,7 +155,8 @@ export class CodingScheme {
           problems.push({
             type: 'SOURCE_MISSING',
             breaking: true,
-            variableId: c.id
+            variableId: c.id,
+            variableLabel: c.label
           });
         }
       } else if (c.deriveSources && c.deriveSources.length > 0) {
@@ -162,7 +165,8 @@ export class CodingScheme {
             problems.push({
               type: 'MORE_THEN_ONE_SOURCE',
               breaking: false,
-              variableId: c.id
+              variableId: c.id,
+              variableLabel: c.label
             });
           }
           if (allPossibleSourceIds.indexOf(c.deriveSources[0]) >= 0 &&
@@ -170,14 +174,16 @@ export class CodingScheme {
             problems.push({
               type: 'VALUE_COPY_NOT_FROM_BASE',
               breaking: false,
-              variableId: c.id
+              variableId: c.id,
+              variableLabel: c.label
             });
           }
         } else if (c.deriveSources.length === 1) {
           problems.push({
             type: 'ONLY_ONE_SOURCE',
             breaking: false,
-            variableId: c.id
+            variableId: c.id,
+            variableLabel: c.label
           });
         }
         c.deriveSources.forEach(s => {
@@ -185,7 +191,8 @@ export class CodingScheme {
             problems.push({
               type: 'SOURCE_MISSING',
               breaking: true,
-              variableId: c.id
+              variableId: c.id,
+              variableLabel: c.label
             });
           }
         });
@@ -193,37 +200,43 @@ export class CodingScheme {
         problems.push({
           type: 'SOURCE_MISSING',
           breaking: true,
-          variableId: c.id
+          variableId: c.id,
+          variableLabel: c.label
         });
       }
 
       if (c.codes.length > 0) {
         c.codes.forEach(code => {
-          code.rules.forEach(r => {
-            if (RuleMethodParameterCount[r.method] < 0) {
-              if (!r.parameters || r.parameters.length < 1) {
+          code.ruleSets.forEach(rs => {
+            rs.rules.forEach(r => {
+              if (RuleMethodParameterCount[r.method] < 0) {
+                if (!r.parameters || r.parameters.length < 1) {
+                  problems.push({
+                    type: 'RULE_PARAMETER_COUNT_MISMATCH',
+                    breaking: true,
+                    variableId: c.id,
+                    code: code.id,
+                    variableLabel: c.label
+                  });
+                }
+              } else if (RuleMethodParameterCount[r.method] !== (r.parameters ? r.parameters.length : 0)) {
                 problems.push({
                   type: 'RULE_PARAMETER_COUNT_MISMATCH',
                   breaking: true,
                   variableId: c.id,
-                  code: code.id
+                  code: code.id,
+                  variableLabel: c.label
                 });
               }
-            } else if (RuleMethodParameterCount[r.method] !== (r.parameters ? r.parameters.length : 0)) {
-              problems.push({
-                type: 'RULE_PARAMETER_COUNT_MISMATCH',
-                breaking: true,
-                variableId: c.id,
-                code: code.id
-              });
-            }
+            });
           });
         });
       } else if (variableValuesCopied.indexOf(c.id) < 0) {
         problems.push({
           type: 'VACANT',
           breaking: false,
-          variableId: c.id
+          variableId: c.id,
+          variableLabel: c.label
         });
       }
     });
