@@ -14,8 +14,12 @@ const VARINFO_FORMAT_TEXT = {
   image: 'Bild',
   'capture-image': 'Foto',
   audio: 'Sprachaufnahme',
-  'ggb-file': 'Geogebra-Definition',
-  'non-negative': 'Nicht negativ'
+  'ggb-file': 'GeoGebra-Definition',
+  'ggb-variable': 'GeoGebra-Variable',
+  'non-negative': 'Nicht negativ',
+  latex: 'Mathematische Formel im LaTeX-Format',
+  'math-ml': 'Mathematische Formel im Html-Format, MathML eingebettet',
+  'math-table': 'Tabelle mit Zahlen für Rechenkästchen (JSON)'
 };
 
 export abstract class ToTextFactory {

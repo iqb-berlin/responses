@@ -78,7 +78,8 @@ export interface VariableValue {
 export interface VariableInfo {
   id: string;
   type: 'string' | 'integer' | 'number' | 'boolean' | 'attachment';
-  format: 'text-selection' | 'image' | 'capture-image' | 'audio' | 'ggb-file' | 'non-negative' | '';
+  format: 'text-selection' | 'image' | 'capture-image' | 'audio' | 'ggb-file' | 'non-negative' |
+      'latex' | 'math-ml' | 'math-table' | 'ggb-variable' | '';
   multiple: boolean;
   nullable: boolean;
   values: VariableValue[];
@@ -103,4 +104,10 @@ export interface CodingAsText {
   processing?: string,
   hasManualInstruction: boolean,
   codes: CodeAsText[]
+}
+
+export interface VariableInfoShort {
+  id: string,
+  label: string,
+  page: string
 }
