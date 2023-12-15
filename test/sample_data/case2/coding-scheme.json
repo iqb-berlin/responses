@@ -69,6 +69,7 @@
       "sourceType": "BASE",
       "deriveSources": [ ],
       "processing": [ ],
+      "fragmenting": "(\\d+)",
       "manualInstruction": "",
       "codeModel": "NONE",
       "codeModelParameters": [ ],
@@ -80,7 +81,7 @@
           {
             "method": "MATCH",
             "parameters": [
-              "2"
+              "4"
             ]
           }
             ],

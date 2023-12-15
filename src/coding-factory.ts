@@ -55,7 +55,7 @@ export abstract class CodingFactory {
       if (regExExecReturn) {
         const newStringArray: string[] = [];
         for (let i = 1; i < regExExecReturn.length; i++) {
-          newStringArray.push(newStringArray[i]);
+          newStringArray.push(regExExecReturn[i]);
         }
         return newStringArray;
       } else {
@@ -83,32 +83,26 @@ export abstract class CodingFactory {
     return value;
   }
 
-  private static findString(value: ResponseValueType, ignoreCase: boolean, parameters: string[] = []): boolean {
-    if (typeof value === 'string' && value.length > 0) {
-      const allStrings: string[] = [];
-      parameters.forEach(p => {
-        allStrings.push(...p.split('\n'));
-      });
-      const stringToCompare = ignoreCase ? (value as string).toUpperCase() : (value as string);
-      const inList = allStrings.find(s => stringToCompare === (ignoreCase ? s.toUpperCase() : s));
-      return !!inList;
-    }
-    return false;
+  private static findString(value: string, ignoreCase: boolean, parameters: string[] = []): boolean {
+    const allStrings: string[] = [];
+    parameters.forEach(p => {
+      allStrings.push(...p.split('\n'));
+    });
+    const stringToCompare = ignoreCase ? (value as string).toUpperCase() : (value as string);
+    const inList = allStrings.find(s => stringToCompare === (ignoreCase ? s.toUpperCase() : s));
+    return !!inList;
   }
 
-  private static findStringRegEx(value: ResponseValueType, parameters: string[] = []): boolean {
-    if (typeof value === 'string' && value.length > 0) {
-      const allStrings: string[] = [];
-      parameters.forEach(p => {
-        allStrings.push(...p.split('\n'));
-      });
-      const trueCases = allStrings.map((s: string): boolean => {
-        const regEx = new RegExp(s);
-        return !!regEx.exec(value);
-      }).filter(found => found);
-      return trueCases.length > 0;
-    }
-    return false;
+  private static findStringRegEx(value: string, parameters: string[] = []): boolean {
+    const allStrings: string[] = [];
+    parameters.forEach(p => {
+      allStrings.push(...p.split('\n'));
+    });
+    const trueCases = allStrings.map((s: string): boolean => {
+      const regEx = new RegExp(s);
+      return !!regEx.exec(value);
+    }).filter(found => found);
+    return trueCases.length > 0;
   }
 
   static getValueAsNumber(value: ResponseValueType): number | null {
@@ -191,20 +185,24 @@ export abstract class CodingFactory {
         if (valueToCheck === '') returnValue = true;
         break;
       case 'MATCH':
-        if (typeof valueToCheck === 'number') {
-          valueToCheck = valueToCheck.toString(10);
-        } else if (typeof valueToCheck === 'boolean') {
-          valueToCheck = valueToCheck.toString();
+        if (valueToCheck) {
+          if (typeof valueToCheck === 'number') {
+            valueToCheck = valueToCheck.toString(10);
+          } else if (typeof valueToCheck === 'boolean') {
+            valueToCheck = valueToCheck.toString();
+          }
+          returnValue = this.findString(valueToCheck, ignoreCase, rule.parameters);
         }
-        returnValue = this.findString(valueToCheck, ignoreCase, rule.parameters);
         break;
       case 'MATCH_REGEX':
-        if (typeof valueToCheck === 'number') {
-          valueToCheck = valueToCheck.toString(10);
-        } else if (typeof valueToCheck === 'boolean') {
-          valueToCheck = valueToCheck.toString();
+        if (valueToCheck) {
+          if (typeof valueToCheck === 'number') {
+            valueToCheck = valueToCheck.toString(10);
+          } else if (typeof valueToCheck === 'boolean') {
+            valueToCheck = valueToCheck.toString();
+          }
+          returnValue = this.findStringRegEx(valueToCheck, rule.parameters);
         }
-        returnValue = this.findStringRegEx(valueToCheck, rule.parameters);
         break;
       case 'NUMERIC_LESS_THEN':
         valueAsNumber = this.getValueAsNumber(valueToCheck);
@@ -285,6 +283,7 @@ export abstract class CodingFactory {
           if (CodingFactory.checkOneValue(valueToCheck[fragmentIndex] as string, rule, ignoreCase)) oneMatch = true;
           fragmentIndex += 1;
         }
+        return oneMatch;
       } else {
         return CodingFactory.checkOneValue(valueToCheck[rule.fragment] as string, rule, ignoreCase);
       }
