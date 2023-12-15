@@ -1,7 +1,9 @@
 export type ResponseStatusType = 'UNSET' | 'NOT_REACHED' | 'DISPLAYED' | 'VALUE_CHANGED' | 'VALUE_DERIVED' |
 'SOURCE_MISSING' | 'DERIVE_ERROR' | 'CODING_COMPLETE' | 'NO_CODING' | 'CODING_INCOMPLETE' | 'CODING_ERROR';
 
-export type ResponseValueType = null | string | number | boolean | string[] | number[] | boolean[];
+export type ResponseValueSingleType = null | string | number | boolean;
+export type ResponseValueType = ResponseValueSingleType | ResponseValueSingleType[];
+export type TransformedResponseValueType = ResponseValueType | string[][];
 
 export interface Response {
   id: string,

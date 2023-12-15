@@ -3,7 +3,7 @@ import {
   Response,
   VariableInfo,
   CodingSchemeProblem,
-  RuleMethodParameterCount, CodingAsText
+  RuleMethodParameterCount, CodingAsText, CodeData, RuleSet
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';
@@ -25,7 +25,7 @@ export class CodingScheme {
         manualInstruction: c.manualInstruction || '',
         codeModel: c.codeModel || 'NONE',
         codeModelParameters: c.codeModelParameters || [],
-        codes: c.codes || [],
+        codes: [],
         page: c.page || ''
       };
       if (c.sourceType === 'DERIVE_CONCAT') {
@@ -46,6 +46,25 @@ export class CodingScheme {
         }
       } else {
         newCoding.sourceType = c.sourceType;
+      }
+      if (c.codes && Array.isArray(c.codes)) {
+        c.codes.forEach((code: any) => {
+          if (code.ruleSets) {
+            newCoding.codes.push(code)
+          } else if (code.rules && Array.isArray(code.rules)) {
+            newCoding.codes.push(<CodeData>{
+              id: code.id,
+              label: code.label || '',
+              score: code.score || 0,
+              ruleSetOperatorAnd: false,
+              ruleSets: [<RuleSet>{
+                ruleOperatorAnd: code.ruleOperatorAnd || false,
+                rules: code.rules,
+              }],
+              manualInstruction: code.manualInstruction || ''
+            })
+          }
+        })
       }
       this.variableCodings.push(newCoding);
     });
