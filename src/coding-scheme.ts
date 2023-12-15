@@ -269,7 +269,7 @@ export class CodingScheme {
         id: c.id,
         label: c.label,
         source: ToTextFactory.sourceAsText(c.id, c.sourceType, c.deriveSources),
-        processing: ToTextFactory.processingAsText(c.processing),
+        processing: ToTextFactory.processingAsText(c.processing, c.fragmenting),
         hasManualInstruction: !!c.manualInstruction,
         codes: c.codes.map(code => ToTextFactory.codeAsText(code))
       };

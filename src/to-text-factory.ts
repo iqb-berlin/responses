@@ -52,7 +52,7 @@ export abstract class ToTextFactory {
     return returnText;
   }
 
-  static processingAsText(processings: ProcessingParameterType[]): string {
+  static processingAsText(processings: ProcessingParameterType[], fragmenting?: string): string {
     let returnText = '';
     if (processings && processings.length > 0) {
       returnText = '';
@@ -71,16 +71,14 @@ export abstract class ToTextFactory {
           case 'ATTACHMENT':
             returnText += `${i > 0 ? ', ' : ''}Zur Kodierung ist eine separate Datei erforderlich (Bild, Audio)`;
             break;
-          case 'SPLIT_POSINT_POSINT_STRING':
-            returnText += `${i > 0 ? ', ' : ''}Vor der Kodierung wird versucht, den Wert in drei separate Werte aufzuteilen: positive Ganzzahl, positive Ganzzahl und Text`;
-            break;
-          case 'SPLIT_FLOAT_STRING':
-            returnText += `${i > 0 ? ', ' : ''}Vor der Kodierung wird versucht, den Wert in zwei separate Werte aufzuteilen: Fließkommazahl und Text`;
-            break;
           default:
-            returnText += `${i > 0 ? ', ' : ''}?? unbekannter Wer für Prozessparameter`;
+            returnText += `${i > 0 ? ', ' : ''}?? unbekannter Wer für Prozessparameter '${t}'`;
         }
       });
+    }
+    if (fragmenting) {
+      if (returnText.length > 0) returnText += '; ';
+      returnText += `Es wurde ein Ausdruck festgelegt, mit dem Teile der Antwort vor der Kodierung extrahiert werden (Fragmentierung): '${fragmenting}'`
     }
     return returnText;
   }
@@ -94,123 +92,127 @@ export abstract class ToTextFactory {
       hasManualInstruction: !!code.manualInstruction,
       description: ''
     };
-    const matchTexts: string[] = [];
-    const matchRegexTexts: string[] = [];
-    code.rules.forEach(r => {
-      let parameterOk = false;
-      switch (r.method) {
-        case 'MATCH':
-          if (r.parameters) {
-            r.parameters.forEach(p => {
-              matchTexts.push(...p.split('\n'));
-            });
-          }
-          break;
-        case 'MATCH_REGEX':
-          if (r.parameters) {
-            r.parameters.forEach(p => {
-              matchRegexTexts.push(...p.split('\n'));
-            });
-          }
-          break;
-        case 'NUMERIC_RANGE':
-          parameterOk = false;
-          if (r.parameters && r.parameters.length === 2) {
-            const compareValueLL = Number.parseFloat(r.parameters[0]);
-            const compareValueUL = Number.parseFloat(r.parameters[1]);
-            if (!Number.isNaN(compareValueLL) && !Number.isNaN(compareValueUL) && compareValueLL < compareValueUL) {
-              codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-              }Wert ist größer als ${compareValueLL} und kleiner oder gleich ${compareValueUL}`;
-              parameterOk = true;
+    if (code.ruleSets && code.ruleSets.length === 1) {
+      const matchTexts: string[] = [];
+      const matchRegexTexts: string[] = [];
+      code.ruleSets[0].rules.forEach(r => {
+        let parameterOk = false;
+        switch (r.method) {
+          case 'MATCH':
+            if (r.parameters) {
+              r.parameters.forEach(p => {
+                matchTexts.push(...p.split('\n'));
+              });
             }
-          }
-          if (!parameterOk) {
-            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
-          }
-          break;
-        case 'NUMERIC_LESS_THEN':
-          parameterOk = false;
-          if (r.parameters && r.parameters.length === 1) {
-            const compareValue = Number.parseFloat(r.parameters[0]);
-            if (!Number.isNaN(compareValue)) {
-              codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-              }Wert ist kleiner als ${compareValue}`;
-              parameterOk = true;
+            break;
+          case 'MATCH_REGEX':
+            if (r.parameters) {
+              r.parameters.forEach(p => {
+                matchRegexTexts.push(...p.split('\n'));
+              });
             }
-          }
-          if (!parameterOk) {
-            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
-          }
-          break;
-        case 'NUMERIC_MORE_THEN':
-          parameterOk = false;
-          if (r.parameters && r.parameters.length === 1) {
-            const compareValue = Number.parseFloat(r.parameters[0]);
-            if (!Number.isNaN(compareValue)) {
-              codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-              }Wert ist größer als ${compareValue}`;
-              parameterOk = true;
+            break;
+          case 'NUMERIC_RANGE':
+            parameterOk = false;
+            if (r.parameters && r.parameters.length === 2) {
+              const compareValueLL = Number.parseFloat(r.parameters[0]);
+              const compareValueUL = Number.parseFloat(r.parameters[1]);
+              if (!Number.isNaN(compareValueLL) && !Number.isNaN(compareValueUL) && compareValueLL < compareValueUL) {
+                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+                }Wert ist größer als ${compareValueLL} und kleiner oder gleich ${compareValueUL}`;
+                parameterOk = true;
+              }
             }
-          }
-          if (!parameterOk) {
-            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
-          }
-          break;
-        case 'NUMERIC_MAX':
-          parameterOk = false;
-          if (r.parameters && r.parameters.length === 1) {
-            const compareValue = Number.parseFloat(r.parameters[0]);
-            if (!Number.isNaN(compareValue)) {
-              codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-              }Wert ist maximal gleich ${compareValue}`;
-              parameterOk = true;
+            if (!parameterOk) {
+              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
             }
-          }
-          if (!parameterOk) {
-            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
-          }
-          break;
-        case 'NUMERIC_MIN':
-          parameterOk = false;
-          if (r.parameters && r.parameters.length === 1) {
-            const compareValue = Number.parseFloat(r.parameters[0]);
-            if (!Number.isNaN(compareValue)) {
-              codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-              }Wert ist mindestens gleich ${compareValue}`;
-              parameterOk = true;
+            break;
+          case 'NUMERIC_LESS_THEN':
+            parameterOk = false;
+            if (r.parameters && r.parameters.length === 1) {
+              const compareValue = Number.parseFloat(r.parameters[0]);
+              if (!Number.isNaN(compareValue)) {
+                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+                }Wert ist kleiner als ${compareValue}`;
+                parameterOk = true;
+              }
             }
-          }
-          if (!parameterOk) {
-            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
-          }
-          break;
-        case 'IS_EMPTY':
-          codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Wert ist leer`;
-          break;
-        case 'ELSE':
-          codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Alle anderen Werte`;
-          break;
-        case 'IS_NULL':
-          codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Technischer Wert 'NULL'`;
-          break;
-        case 'IS_TRUE':
-          codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Logischer Wert 'WAHR'`;
-          break;
-        case 'IS_FALSE':
-          codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Logischer Wert 'FALSCH'`;
-          break;
-        default:
-          codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-          }Problem: unbekannte Regel '${r.method}'`;
+            if (!parameterOk) {
+              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
+            }
+            break;
+          case 'NUMERIC_MORE_THEN':
+            parameterOk = false;
+            if (r.parameters && r.parameters.length === 1) {
+              const compareValue = Number.parseFloat(r.parameters[0]);
+              if (!Number.isNaN(compareValue)) {
+                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+                }Wert ist größer als ${compareValue}`;
+                parameterOk = true;
+              }
+            }
+            if (!parameterOk) {
+              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
+            }
+            break;
+          case 'NUMERIC_MAX':
+            parameterOk = false;
+            if (r.parameters && r.parameters.length === 1) {
+              const compareValue = Number.parseFloat(r.parameters[0]);
+              if (!Number.isNaN(compareValue)) {
+                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+                }Wert ist maximal gleich ${compareValue}`;
+                parameterOk = true;
+              }
+            }
+            if (!parameterOk) {
+              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
+            }
+            break;
+          case 'NUMERIC_MIN':
+            parameterOk = false;
+            if (r.parameters && r.parameters.length === 1) {
+              const compareValue = Number.parseFloat(r.parameters[0]);
+              if (!Number.isNaN(compareValue)) {
+                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+                }Wert ist mindestens gleich ${compareValue}`;
+                parameterOk = true;
+              }
+            }
+            if (!parameterOk) {
+              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
+            }
+            break;
+          case 'IS_EMPTY':
+            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Wert ist leer`;
+            break;
+          case 'ELSE':
+            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Alle anderen Werte`;
+            break;
+          case 'IS_NULL':
+            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Technischer Wert 'NULL'`;
+            break;
+          case 'IS_TRUE':
+            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Logischer Wert 'WAHR'`;
+            break;
+          case 'IS_FALSE':
+            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Logischer Wert 'FALSCH'`;
+            break;
+          default:
+            codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+            }Problem: unbekannte Regel '${r.method}'`;
+        }
+      });
+      if (matchTexts.length > 0) {
+        codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+        }Übereinstimmung mit: '${matchTexts.join('\', \'')}'`;
       }
-    });
-    if (matchTexts.length > 0) {
-      codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-      }Übereinstimmung mit: '${matchTexts.join('\', \'')}'`;
-    }
-    if (matchRegexTexts.length > 0) {
-      codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-      }Übereinstimmung (match regex) mit: '${matchRegexTexts.join('\', \'')}'`;
+      if (matchRegexTexts.length > 0) {
+        codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+        }Übereinstimmung (match regex) mit: '${matchRegexTexts.join('\', \'')}'`;
+      }
+    } else {
+      codeText.description = 'Kein oder mehr als ein Regelset definiert.'
     }
     return codeText;
   }
