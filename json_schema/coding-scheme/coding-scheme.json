@@ -1,5 +1,5 @@
 {
-  "$id": "https://w3id.org/iqb/responses/response-scheme/response-scheme.json",
+  "$id": "coding-scheme@iqb-standard@1.0-beta",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Response Scheme",
   "description": "Data structure to specify all processing steps of response data in order to get coded and scored data for analyses.",
@@ -114,6 +114,7 @@
                         },
                         "method": {
                           "type": "string",
+                          "description": "See separate documentation",
                           "enum": [
                             "MATCH",
                             "MATCH_REGEX",
@@ -131,14 +132,17 @@
                         },
                         "parameters": {
                           "type": "array",
+                          "description": "Depending on the method, additional parameter(s) is needed. See separate documentation",
                           "items": {
                             "type": "string"
                           }
                         }
-                      }
+                      },
+                      "required": ["method"]
                     }
                   }
-                }
+                },
+                "required": ["rules"]
               }
             }
           },

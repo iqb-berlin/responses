@@ -1,5 +1,5 @@
 {
-  "$id": "https://w3id.org/iqb/responses/response/response.json",
+  "$id": "response@iqb-standard@1.1",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Response",
   "description": "Data structure produced by verona players",
@@ -65,11 +65,11 @@
     },
     "code": {
       "type": "integer",
-      "description": "Code representing the category of the value"
+      "description": "Code representing the category of the value after coding process."
     },
     "score": {
       "type": "integer",
-      "description": "This value represents the result evaluation of the code."
+      "description": "This value represents the result evaluation of the code after coding process."
     }
   },
   "required": ["id", "status", "value"]
