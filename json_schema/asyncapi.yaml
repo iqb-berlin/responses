@@ -1,13 +1,13 @@
 asyncapi: 2.5.0
 info:
-  title: Object specifications for response data
+  title: Object specifications for storing and processing response in assessments
   description: |
-    The Verona Interfaces specifications do not describe data structures for response processing. Responses in Verona are strings - serialized objects of unknown structure. This way, we have maximal flexibility. But in order to develop efficient routines for data analyses, the IQB introduces some specs of data. Browse this document to learn about concepts and procedures for data processing AFTER the assessment is done.
+    After the assessment is finished, the response data are to be processed in various ways. The data structures describe here are part of interface specifications of IQB.
     
     Go to the Schema section of this document and select one schema. Expand all nodes and explore.
   license:
-    name: CC BY-SA 4.0
-    url: https://creativecommons.org/licenses/by-sa/4.0/
+    name: CC0 1.0
+    url: https://creativecommons.org/publicdomain/zero/1.0/
   version: (see schema id for version)
   contact:
     name: Institute for Educational Quality Improvement (IQB)
@@ -25,3 +25,7 @@ components:
       $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/response/response.json'
     coding_scheme:
       $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/coding-scheme/coding-scheme.json'
+    missing:
+      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/missing/missing.json'
+    status_map:
+      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/status-map/status-map.json'
