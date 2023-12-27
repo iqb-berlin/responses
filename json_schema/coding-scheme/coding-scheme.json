@@ -1,5 +1,5 @@
 {
-  "$id": "coding-scheme@iqb-standard@1.0-beta",
+  "$id": "coding-scheme@iqb-standard@1.0-rc",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Response Scheme",
   "description": "Data structure to specify all processing steps of response data in order to get coded and scored data for analyses.",
@@ -19,7 +19,7 @@
       "sourceType": {
         "type": "string",
         "enum": [
-          "BASE", "COPY_FIRST_VALUE", "CONCAT_CODE", "SUM_CODE", "SUM_SCORE"
+          "BASE", "COPY_VALUE", "CONCAT_CODE", "SUM_CODE", "SUM_SCORE"
         ],
         "description": "CONCAT means concatenate all source codes as string with delimiter '_', SUM calculates a sum from all source codes or scores."
       },
@@ -74,7 +74,15 @@
           "type": "object",
           "properties": {
             "id": {
-              "type": "integer"
+              "oneOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "If this code's rules/instructions match, the code and score is taken for the response. If the code id is of value 'null', no code or score is taken. Instead, the status 'INVALID' will be set."
             },
             "label": {
               "type": "string"

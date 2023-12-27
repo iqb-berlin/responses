@@ -32,7 +32,7 @@ export const RuleMethodParameterCount = {
 };
 export type ProcessingParameterType = 'IGNORE_CASE' | 'REMOVE_WHITE_SPACES' | 'REPLAY_REQUIRED' | 'ATTACHMENT';
 export type CodeModelType = 'NONE' | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL';
-export type SourceType = 'BASE' | 'COPY_FIRST_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
+export type SourceType = 'BASE' | 'COPY_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
 export const DeriveConcatDelimiter = '_';
 export type CodingSchemeProblemType = 'VACANT' | 'SOURCE_MISSING' | 'INVALID_SOURCE' | 'RULE_PARAMETER_COUNT_MISMATCH'
 | 'MORE_THEN_ONE_SOURCE' | 'ONLY_ONE_SOURCE' | 'VALUE_COPY_NOT_FROM_BASE';
@@ -50,7 +50,7 @@ export interface RuleSet {
 }
 
 export interface CodeData {
-  id: number,
+  id: number | null,
   label: string,
   score: number,
   ruleSetOperatorAnd: boolean,
@@ -100,7 +100,7 @@ export interface VariableInfo {
 }
 
 export interface CodeAsText {
-  code: number,
+  code: number | null,
   score: number,
   label: string,
   scoreLabel: string,

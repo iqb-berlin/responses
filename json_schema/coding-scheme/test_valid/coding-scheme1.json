@@ -17,18 +17,22 @@
         "id": 1,
         "label": "",
         "score": 1,
-        "rules": [
+        "ruleSets": [
           {
-            "method": "NUMERIC_LESS_THEN",
-            "parameters": [
-              "22222"
+            "rules": [
+              {
+                "method": "NUMERIC_LESS_THEN",
+                "parameters": [
+                  "22222"
+                ]
+              }
             ]
           }
         ],
         "manualInstruction": ""
       },
       {
-        "id": 2,
+        "id": null,
         "label": "",
         "score": 0,
         "rules": [
@@ -96,7 +100,7 @@
     "id": "MD2",
     "label": "",
     "pattern": null,
-    "sourceType": "COPY_FIRST_VALUE",
+    "sourceType": "COPY_VALUE",
     "deriveSources": ["M2"],
     "processing": [],
     "manualInstruction": "",
