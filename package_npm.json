@@ -1,6 +1,6 @@
 {
   "name": "@iqb/responses",
-  "version": "0.22.0",
+  "version": "0.23.0",
   "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
   "license": "CC-BY-SA-4.0",
   "description": "Data interfaces for processing assessment data.",

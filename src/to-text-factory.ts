@@ -29,7 +29,7 @@ export abstract class ToTextFactory {
       case 'BASE':
         returnText = `Basisvariable '${variableId}'`;
         break;
-      case 'COPY_FIRST_VALUE':
+      case 'COPY_VALUE':
         if (sources && sources.length > 0) {
           returnText = `Kopie von Variable '${sources[0]}'`;
         } else {

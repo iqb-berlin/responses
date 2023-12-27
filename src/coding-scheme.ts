@@ -30,7 +30,7 @@ export class CodingScheme {
       };
       if (c.sourceType === 'DERIVE_CONCAT') {
         if (c.deriveSourceType === 'VALUE') {
-          newCoding.sourceType = 'COPY_FIRST_VALUE';
+          newCoding.sourceType = 'COPY_VALUE';
         } else {
           // concat score will be changed to concat code
           newCoding.sourceType = 'CONCAT_CODE';
@@ -38,12 +38,14 @@ export class CodingScheme {
       } else if (c.sourceType === 'DERIVE_SUM') {
         if (c.deriveSourceType === 'VALUE') {
           // sum of values is invalid
-          newCoding.sourceType = 'COPY_FIRST_VALUE';
+          newCoding.sourceType = 'COPY_VALUE';
         } else if (c.deriveSourceType === 'CODE') {
           newCoding.sourceType = 'SUM_CODE';
         } else {
           newCoding.sourceType = 'SUM_SCORE';
         }
+      } else if (c.sourceType === 'COPY_FIRST_VALUE'){
+        newCoding.sourceType = 'COPY_VALUE';
       } else {
         newCoding.sourceType = c.sourceType;
       }
@@ -114,7 +116,7 @@ export class CodingScheme {
             codingChanged = true;
           }
           if (newResponse.status === 'SOURCE_MISSING') {
-            if (coding.sourceType === 'COPY_FIRST_VALUE') {
+            if (coding.sourceType === 'COPY_VALUE') {
               const sourceResponse = newResponses.find(r => r.id === coding.deriveSources[0]);
               if (sourceResponse &&
                   ['VALUE_CHANGED', 'CODING_COMPLETE', 'VALUE_DERIVED'].indexOf(sourceResponse.status) >= 0) {
@@ -165,7 +167,7 @@ export class CodingScheme {
     const allBaseVariableInfoIds = baseVariables.map(bv => bv.id);
     const allPossibleSourceIds = [...allBaseVariableInfoIds, ...allDerivedVariableIds];
     const variableValuesCopied: string[] = [];
-    this.variableCodings.filter(vc => vc.sourceType === 'COPY_FIRST_VALUE').forEach(vc => {
+    this.variableCodings.filter(vc => vc.sourceType === 'COPY_VALUE').forEach(vc => {
       variableValuesCopied.push(...vc.deriveSources);
     });
     this.variableCodings.forEach(c => {
@@ -179,7 +181,7 @@ export class CodingScheme {
           });
         }
       } else if (c.deriveSources && c.deriveSources.length > 0) {
-        if (c.sourceType === 'COPY_FIRST_VALUE') {
+        if (c.sourceType === 'COPY_VALUE') {
           if (c.deriveSources.length > 1) {
             problems.push({
               type: 'MORE_THEN_ONE_SOURCE',
@@ -234,7 +236,7 @@ export class CodingScheme {
                     type: 'RULE_PARAMETER_COUNT_MISMATCH',
                     breaking: true,
                     variableId: c.id,
-                    code: code.id,
+                    code: code.id ? code.id.toString(10) : 'null',
                     variableLabel: c.label
                   });
                 }
@@ -243,7 +245,7 @@ export class CodingScheme {
                   type: 'RULE_PARAMETER_COUNT_MISMATCH',
                   breaking: true,
                   variableId: c.id,
-                  code: code.id,
+                  code: code.id ? code.id.toString(10) : 'null',
                   variableLabel: c.label
                 });
               }

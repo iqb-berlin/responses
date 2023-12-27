@@ -77,7 +77,7 @@ export interface CodingSchemeProblem {
   breaking: boolean,
   variableId: string,
   variableLabel: string,
-  code?: number
+  code?: string
 }
 
 export type VariableInfoValueType = string | number | boolean;
