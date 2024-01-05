@@ -140,7 +140,7 @@ export abstract class CodingFactory {
       isValueArray: boolean
   ): boolean {
     let returnValue = true;
-    const valueMustBeNumeric = ['NUMERIC_LESS_THEN', 'NUMERIC_MAX', 'NUMERIC_MORE_THEN',
+    const valueMustBeNumeric = ['NUMERIC_MATCH', 'NUMERIC_LESS_THEN', 'NUMERIC_MAX', 'NUMERIC_MORE_THEN',
       'NUMERIC_MIN', 'NUMERIC_RANGE'].indexOf(rule.method) >= 0;
     const valueMustBeBoolean = ['IS_TRUE', 'IS_FALSE'].indexOf(rule.method) >= 0;
     if (valueMustBeNumeric || valueMustBeBoolean) {
@@ -202,6 +202,13 @@ export abstract class CodingFactory {
             valueToCheck = valueToCheck.toString();
           }
           returnValue = this.findStringRegEx(valueToCheck, rule.parameters);
+        }
+        break;
+      case 'NUMERIC_MATCH':
+        valueAsNumber = this.getValueAsNumber(valueToCheck);
+        if (typeof valueAsNumber === 'number' && rule.parameters) {
+          const compareValue = Number.parseFloat(rule.parameters[0]);
+          returnValue = !Number.isNaN(compareValue) && valueAsNumber === compareValue;
         }
         break;
       case 'NUMERIC_LESS_THEN':

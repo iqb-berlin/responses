@@ -112,6 +112,20 @@ export abstract class ToTextFactory {
               });
             }
             break;
+          case 'NUMERIC_MATCH':
+            parameterOk = false;
+            if (r.parameters && r.parameters.length === 1) {
+              const compareValue = Number.parseFloat(r.parameters[0]);
+              if (!Number.isNaN(compareValue)) {
+                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
+                }Numerischer Wert ist gleich ${compareValue}`;
+                parameterOk = true;
+              }
+            }
+            if (!parameterOk) {
+              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
+            }
+            break;
           case 'NUMERIC_RANGE':
             parameterOk = false;
             if (r.parameters && r.parameters.length === 2) {
