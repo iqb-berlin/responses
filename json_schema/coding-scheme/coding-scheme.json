@@ -132,6 +132,7 @@
                             "NUMERIC_MORE_THEN",
                             "NUMERIC_MAX",
                             "NUMERIC_MIN",
+                            "NO_OTHER_MATCHES",
                             "IS_EMPTY",
                             "ELSE",
                             "IS_NULL",

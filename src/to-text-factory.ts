@@ -203,6 +203,9 @@ export abstract class ToTextFactory {
           case 'ELSE':
             codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Alle anderen Werte`;
             break;
+          case 'NO_OTHER_MATCHES':
+            codeText.description += 'Es sind keine anderen als die aufgeführten Übereinstimmungen zulässig (Array-/Listenmodus).';
+            break;
           case 'IS_NULL':
             codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Technischer Wert 'NULL'`;
             break;

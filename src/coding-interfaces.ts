@@ -14,7 +14,7 @@ export interface Response {
   score?: number
 }
 
-export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THEN' |
+export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THEN' | 'NO_OTHER_MATCHES' |
     'NUMERIC_MORE_THEN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
 export const RuleMethodParameterCount = {
   MATCH: -1,
@@ -22,6 +22,7 @@ export const RuleMethodParameterCount = {
   NUMERIC_MATCH: 1,
   NUMERIC_RANGE: 2,
   NUMERIC_LESS_THEN: 1,
+  NO_OTHER_MATCHES: 0,
   NUMERIC_MORE_THEN: 1,
   NUMERIC_MAX: 1,
   NUMERIC_MIN: 1,
