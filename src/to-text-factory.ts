@@ -116,7 +116,7 @@ export abstract class ToTextFactory {
         if (elseRule) return `${description}Alle anderen Antworten`;
 
         rs.rules.forEach((r, j) => {
-          if (rs.rules.length > 1) description += `${j > 0 ? '; ' : ''}(R${j}) `;
+          if (rs.rules.length > 1) description += `${j > 0 ? '; ' : ''}(R${j + 1}) `;
           switch (r.method) {
             case 'MATCH':
             case 'MATCH_REGEX':
@@ -166,10 +166,10 @@ export abstract class ToTextFactory {
               description += `${description.length > 0 ? '; ' : ''
               }Problem: unbekannte Regel '${r.method}'`;
           }
-          if (r.fragment && r.fragment >= 0) description += ` - F${r.fragment + 1}`
+          if (typeof r.fragment === 'number' && r.fragment >= 0) description += ` - F${r.fragment + 1}`
         });
         const connectText = rs.rules.length > 1 ? `${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung` : '';
-        const arrayPosText = rs.valueArrayPos && rs.valueArrayPos >= 0 ? `A${rs.valueArrayPos + 1}` : '';
+        const arrayPosText = typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >= 0 ? `A${rs.valueArrayPos + 1}` : '';
         if (connectText || arrayPosText) {
           description += ` (${connectText}${connectText && arrayPosText ? '; ' : ''}${arrayPosText})`;
         }
