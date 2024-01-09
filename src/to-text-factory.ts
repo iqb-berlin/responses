@@ -120,10 +120,10 @@ export abstract class ToTextFactory {
           switch (r.method) {
             case 'MATCH':
             case 'MATCH_REGEX':
-              if (r.parameters && r.parameters[0]) {
+              if (r.parameters && r.parameters[0] && typeof r.parameters[0] === 'string') {
                 description += `${CODE_RULE_TEXT[r.method]} '${r.parameters[0].replace('\n', '\', \'')}'`;
               } else {
-                description += 'FALSCHE PARAMETERZAHL';
+                description += 'FALSCHE PARAMETERZAHL/TYPFEHLER';
               }
               break;
             case 'NUMERIC_MATCH':
@@ -168,7 +168,11 @@ export abstract class ToTextFactory {
           }
           if (r.fragment && r.fragment >= 0) description += ` - F${r.fragment + 1}`
         });
-        description += ` (${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung${rs.valueArrayPos && rs.valueArrayPos >= 0 ? `, A${rs.valueArrayPos + 1}` : ''})`
+        const connectText = rs.rules.length > 1 ? `${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung` : '';
+        const arrayPosText = rs.valueArrayPos && rs.valueArrayPos >= 0 ? `A${rs.valueArrayPos + 1}` : '';
+        if (connectText || arrayPosText) {
+          description += ` (${connectText}${connectText && arrayPosText ? '; ' : ''}${arrayPosText})`;
+        }
 
         return description;
       })

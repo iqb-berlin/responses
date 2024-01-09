@@ -7,6 +7,7 @@
     "test_response": "ts-node test/test.ts response",
     "test_coding_scheme": "ts-node test/test.ts coding-scheme",
     "test_coding": "cd test && ts-node test-coding case2",
+    "test_coding2text": "cd test && ts-node test-code2text case3",
     "validate_coding_scheme": "cd test && ts-node validate-coding-scheme case2",
     "generate_docs": "asyncapi generate fromTemplate json_schema/asyncapi.yaml @asyncapi/html-template -o ./public --force-write && cat json_schema/add.css >> ./public/css/global.min.css",
     "prepare_publish": "rm -rf dist/* && tsc && cp ./package_npm.json ./dist/package.json && cp ./README.md ./dist",
