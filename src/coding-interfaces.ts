@@ -102,12 +102,13 @@ export interface VariableInfo {
 }
 
 export interface CodeAsText {
-  code: number | null,
+  code: string,
   score: number,
   label: string,
   scoreLabel: string,
   hasManualInstruction: boolean,
-  description: string
+  ruleSetOperatorAnd: boolean,
+  ruleSetDescriptions: string[]
 }
 
 export interface CodingAsText {

@@ -1,6 +1,7 @@
 import {
   CodeAsText, CodeData, DeriveConcatDelimiter, ProcessingParameterType, SourceType, VariableInfo
 } from './coding-interfaces';
+import {CodingFactory} from "./coding-factory";
 
 const VARINFO_TYPE_TEXT = {
   string: 'String/Text',
@@ -20,6 +21,23 @@ const VARINFO_FORMAT_TEXT = {
   latex: 'Mathematische Formel im LaTeX-Format',
   'math-ml': 'Mathematische Formel im Html-Format, MathML eingebettet',
   'math-table': 'Tabelle mit Zahlen für Rechenkästchen (JSON)'
+};
+
+const CODE_RULE_TEXT = {
+  MATCH: "Übereinstimmung (Zahl/Text) mit",
+  MATCH_REGEX: "Übereinstimmung (reg. Ausdruck) mit",
+  NUMERIC_MATCH: "Übereinstimmung (numerisch) mit",
+  NUMERIC_RANGE: "..Kombi..",
+  NUMERIC_LESS_THEN: "Wert geringer als",
+  NO_OTHER_MATCHES: "Keine anderen Übereinstimmungen",
+  NUMERIC_MORE_THEN: "Wert größer als",
+  NUMERIC_MAX: "Wert ist maximal als",
+  NUMERIC_MIN: "Wert ist mindestens",
+  IS_EMPTY: "Leerer Wert",
+  ELSE: "Alle anderen Antworten",
+  IS_NULL: "Wert ist NULL",
+  IS_TRUE: "Wert ist WAHR",
+  IS_FALSE: "Wert ist FALSCH"
 };
 
 export abstract class ToTextFactory {
@@ -84,154 +102,77 @@ export abstract class ToTextFactory {
   }
 
   static codeAsText(code: CodeData): CodeAsText {
-    const codeText: CodeAsText = {
-      code: code.id,
+    return <CodeAsText>{
+      code: code.id === null ? 'null' : code.id.toString(10),
       score: code.score,
       scoreLabel: '',
       label: code.label,
+      ruleSetOperatorAnd: code.ruleSetOperatorAnd,
       hasManualInstruction: !!code.manualInstruction,
-      description: ''
-    };
-    if (code.ruleSets && code.ruleSets.length === 1) {
-      const matchTexts: string[] = [];
-      const matchRegexTexts: string[] = [];
-      code.ruleSets[0].rules.forEach(r => {
-        let parameterOk = false;
-        switch (r.method) {
-          case 'MATCH':
-            if (r.parameters) {
-              r.parameters.forEach(p => {
-                matchTexts.push(...p.split('\n'));
-              });
-            }
-            break;
-          case 'MATCH_REGEX':
-            if (r.parameters) {
-              r.parameters.forEach(p => {
-                matchRegexTexts.push(...p.split('\n'));
-              });
-            }
-            break;
-          case 'NUMERIC_MATCH':
-            parameterOk = false;
-            if (r.parameters && r.parameters.length === 1) {
-              const compareValue = Number.parseFloat(r.parameters[0]);
-              if (!Number.isNaN(compareValue)) {
-                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-                }Numerischer Wert ist gleich ${compareValue}`;
-                parameterOk = true;
+      ruleSetDescriptions: code.ruleSets.map((rs, i) => {
+        let description = code.ruleSets.length > 1 ? `Regelset ${i + 1}: ` : '';
+        if (!rs.rules || rs.rules.length === 0) return `${description}Keine Regeln definiert.`;
+        const elseRule = rs.rules.find(r => r.method === 'ELSE');
+        if (elseRule) return `${description}Alle anderen Antworten`;
+
+        rs.rules.forEach((r, j) => {
+          if (rs.rules.length > 1) description += `${j > 0 ? '; ' : ''}(R${j}) `;
+          switch (r.method) {
+            case 'MATCH':
+            case 'MATCH_REGEX':
+              if (r.parameters && r.parameters[0]) {
+                description += `${CODE_RULE_TEXT[r.method]} '${r.parameters[0].replace('\n', '\', \'')}'`;
+              } else {
+                description += 'FALSCHE PARAMETERZAHL';
               }
-            }
-            if (!parameterOk) {
-              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
-            }
-            break;
-          case 'NUMERIC_RANGE':
-            parameterOk = false;
-            if (r.parameters && r.parameters.length === 2) {
-              const compareValueLL = Number.parseFloat(r.parameters[0]);
-              const compareValueUL = Number.parseFloat(r.parameters[1]);
-              if (!Number.isNaN(compareValueLL) && !Number.isNaN(compareValueUL) && compareValueLL < compareValueUL) {
-                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-                }Wert ist größer als ${compareValueLL} und kleiner oder gleich ${compareValueUL}`;
-                parameterOk = true;
+              break;
+            case 'NUMERIC_MATCH':
+            case 'NUMERIC_LESS_THEN':
+            case 'NUMERIC_MORE_THEN':
+            case 'NUMERIC_MAX':
+            case 'NUMERIC_MIN':
+              if (r.parameters && r.parameters.length === 1) {
+                const compareValue = CodingFactory.getValueAsNumber(r.parameters[0]);
+                if (compareValue === null) {
+                  description += 'VERGLEICHSWERT NICHT NUMERISCH';
+                } else {
+                  description += `${CODE_RULE_TEXT[r.method]} '${compareValue}'`;
+                }
+              } else {
+                description += 'FALSCHE PARAMETERZAHL';
               }
-            }
-            if (!parameterOk) {
-              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
-            }
-            break;
-          case 'NUMERIC_LESS_THEN':
-            parameterOk = false;
-            if (r.parameters && r.parameters.length === 1) {
-              const compareValue = Number.parseFloat(r.parameters[0]);
-              if (!Number.isNaN(compareValue)) {
-                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-                }Wert ist kleiner als ${compareValue}`;
-                parameterOk = true;
+              break;
+            case 'NUMERIC_RANGE':
+              if (r.parameters && r.parameters.length === 2) {
+                const compareValueLL = CodingFactory.getValueAsNumber(r.parameters[0]);
+                const compareValueUL = CodingFactory.getValueAsNumber(r.parameters[1]);
+                if (compareValueLL === null || compareValueUL === null) {
+                  description += 'VERGLEICHSWERT NICHT NUMERISCH';
+                } else if (compareValueLL >= compareValueUL) {
+                  description += 'VERGLEICHSWERTE UNGÜLTIG';
+                } else {
+                  description += `${CODE_RULE_TEXT['NUMERIC_MORE_THEN']} '${compareValueLL}' und ${CODE_RULE_TEXT['NUMERIC_MAX']} '${compareValueUL}'`;
+                }
               }
-            }
-            if (!parameterOk) {
-              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
-            }
-            break;
-          case 'NUMERIC_MORE_THEN':
-            parameterOk = false;
-            if (r.parameters && r.parameters.length === 1) {
-              const compareValue = Number.parseFloat(r.parameters[0]);
-              if (!Number.isNaN(compareValue)) {
-                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-                }Wert ist größer als ${compareValue}`;
-                parameterOk = true;
-              }
-            }
-            if (!parameterOk) {
-              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
-            }
-            break;
-          case 'NUMERIC_MAX':
-            parameterOk = false;
-            if (r.parameters && r.parameters.length === 1) {
-              const compareValue = Number.parseFloat(r.parameters[0]);
-              if (!Number.isNaN(compareValue)) {
-                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-                }Wert ist maximal gleich ${compareValue}`;
-                parameterOk = true;
-              }
-            }
-            if (!parameterOk) {
-              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
-            }
-            break;
-          case 'NUMERIC_MIN':
-            parameterOk = false;
-            if (r.parameters && r.parameters.length === 1) {
-              const compareValue = Number.parseFloat(r.parameters[0]);
-              if (!Number.isNaN(compareValue)) {
-                codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-                }Wert ist mindestens gleich ${compareValue}`;
-                parameterOk = true;
-              }
-            }
-            if (!parameterOk) {
-              codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Problem mit Regelparameter`;
-            }
-            break;
-          case 'IS_EMPTY':
-            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Wert ist leer`;
-            break;
-          case 'ELSE':
-            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Alle anderen Werte`;
-            break;
-          case 'NO_OTHER_MATCHES':
-            codeText.description += 'Es sind keine anderen als die aufgeführten Übereinstimmungen zulässig (Array-/Listenmodus).';
-            break;
-          case 'IS_NULL':
-            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Technischer Wert 'NULL'`;
-            break;
-          case 'IS_TRUE':
-            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Logischer Wert 'WAHR'`;
-            break;
-          case 'IS_FALSE':
-            codeText.description += `${codeText.description.length > 0 ? '; ' : ''}Logischer Wert 'FALSCH'`;
-            break;
-          default:
-            codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-            }Problem: unbekannte Regel '${r.method}'`;
-        }
-      });
-      if (matchTexts.length > 0) {
-        codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-        }Übereinstimmung mit: '${matchTexts.join('\', \'')}'`;
-      }
-      if (matchRegexTexts.length > 0) {
-        codeText.description += `${codeText.description.length > 0 ? '; ' : ''
-        }Übereinstimmung (match regex) mit: '${matchRegexTexts.join('\', \'')}'`;
-      }
-    } else {
-      codeText.description = 'Kein oder mehr als ein Regelset definiert.'
+              break;
+            case 'IS_EMPTY':
+            case 'NO_OTHER_MATCHES':
+            case 'IS_NULL':
+            case 'IS_TRUE':
+            case 'IS_FALSE':
+              description += `${CODE_RULE_TEXT[r.method]}`;
+              break;
+            default:
+              description += `${description.length > 0 ? '; ' : ''
+              }Problem: unbekannte Regel '${r.method}'`;
+          }
+          if (r.fragment && r.fragment >= 0) description += ` - F${r.fragment + 1}`
+        });
+        description += ` (${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung${rs.valueArrayPos && rs.valueArrayPos >= 0 ? `, A${rs.valueArrayPos + 1}` : ''})`
+
+        return description;
+      })
     }
-    return codeText;
   }
 
   static varInfoAsText(varInfo: VariableInfo): string[] {
