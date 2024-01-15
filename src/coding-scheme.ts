@@ -20,7 +20,7 @@ export class CodingScheme {
         label: c.label || '',
         sourceType: 'BASE',
         deriveSources: c.deriveSources || [],
-        processing: c.preProcessing || c.valueTransformations || [],
+        processing: c.processing || c.preProcessing || c.valueTransformations || [],
         fragmenting: c.fragmenting || '',
         manualInstruction: c.manualInstruction || '',
         codeModel: c.codeModel || 'NONE',
