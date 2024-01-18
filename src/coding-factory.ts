@@ -301,9 +301,14 @@ export abstract class CodingFactory {
   private static isMatchRuleSet(valueToCheck: TransformedResponseValueType, ruleSet: RuleSet,
                  isValueArray: boolean, ignoreCase: boolean): boolean {
     let valueMemberToCheck;
-    if (ruleSet.valueArrayPos && ruleSet.valueArrayPos >= 0 &&
-        isValueArray && Array.isArray(valueToCheck) && valueToCheck.length < ruleSet.valueArrayPos) {
-      valueMemberToCheck = valueToCheck[ruleSet.valueArrayPos];
+    if (ruleSet.valueArrayPos && isValueArray && Array.isArray(valueToCheck)) {
+      if (typeof ruleSet.valueArrayPos === 'number') {
+        if (ruleSet.valueArrayPos >= 0 &&
+            valueToCheck.length < ruleSet.valueArrayPos) valueMemberToCheck = valueToCheck[ruleSet.valueArrayPos]
+      } else if (ruleSet.valueArrayPos === 'SUM') {
+        valueMemberToCheck = valueToCheck.map(v => this.getValueAsNumber(v) || 0)
+            .reduce((pv, cv) => pv + cv, 0);
+      }
     }
     let oneMatch = false;
     let oneMisMatch = false;
@@ -351,7 +356,7 @@ export abstract class CodingFactory {
               elseScore = c.score;
             } else {
               const invalidRule = c.ruleSets.find(rs => !!rs.rules.find(r => {
-                if (rs.valueArrayPos && rs.valueArrayPos >=0) {
+                if (typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >=0) {
                   return Array.isArray(newResponse.value) && Array.isArray(valueToCheck) ?
                       !CodingFactory.isValidRule(valueToCheck[rs.valueArrayPos], r, false) : true;
                 }

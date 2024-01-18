@@ -104,8 +104,20 @@
                 "type": "object",
                 "properties": {
                   "valueArrayPos": {
-                    "type": "integer",
-                    "description": "Refers to a specific position in the value array [0..n] or to any position -1."
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "description": "Refers to a specific position in the value array [0..n]."
+                      },
+                      {
+                        "type": "string",
+                        "description": "Refers to any position in the value array or to the sum of all array values.",
+                        "enum": [
+                          "ANY",
+                          "SUM"
+                        ]
+                      }
+                    ]
                   },
                   "ruleOperatorAnd": {
                     "type": "boolean",

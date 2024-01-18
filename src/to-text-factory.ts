@@ -169,7 +169,12 @@ export abstract class ToTextFactory {
           if (typeof r.fragment === 'number' && r.fragment >= 0) description += ` - F${r.fragment + 1}`
         });
         const connectText = rs.rules.length > 1 ? `${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung` : '';
-        const arrayPosText = typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >= 0 ? `A${rs.valueArrayPos + 1}` : '';
+        let arrayPosText = '';
+        if (typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >= 0) {
+          arrayPosText = `A${rs.valueArrayPos + 1}`
+        } else if (rs.valueArrayPos === 'SUM') {
+          arrayPosText = 'A S'
+        }
         if (connectText || arrayPosText) {
           description += ` (${connectText}${connectText && arrayPosText ? '; ' : ''}${arrayPosText})`;
         }
