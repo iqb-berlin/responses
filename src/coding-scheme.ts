@@ -44,15 +44,15 @@ export class CodingScheme {
         } else {
           newCoding.sourceType = 'SUM_SCORE';
         }
-      } else if (c.sourceType === 'COPY_FIRST_VALUE'){
+      } else if (c.sourceType === 'COPY_FIRST_VALUE') {
         newCoding.sourceType = 'COPY_VALUE';
       } else {
         newCoding.sourceType = c.sourceType;
       }
       if (c.codes && Array.isArray(c.codes)) {
-        c.codes.forEach((code: any) => {
+        c.codes.forEach((code:any) => {
           if (code.ruleSets) {
-            newCoding.codes.push(code)
+            newCoding.codes.push(code);
           } else if (code.rules && Array.isArray(code.rules)) {
             newCoding.codes.push(<CodeData>{
               id: code.id,
@@ -61,12 +61,12 @@ export class CodingScheme {
               ruleSetOperatorAnd: false,
               ruleSets: [<RuleSet>{
                 ruleOperatorAnd: code.ruleOperatorAnd || false,
-                rules: code.rules,
+                rules: code.rules
               }],
               manualInstruction: code.manualInstruction || ''
-            })
+            });
           }
-        })
+        });
       }
       this.variableCodings.push(newCoding);
     });
@@ -262,6 +262,62 @@ export class CodingScheme {
       }
     });
     return problems;
+  }
+
+  /* getBaseVarsFromDerivedVars(derivedVars: string[]): string[] {
+    const baseVariables: string[] = [];
+    derivedVars.forEach(derivedVar => {
+      if (this.variableCodings.find(variableCoding => variableCoding.id === derivedVar)) {
+        baseVariables.push(derivedVar);
+      } else {
+        const variableCoding = this.variableCodings?.find(variableCoding => variableCoding.id === derivedVar);
+        if (variableCoding) {
+          baseVariables.push(...this.getAllBaseVariables(variableCoding));
+        }
+      }
+    });
+    return baseVariables;
+  } */
+
+  getAllBaseVariables(derivedVariable:VariableCodingData, variableCodings: VariableCodingData[]) {
+    let baseVariables:string[] = [];
+    derivedVariable.deriveSources.forEach(derivedVar => {
+      if (baseVariables.includes(derivedVar)) {
+        baseVariables.push(derivedVar);
+      } else {
+        const variableCoding = variableCodings?.find(c => c.id === derivedVar);
+        if (variableCoding) {
+          baseVariables = [...baseVariables, ...this.getAllBaseVariables(variableCoding, variableCodings)];
+        }
+      }
+    });
+    return baseVariables;
+  }
+
+  getVariablesSources(variableCodings: VariableCodingData[]) {
+    const derivedVariables: string[] = [];
+    const baseVariables: string[] = [];
+    if (variableCodings) {
+      variableCodings.forEach(c => {
+        c.deriveSources.length ? derivedVariables.push(c.id) : baseVariables.push(c.id);
+      });
+    }
+    return variableCodings
+      .filter(c => c.deriveSources.length > 0)
+      .map(c => {
+        let sources:string[] = [];
+        c.deriveSources.forEach(source => {
+          if (baseVariables.includes(source)) { sources.push(source); } else {
+            const foundVariableCoding = variableCodings
+              ?.find(coding => coding.id === source);
+            if (foundVariableCoding) {
+              sources = [...sources, ...this.getAllBaseVariables(
+                foundVariableCoding, variableCodings)];
+            }
+          }
+        });
+        return [...new Set(sources)];
+      });
   }
 
   asText(): CodingAsText[] {
