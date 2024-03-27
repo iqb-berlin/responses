@@ -1,7 +1,7 @@
 import {
   CodeAsText, CodeData, DeriveConcatDelimiter, ProcessingParameterType, SourceType, VariableInfo
 } from './coding-interfaces';
-import {CodingFactory} from "./coding-factory";
+import { CodingFactory } from './coding-factory';
 
 const VARINFO_TYPE_TEXT = {
   string: 'String/Text',
@@ -24,20 +24,20 @@ const VARINFO_FORMAT_TEXT = {
 };
 
 const CODE_RULE_TEXT = {
-  MATCH: "Übereinstimmung (Zahl/Text) mit",
-  MATCH_REGEX: "Übereinstimmung (reg. Ausdruck) mit",
-  NUMERIC_MATCH: "Übereinstimmung (numerisch) mit",
-  NUMERIC_RANGE: "..Kombi..",
-  NUMERIC_LESS_THEN: "Wert geringer als",
-  NO_OTHER_MATCHES: "Keine anderen Übereinstimmungen",
-  NUMERIC_MORE_THEN: "Wert größer als",
-  NUMERIC_MAX: "Wert ist maximal als",
-  NUMERIC_MIN: "Wert ist mindestens",
-  IS_EMPTY: "Leerer Wert",
-  ELSE: "Alle anderen Antworten",
-  IS_NULL: "Wert ist NULL",
-  IS_TRUE: "Wert ist WAHR",
-  IS_FALSE: "Wert ist FALSCH"
+  MATCH: 'Übereinstimmung (Zahl/Text) mit',
+  MATCH_REGEX: 'Übereinstimmung (reg. Ausdruck) mit',
+  NUMERIC_MATCH: 'Übereinstimmung (numerisch) mit',
+  NUMERIC_RANGE: '..Kombi..',
+  NUMERIC_LESS_THEN: 'Wert geringer als',
+  NO_OTHER_MATCHES: 'Keine anderen Übereinstimmungen',
+  NUMERIC_MORE_THEN: 'Wert größer als',
+  NUMERIC_MAX: 'Wert ist maximal als',
+  NUMERIC_MIN: 'Wert ist mindestens',
+  IS_EMPTY: 'Leerer Wert',
+  ELSE: 'Alle anderen Antworten',
+  IS_NULL: 'Wert ist NULL',
+  IS_TRUE: 'Wert ist WAHR',
+  IS_FALSE: 'Wert ist FALSCH'
 };
 
 export abstract class ToTextFactory {
@@ -96,7 +96,8 @@ export abstract class ToTextFactory {
     }
     if (fragmenting) {
       if (returnText.length > 0) returnText += '; ';
-      returnText += `Es wurde ein Ausdruck festgelegt, mit dem Teile der Antwort vor der Kodierung extrahiert werden (Fragmentierung): '${fragmenting}'`
+      // eslint-disable-next-line max-len
+      returnText += `Es wurde ein Ausdruck festgelegt, mit dem Teile der Antwort vor der Kodierung extrahiert werden (Fragmentierung): '${fragmenting}'`;
     }
     return returnText;
   }
@@ -151,7 +152,8 @@ export abstract class ToTextFactory {
                 } else if (compareValueLL >= compareValueUL) {
                   description += 'VERGLEICHSWERTE UNGÜLTIG';
                 } else {
-                  description += `${CODE_RULE_TEXT['NUMERIC_MORE_THEN']} '${compareValueLL}' und ${CODE_RULE_TEXT['NUMERIC_MAX']} '${compareValueUL}'`;
+                  // eslint-disable-next-line max-len
+                  description += `${CODE_RULE_TEXT.NUMERIC_MORE_THEN} '${compareValueLL}' und ${CODE_RULE_TEXT.NUMERIC_MAX} '${compareValueUL}'`;
                 }
               }
               break;
@@ -166,14 +168,14 @@ export abstract class ToTextFactory {
               description += `${description.length > 0 ? '; ' : ''
               }Problem: unbekannte Regel '${r.method}'`;
           }
-          if (typeof r.fragment === 'number' && r.fragment >= 0) description += ` - F${r.fragment + 1}`
+          if (typeof r.fragment === 'number' && r.fragment >= 0) description += ` - F${r.fragment + 1}`;
         });
         const connectText = rs.rules.length > 1 ? `${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung` : '';
         let arrayPosText = '';
         if (typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >= 0) {
-          arrayPosText = `A${rs.valueArrayPos + 1}`
+          arrayPosText = `A${rs.valueArrayPos + 1}`;
         } else if (rs.valueArrayPos === 'SUM') {
-          arrayPosText = 'A S'
+          arrayPosText = 'A S';
         }
         if (connectText || arrayPosText) {
           description += ` (${connectText}${connectText && arrayPosText ? '; ' : ''}${arrayPosText})`;
@@ -181,7 +183,7 @@ export abstract class ToTextFactory {
 
         return description;
       })
-    }
+    };
   }
 
   static varInfoAsText(varInfo: VariableInfo): string[] {

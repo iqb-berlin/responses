@@ -11,6 +11,7 @@ import { ToTextFactory } from './to-text-factory';
 export class CodingScheme {
   variableCodings: VariableCodingData[] = [];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   constructor(codings: any[]) {
     this.variableCodings = [];
     // transforming old versions
@@ -44,15 +45,16 @@ export class CodingScheme {
         } else {
           newCoding.sourceType = 'SUM_SCORE';
         }
-      } else if (c.sourceType === 'COPY_FIRST_VALUE'){
+      } else if (c.sourceType === 'COPY_FIRST_VALUE') {
         newCoding.sourceType = 'COPY_VALUE';
       } else {
         newCoding.sourceType = c.sourceType;
       }
       if (c.codes && Array.isArray(c.codes)) {
-        c.codes.forEach((code: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        c.codes.forEach((code:any) => {
           if (code.ruleSets) {
-            newCoding.codes.push(code)
+            newCoding.codes.push(code);
           } else if (code.rules && Array.isArray(code.rules)) {
             newCoding.codes.push(<CodeData>{
               id: code.id,
@@ -61,12 +63,12 @@ export class CodingScheme {
               ruleSetOperatorAnd: false,
               ruleSets: [<RuleSet>{
                 ruleOperatorAnd: code.ruleOperatorAnd || false,
-                rules: code.rules,
+                rules: code.rules
               }],
               manualInstruction: code.manualInstruction || ''
-            })
+            });
           }
-        })
+        });
       }
       this.variableCodings.push(newCoding);
     });
@@ -292,5 +294,39 @@ export class CodingScheme {
       returnTexts.push(newCodingText);
     });
     return returnTexts;
+  }
+
+  getBaseVarsList(derivedVarsIds: string[]): string[] {
+    const allBaseVariables:string[] = this.variableCodings
+      .filter(c => c.deriveSources.length === 0)
+      .map(c => c.id);
+    const baseVariablesIds: string[] = [];
+    if (derivedVarsIds.length > 0) {
+      derivedVarsIds.forEach(derivedVarId => {
+        const derivedVar: VariableCodingData | undefined = this.variableCodings
+          .find(variableCoding => variableCoding.id === derivedVarId);
+        if (derivedVar) {
+          baseVariablesIds.push(...baseVariablesIds, ...this.derivedVarToBaseVars(derivedVar, allBaseVariables));
+        }
+      });
+      return [...new Set(baseVariablesIds)];
+    }
+    return [];
+  }
+
+  derivedVarToBaseVars(derivedVariable:VariableCodingData, allBaseVariables:string[]) {
+    let baseVariablesIds: string[] = [];
+    derivedVariable.deriveSources.forEach(derivedVar => {
+      if (allBaseVariables.includes(derivedVar)) {
+        baseVariablesIds.push(derivedVar);
+      } else {
+        const variableCoding = this.variableCodings
+          .find(c => c.id === derivedVar);
+        if (variableCoding) {
+          baseVariablesIds = [...baseVariablesIds, ...this.derivedVarToBaseVars(variableCoding, allBaseVariables)];
+        }
+      }
+    });
+    return [...new Set(baseVariablesIds)];
   }
 }

@@ -14,8 +14,9 @@ export interface Response {
   score?: number
 }
 
+// eslint-disable-next-line max-len
 export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THEN' | 'NO_OTHER_MATCHES' |
-    'NUMERIC_MORE_THEN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
+'NUMERIC_MORE_THEN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
 export const RuleMethodParameterCount = {
   MATCH: -1,
   MATCH_REGEX: -1,
@@ -92,7 +93,7 @@ export interface VariableInfo {
   id: string;
   type: 'string' | 'integer' | 'number' | 'boolean' | 'attachment';
   format: 'text-selection' | 'image' | 'capture-image' | 'audio' | 'ggb-file' | 'non-negative' |
-      'latex' | 'math-ml' | 'math-table' | 'ggb-variable' | '';
+  'latex' | 'math-ml' | 'math-table' | 'ggb-variable' | '';
   multiple: boolean;
   nullable: boolean;
   values: VariableValue[];
