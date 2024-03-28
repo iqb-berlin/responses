@@ -10,7 +10,7 @@
       "pattern": "^[0-9a-zA-Z_]+$",
       "description": "Identifier for the data source (variable)"
     },
-    "status": {
+    "state": {
       "type": "string",
       "enum": ["UNSET", "NOT_REACHED", "DISPLAYED", "VALUE_CHANGED", "SOURCE_MISSING", "DERIVE_ERROR", "VALUE_DERIVED",
         "NO_CODING", "INVALID", "CODING_INCOMPLETE", "CODING_ERROR","CODING_COMPLETE"],
@@ -72,5 +72,5 @@
       "description": "This value represents the result evaluation of the code after coding process."
     }
   },
-  "required": ["id", "status", "value"]
+  "required": ["id", "state", "value"]
 }

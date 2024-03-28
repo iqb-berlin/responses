@@ -27,5 +27,5 @@ components:
       $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/coding-scheme/coding-scheme.json'
     missing:
       $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/missing/missing.json'
-    status_map:
-      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/status-map/status-map.json'
+    state_map:
+      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/state-map/state-map.json'

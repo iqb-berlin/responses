@@ -1,11 +1,11 @@
 {
-  "$id": "status-map@iqb-standard@1.0-beta",
+  "$id": "state-map@iqb-standard@1.0-beta",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Status Map",
-  "description": "Data structure to specify recoding based on response status.",
+  "description": "Data structure to specify recoding based on response state.",
   "type": "object",
   "properties": {
-    "status": {
+    "state": {
       "type": "string",
       "enum": ["UNSET", "NOT_REACHED", "DISPLAYED", "VALUE_DERIVED",
         "SOURCE_MISSING", "DERIVE_ERROR", "NO_CODING", "CODING_INCOMPLETE", "CODING_ERROR"],
@@ -22,5 +22,5 @@
       "description": "If true, the value is recoded to the first score 0 code found in the code list of coding scheme."
     }
   },
-  "required": ["status"]
+  "required": ["state"]
 }

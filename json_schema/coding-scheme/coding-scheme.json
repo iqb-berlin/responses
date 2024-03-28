@@ -82,7 +82,7 @@
                   "type": "null"
                 }
               ],
-              "description": "If this code's rules/instructions match, the code and score is taken for the response. If the code id is of value 'null', no code or score is taken. Instead, the status 'INVALID' will be set."
+              "description": "If this code's rules/instructions match, the code and score is taken for the response. If the code id is of value 'null', no code or score is taken. Instead, the state 'INVALID' will be set."
             },
             "label": {
               "type": "string"

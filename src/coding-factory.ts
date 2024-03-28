@@ -335,10 +335,10 @@ export abstract class CodingFactory {
       try {
         valueToCheck = this.transformValue(newResponse.value, coding.processing, coding.fragmenting);
       } catch (e) {
-        newResponse.status = 'CODING_ERROR';
+        newResponse.state = 'CODING_ERROR';
         valueToCheck = null;
       }
-      if (newResponse.status !== 'CODING_ERROR') {
+      if (newResponse.state !== 'CODING_ERROR') {
         let hasElse = false;
         let elseCode: number | null = 0;
         let elseScore = 0;
@@ -360,7 +360,7 @@ export abstract class CodingFactory {
                 return !CodingFactory.isValidRule(valueToCheck, r, Array.isArray(newResponse.value));
               }));
               if (invalidRule) {
-                newResponse.status = 'CODING_ERROR';
+                newResponse.state = 'CODING_ERROR';
                 changed = true;
               } else {
                 let oneMatch = false;
@@ -377,11 +377,11 @@ export abstract class CodingFactory {
                 }
                 if (oneMatch && (!c.ruleSetOperatorAnd || !oneMisMatch)) {
                   if (c.id === null) {
-                    newResponse.status = 'INVALID';
+                    newResponse.state = 'INVALID';
                   } else {
                     newResponse.code = c.id;
                     newResponse.score = c.score;
-                    newResponse.status = 'CODING_COMPLETE';
+                    newResponse.state = 'CODING_COMPLETE';
                   }
                   changed = true;
                 }
@@ -392,22 +392,22 @@ export abstract class CodingFactory {
         if (!changed) {
           if (hasElse) {
             if (elseCode === null) {
-              newResponse.status = 'INVALID';
+              newResponse.state = 'INVALID';
             } else {
               newResponse.code = elseCode;
               newResponse.score = elseScore;
-              newResponse.status = 'CODING_COMPLETE';
+              newResponse.state = 'CODING_COMPLETE';
             }
           } else {
             newResponse.code = 0;
             newResponse.score = 0;
-            newResponse.status = 'CODING_INCOMPLETE';
+            newResponse.state = 'CODING_INCOMPLETE';
           }
           changed = true;
         }
       }
     } else {
-      newResponse.status = 'NO_CODING';
+      newResponse.state = 'NO_CODING';
     }
     return newResponse;
   }

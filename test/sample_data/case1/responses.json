@@ -1,22 +1,22 @@
 [
   {
     "id": "M1",
-    "status": "VALUE_CHANGED",
+    "state": "VALUE_CHANGED",
     "value": 3
   },
   {
     "id": "M2",
-    "status": "VALUE_CHANGED",
+    "state": "VALUE_CHANGED",
     "value": 4
   },
   {
     "id": "M3",
-    "status": "VALUE_CHANGED",
+    "state": "VALUE_CHANGED",
     "value": 355
   },
   {
     "id": "M4",
-    "status": "VALUE_CHANGED",
+    "state": "VALUE_CHANGED",
     "value": -1
   }
 ]
