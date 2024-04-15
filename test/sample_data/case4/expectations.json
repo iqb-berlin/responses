@@ -1,7 +1,41 @@
-{
-  "derived": [
-    "text-field_1",
-    "text-field_2"
-  ],
-  "not available" : []
-}
+[
+  {
+    "name": "single derived var",
+    "in": [
+      "derived"
+    ],
+    "out": [
+      "text-field_1",
+      "text-field_2"
+    ]
+  },
+  {
+    "name": "derived var along with some base vars (real world example)",
+    "in": [
+      "text-field_1",
+      "text-field_2",
+      "derived"
+    ],
+    "out": [
+      "text-field_1",
+      "text-field_2"
+    ]
+  },
+  {
+    "name": "base vars only",
+    "in": [
+      "text-field_1",
+      "text-field_2"
+    ],
+    "out": [
+    ]
+  },
+  {
+    "name": "Not existing var-id",
+    "in": [
+      "not-existing"
+    ],
+    "out": [
+    ]
+  }
+]

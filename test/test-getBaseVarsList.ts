@@ -15,11 +15,17 @@ try {
   process.exit(1);
 }
 
-let expectations: {[derivedVarId: string] : string[]};
+interface Expectation {
+  name: string;
+  in: string[];
+  out: string[];
+}
+
+let expectations: Array<Expectation>;
 try {
   let fileContent = fs.readFileSync(`${sampleFolder}/expectations.json`, 'utf8');
   expectations = JSON.parse(fileContent);
-  if (('length' in expectations) || (expectations == null)) {
+  if (!('length' in expectations) || (expectations == null)) {
     console.log(expectations);
     throw new Error('expectation file malformed');
   }
@@ -35,14 +41,16 @@ const compareArrays = (a: Array<string>, b: Array<string>) => {
   return JSON.stringify(a) === JSON.stringify(b);
 };
 
-Object.keys(expectations)
-  .forEach(derivedVarId => {
-    const baseVarList = codings.getBaseVarsList([derivedVarId]);
-    if (compareArrays(expectations[derivedVarId], baseVarList)) {
-      console.log(`\x1b[0;32m'${derivedVarId}' check passed\x1b[0m`);
+codings.asText();
+
+expectations
+  .forEach(expectation => {
+    const baseVarList = codings.getBaseVarsList(expectation.in);
+    if (compareArrays(expectation.out, baseVarList)) {
+      console.log(`\x1b[0;32m'${expectation.name}' check passed\x1b[0m`);
     } else {
-      console.log(`\x1b[0;31m'${derivedVarId}' failed\x1b[0m`);
-      console.log('Expectation:', expectations[derivedVarId]);
+      console.log(`\x1b[0;31m'${expectation.name}' failed\x1b[0m`);
+      console.log('Expectation:', expectation.out);
       console.log('Result:', baseVarList);
     }
   });
