@@ -186,7 +186,7 @@ export class CodingScheme {
         if (c.sourceType === 'COPY_VALUE') {
           if (c.deriveSources.length > 1) {
             problems.push({
-              type: 'MORE_THEN_ONE_SOURCE',
+              type: 'MORE_THAN_ONE_SOURCE',
               breaking: false,
               variableId: c.id,
               variableLabel: c.label

@@ -28,9 +28,9 @@ const CODE_RULE_TEXT = {
   MATCH_REGEX: 'Übereinstimmung (reg. Ausdruck) mit',
   NUMERIC_MATCH: 'Übereinstimmung (numerisch) mit',
   NUMERIC_RANGE: '..Kombi..',
-  NUMERIC_LESS_THEN: 'Wert geringer als',
+  NUMERIC_LESS_THAN: 'Wert geringer als',
   NO_OTHER_MATCHES: 'Keine anderen Übereinstimmungen',
-  NUMERIC_MORE_THEN: 'Wert größer als',
+  NUMERIC_MORE_THAN: 'Wert größer als',
   NUMERIC_MAX: 'Wert ist maximal als',
   NUMERIC_MIN: 'Wert ist mindestens',
   IS_EMPTY: 'Leerer Wert',
@@ -128,8 +128,8 @@ export abstract class ToTextFactory {
               }
               break;
             case 'NUMERIC_MATCH':
-            case 'NUMERIC_LESS_THEN':
-            case 'NUMERIC_MORE_THEN':
+            case 'NUMERIC_LESS_THAN':
+            case 'NUMERIC_MORE_THAN':
             case 'NUMERIC_MAX':
             case 'NUMERIC_MIN':
               if (r.parameters && r.parameters.length === 1) {
@@ -153,7 +153,7 @@ export abstract class ToTextFactory {
                   description += 'VERGLEICHSWERTE UNGÜLTIG';
                 } else {
                   // eslint-disable-next-line max-len
-                  description += `${CODE_RULE_TEXT.NUMERIC_MORE_THEN} '${compareValueLL}' und ${CODE_RULE_TEXT.NUMERIC_MAX} '${compareValueUL}'`;
+                  description += `${CODE_RULE_TEXT.NUMERIC_MORE_THAN} '${compareValueLL}' und ${CODE_RULE_TEXT.NUMERIC_MAX} '${compareValueUL}'`;
                 }
               }
               break;

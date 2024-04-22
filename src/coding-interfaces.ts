@@ -15,16 +15,16 @@ export interface Response {
 }
 
 // eslint-disable-next-line max-len
-export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THEN' | 'NO_OTHER_MATCHES' |
-'NUMERIC_MORE_THEN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
+export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THAN' | 'NO_OTHER_MATCHES' |
+'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
 export const RuleMethodParameterCount = {
   MATCH: -1,
   MATCH_REGEX: -1,
   NUMERIC_MATCH: 1,
   NUMERIC_RANGE: 2,
-  NUMERIC_LESS_THEN: 1,
+  NUMERIC_LESS_THAN: 1,
   NO_OTHER_MATCHES: 0,
-  NUMERIC_MORE_THEN: 1,
+  NUMERIC_MORE_THAN: 1,
   NUMERIC_MAX: 1,
   NUMERIC_MIN: 1,
   IS_EMPTY: 0,
@@ -38,7 +38,7 @@ export type CodeModelType = 'NONE' | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUA
 export type SourceType = 'BASE' | 'COPY_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
 export const DeriveConcatDelimiter = '_';
 export type CodingSchemeProblemType = 'VACANT' | 'SOURCE_MISSING' | 'INVALID_SOURCE' | 'RULE_PARAMETER_COUNT_MISMATCH'
-| 'MORE_THEN_ONE_SOURCE' | 'ONLY_ONE_SOURCE' | 'VALUE_COPY_NOT_FROM_BASE';
+| 'MORE_THAN_ONE_SOURCE' | 'ONLY_ONE_SOURCE' | 'VALUE_COPY_NOT_FROM_BASE';
 
 export interface CodingRule {
   method: RuleMethod,
