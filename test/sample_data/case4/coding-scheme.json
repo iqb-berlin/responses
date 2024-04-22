@@ -1,0 +1,107 @@
+{
+  "variableCodings" : [
+    {
+      "id" : "text-field_1",
+      "label" : "",
+      "sourceType" : "BASE",
+      "deriveSources" : [],
+      "processing" : [],
+      "fragmenting" : "",
+      "manualInstruction" : "",
+      "codeModel" : "NONE",
+      "codeModelParameters" : [],
+      "codes" : [
+        {
+          "id" : 1,
+          "label" : "Richtig",
+          "score" : 10,
+          "ruleSetOperatorAnd" : false,
+          "ruleSets" : [
+            {
+              "ruleOperatorAnd" : false,
+              "rules" : [
+                {
+                  "method" : "MATCH",
+                  "parameters" : [
+                    "1"
+                  ]
+                }
+              ]
+            }
+          ],
+          "manualInstruction" : "<p style=\"padding-left: 0px; text-indent: 0px; margin-bottom: 0px; margin-top: 0\" indentsize=\"20\">Wird<em> 1</em> eingeben, so ist dies mir richtig zu bewerten und gibt 10 Punkte.</p>"
+        }
+      ],
+      "page" : ""
+    },
+    {
+      "id" : "text-field_2",
+      "label" : "",
+      "sourceType" : "BASE",
+      "deriveSources" : [],
+      "processing" : [],
+      "fragmenting" : "",
+      "manualInstruction" : "",
+      "codeModel" : "NONE",
+      "codeModelParameters" : [],
+      "codes" : [
+        {
+          "id" : 1,
+          "label" : "Richtig",
+          "score" : 10,
+          "ruleSetOperatorAnd" : false,
+          "ruleSets" : [
+            {
+              "ruleOperatorAnd" : false,
+              "rules" : [
+                {
+                  "method" : "MATCH",
+                  "parameters" : [
+                    "2"
+                  ]
+                }
+              ]
+            }
+          ],
+          "manualInstruction" : "<p style=\"padding-left: 0px; text-indent: 0px; margin-bottom: 0px; margin-top: 0\" indentsize=\"20\">Wird<em> 2</em> eingeben, so ist dies mir richtig zu bewerten und gibt 10 Punkte.</p>"
+        }
+      ],
+      "page" : ""
+    },
+    {
+      "id" : "derived",
+      "label" : "derived",
+      "sourceType" : "SUM_SCORE",
+      "deriveSources" : [
+        "text-field_1",
+        "text-field_2"
+      ],
+      "processing" : [],
+      "codeModel" : "NONE",
+      "manualInstruction" : "",
+      "codes" : [
+        {
+          "id" : 1,
+          "label" : "ALLES RICHTIG!",
+          "score" : 100,
+          "ruleSetOperatorAnd" : false,
+          "ruleSets" : [
+            {
+              "ruleOperatorAnd" : false,
+              "rules" : [
+                {
+                  "method" : "NUMERIC_MATCH",
+                  "parameters" : [
+                    "20"
+                  ]
+                }
+              ]
+            }
+          ],
+          "manualInstruction" : ""
+        }
+      ],
+      "page" : ""
+    }
+  ]
+}
