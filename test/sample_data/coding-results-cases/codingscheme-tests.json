@@ -1,0 +1,26 @@
+[
+  {
+    "test_label": "check array handling",
+    "codingscheme": "cs01.json",
+    "responses": [
+      {
+        "input": "cs01_01_in.json",
+        "output": "cs01_01_out.json"
+      },
+      {
+        "input": "cs01_02_in.json",
+        "output": "cs01_02_out.json"
+      }
+    ]
+  },
+  {
+    "test_label": "fragmentation",
+    "codingscheme": "cs02.json",
+    "responses": [
+      {
+        "input": "cs02_01_in.json",
+        "output": "cs02_01_out.json"
+      }
+    ]
+  }
+]
