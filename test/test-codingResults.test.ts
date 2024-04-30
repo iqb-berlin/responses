@@ -8,9 +8,8 @@ type TestCodingResultsTest = {
 };
 
 const sampleFolder = `${__dirname}/sample_data/coding-results-cases`;
-let codingSchemes : TestCodingResultsTest[];
 let fileContent = fs.readFileSync(`${sampleFolder}/codingscheme-tests.json`, 'utf8');
-codingSchemes = JSON.parse(fileContent);
+const codingSchemes : TestCodingResultsTest[] = JSON.parse(fileContent);
 codingSchemes.forEach(codingScheme => {
   describe(codingScheme.test_label, () => {
     fileContent = fs.readFileSync(`${sampleFolder}/${codingScheme.codingscheme}`, 'utf8');
