@@ -22,10 +22,10 @@ channels:
 components:
   schemas:
     response:
-      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/response/response.json'
+      $ref: './response/response.schema.json'
     coding_scheme:
-      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/coding-scheme/coding-scheme.json'
+      $ref: './coding-scheme/coding-scheme.schema.json'
     missing:
-      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/missing/missing.json'
-    status_map:
-      $ref: 'https://raw.githubusercontent.com/iqb-berlin/responses/master/json_schema/status-map/status-map.json'
+      $ref: './missing/missing.schema.json'
+    state_map:
+      $ref: './state-map/state-map.schema.json'

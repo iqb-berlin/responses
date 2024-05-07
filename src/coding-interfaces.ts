@@ -1,5 +1,5 @@
-export type ResponseStatusType = 'UNSET' | 'NOT_REACHED' | 'DISPLAYED' | 'VALUE_CHANGED' | 'VALUE_DERIVED' |
-'SOURCE_MISSING' | 'DERIVE_ERROR' | 'CODING_COMPLETE' | 'NO_CODING' | 'INVALID' | 'CODING_INCOMPLETE' | 'CODING_ERROR';
+export type ResponseStatusType = 'UNSET' | 'NOT_REACHED' | 'DISPLAYED' | 'VALUE_CHANGED' |
+    'DERIVE_ERROR' | 'CODING_COMPLETE' | 'NO_CODING' | 'INVALID' | 'CODING_INCOMPLETE' | 'CODING_ERROR';
 
 export type ResponseValueSingleType = null | string | number | boolean;
 export type ResponseValueType = ResponseValueSingleType | ResponseValueSingleType[];
@@ -7,7 +7,7 @@ export type TransformedResponseValueType = ResponseValueType | string[][];
 
 export interface Response {
   id: string,
-  status: ResponseStatusType;
+  state: ResponseStatusType;
   value: ResponseValueType;
   subform?: string,
   code?: number;
@@ -16,7 +16,7 @@ export interface Response {
 
 // eslint-disable-next-line max-len
 export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THAN' | 'NO_OTHER_MATCHES' |
-'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
+'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE' | 'IS_UNIQUE_IN_ARRAY';
 export const RuleMethodParameterCount = {
   MATCH: -1,
   MATCH_REGEX: -1,
@@ -27,15 +27,19 @@ export const RuleMethodParameterCount = {
   NUMERIC_MORE_THAN: 1,
   NUMERIC_MAX: 1,
   NUMERIC_MIN: 1,
+  IS_UNIQUE_IN_ARRAY: 0,
   IS_EMPTY: 0,
   ELSE: 0,
   IS_NULL: 0,
   IS_TRUE: 0,
   IS_FALSE: 0
 };
-export type ProcessingParameterType = 'IGNORE_CASE' | 'REMOVE_WHITE_SPACES' | 'REPLAY_REQUIRED' | 'ATTACHMENT';
+export type ProcessingParameterType = 'IGNORE_CASE' | 'IGNORE_ALL_SPACES' | 'IGNORE_DISPENSABLE_SPACES' | 'SORT_ARRAY' |
+    'REPLAY_REQUIRED' | 'ATTACHMENT';
 export type CodeModelType = 'NONE' | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL';
-export type SourceType = 'BASE' | 'COPY_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE';
+export type SourceType = 'BASE' | 'COPY_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE' | 'UNIQUE_VALUES' | 'SOLVER';
+export type SourceProcessingType = 'TO_LOWER_CASE' | 'TO_NUMBER' | 'REMOVE_ALL_SPACES' | 'REMOVE_DISPENSABLE_SPACES' |
+    'TAKE_DISPLAYED_AS_VALUE_CHANGED' | 'SORT';
 export const DeriveConcatDelimiter = '_';
 export type CodingSchemeProblemType = 'VACANT' | 'SOURCE_MISSING' | 'INVALID_SOURCE' | 'RULE_PARAMETER_COUNT_MISMATCH'
 | 'MORE_THAN_ONE_SOURCE' | 'ONLY_ONE_SOURCE' | 'VALUE_COPY_NOT_FROM_BASE';
@@ -61,10 +65,16 @@ export interface CodeData {
   manualInstruction: string
 }
 
+export interface VariableSourceParameters {
+  solverExpression?: string,
+  processing?: SourceProcessingType[]
+}
+
 export interface VariableCodingData {
   id: string,
   label: string,
   sourceType: SourceType,
+  sourceParameters: VariableSourceParameters,
   deriveSources: string[],
   processing: ProcessingParameterType[],
   fragmenting?: string,

@@ -55,7 +55,9 @@
         "rules": [
           {
             "method": "MATCH",
-            "parameters": []
+            "parameters": [
+              "3"
+            ]
           }
         ],
         "manualInstruction": ""

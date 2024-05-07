@@ -7,7 +7,7 @@
     "deriveSoures": [],
     "processing": [
       "IGNORE_CASE",
-      "REMOVE_WHITE_SPACES",
+      "IGNORE_DISPENSABLE_SPACES",
       "ATTACHMENT",
       "REPLAY_REQUIRED"
     ],
@@ -56,7 +56,7 @@
     "sourceType": "BASE",
     "deriveSources": [],
     "processing": [
-      "REMOVE_WHITE_SPACES"
+      "IGNORE_ALL_SPACES"
     ],
     "manualInstruction": "",
     "codes": []

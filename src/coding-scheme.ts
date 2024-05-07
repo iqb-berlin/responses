@@ -3,7 +3,7 @@ import {
   Response,
   VariableInfo,
   CodingSchemeProblem,
-  RuleMethodParameterCount, CodingAsText, CodeData, RuleSet
+  RuleMethodParameterCount, CodingAsText, CodeData, RuleSet, ProcessingParameterType
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';
@@ -16,12 +16,21 @@ export class CodingScheme {
     this.variableCodings = [];
     // transforming old versions
     codings.forEach(c => {
+      let valueProcessing: string[] = c.processing || c.preProcessing || c.valueTransformations || [];
+      if (valueProcessing && valueProcessing.indexOf('REMOVE_WHITE_SPACES') > 0) {
+        valueProcessing = valueProcessing.filter(vp => vp !== 'REMOVE_WHITE_SPACES');
+        valueProcessing.push('IGNORE_ALL_SPACES')
+      }
       const newCoding: VariableCodingData = {
         id: c.id,
         label: c.label || '',
         sourceType: 'BASE',
+        sourceParameters: {
+          solverExpression: c.sourceParameters ? c.sourceParameters.solverExpression || '' : '',
+          processing: c.sourceParameters ? c.sourceParameters.processing || [] : [],
+        },
         deriveSources: c.deriveSources || [],
-        processing: c.processing || c.preProcessing || c.valueTransformations || [],
+        processing: valueProcessing as ProcessingParameterType[],
         fragmenting: c.fragmenting || '',
         manualInstruction: c.manualInstruction || '',
         codeModel: c.codeModel || 'NONE',
@@ -89,21 +98,21 @@ export class CodingScheme {
             newResponse = {
               id: coding.id,
               value: null,
-              status: 'UNSET'
+              state: 'UNSET'
             };
             newResponses.push(newResponse);
             codingChanged = true;
-          } else if (newResponse.status === 'VALUE_CHANGED') {
+          } else if (newResponse.state === 'VALUE_CHANGED') {
             if (coding.codes.length > 0) {
               const codedResponse = CodingFactory.code(newResponse, coding);
-              if (codedResponse.status !== newResponse.status) {
-                newResponse.status = codedResponse.status;
+              if (codedResponse.state !== newResponse.state) {
+                newResponse.state = codedResponse.state;
                 newResponse.code = codedResponse.code;
                 newResponse.score = codedResponse.score;
                 codingChanged = true;
               }
             } else {
-              newResponse.status = 'NO_CODING';
+              newResponse.state = 'NO_CODING';
               codingChanged = true;
             }
           }
@@ -112,39 +121,39 @@ export class CodingScheme {
             newResponse = {
               id: coding.id,
               value: null,
-              status: 'SOURCE_MISSING'
+              state: 'UNSET'
             };
             newResponses.push(newResponse);
             codingChanged = true;
           }
-          if (newResponse.status === 'SOURCE_MISSING') {
+          if (newResponse.state === 'UNSET') {
             if (coding.sourceType === 'COPY_VALUE') {
               const sourceResponse = newResponses.find(r => r.id === coding.deriveSources[0]);
               if (sourceResponse &&
-                  ['VALUE_CHANGED', 'CODING_COMPLETE', 'VALUE_DERIVED'].indexOf(sourceResponse.status) >= 0) {
+                  ['VALUE_CHANGED', 'CODING_COMPLETE'].indexOf(sourceResponse.state) >= 0) {
                 newResponse.value = JSON.stringify(sourceResponse.value);
-                newResponse.status = 'VALUE_DERIVED';
+                newResponse.state = 'VALUE_CHANGED';
                 codingChanged = true;
               }
             } else {
               const deriveSources = newResponses.filter(r => coding.deriveSources
-                .indexOf(r.id) >= 0 && r.status === 'CODING_COMPLETE');
+                .indexOf(r.id) >= 0 && r.state === 'CODING_COMPLETE');
               if (deriveSources.length === coding.deriveSources.length) {
                 try {
                   newResponse.value = CodingFactory.deriveValue(coding, newResponses);
-                  newResponse.status = 'VALUE_DERIVED';
+                  newResponse.state = 'VALUE_CHANGED';
                   codingChanged = true;
                 } catch (e) {
-                  newResponse.status = 'DERIVE_ERROR';
+                  newResponse.state = 'DERIVE_ERROR';
                   codingChanged = true;
                 }
               }
             }
           }
-          if (newResponse.status === 'VALUE_DERIVED') {
+          if (newResponse.state === 'VALUE_CHANGED') {
             const codedResponse = CodingFactory.code(newResponse, coding);
-            if (codedResponse.status !== newResponse.status) {
-              newResponse.status = codedResponse.status;
+            if (codedResponse.state !== newResponse.state) {
+              newResponse.state = codedResponse.state;
               newResponse.code = codedResponse.code;
               newResponse.score = codedResponse.score;
               codingChanged = true;

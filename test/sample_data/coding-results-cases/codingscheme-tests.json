@@ -1,0 +1,10 @@
+[
+  {
+    "test_label": "check array handling",
+    "subfolder": "case01"
+  },
+  {
+    "test_label": "fragmentation",
+    "subfolder": "case02"
+  }
+]
