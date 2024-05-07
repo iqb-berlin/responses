@@ -1,0 +1,42 @@
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+name: Generate Html und Publish
+
+jobs:
+  deploy-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      pages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+         node-version: 18
+      - name: Prepare repo
+        run: |
+          git fetch origin
+          git config --global user.email "mechtel@iqb.hu-berlin.de"
+          git config --global user.name "Martin Mechtel"
+          git checkout gh-pages
+          git reset --hard master
+      - name: Run html generation
+        run: |
+          npm ci
+          npm run generate_docs
+          mv public docs
+      - name: Push changes
+        run: |
+          git add docs
+          git commit -m "update gh-pages"
+          git push -f
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
