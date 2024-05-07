@@ -4,7 +4,12 @@ import {
   VariableInfo,
   Response,
   ProcessingParameterType,
-  DeriveConcatDelimiter, CodingRule, ResponseValueSingleType, TransformedResponseValueType, RuleSet
+  DeriveConcatDelimiter,
+  CodingRule,
+  ResponseValueSingleType,
+  TransformedResponseValueType,
+  RuleSet,
+  SourceProcessingType
 } from './coding-interfaces';
 
 export abstract class CodingFactory {
@@ -13,6 +18,10 @@ export abstract class CodingFactory {
       id: varInfo.id,
       label: '',
       sourceType: 'BASE',
+      sourceParameters: {
+        solverExpression: '',
+        processing: []
+      },
       deriveSources: [],
       processing: [],
       manualInstruction: '',
@@ -46,10 +55,12 @@ export abstract class CodingFactory {
 
   private static transformString(
     value: string,
-    removeWhiteSpaces: boolean,
+    removeAllWhiteSpaces: boolean,
+    removeDispensableWhiteSpaces: boolean,
     fragmentExp?: RegExp
   ): string | string[] {
-    const newString = removeWhiteSpaces ? value.trim() : value;
+    let newString = removeAllWhiteSpaces ? value.replace(/\s+/g, '') : value;
+    if (removeDispensableWhiteSpaces) newString = newString.trim().replace(/\s+/g, ' ');
     if (fragmentExp) {
       const regExExecReturn = fragmentExp.exec(newString);
       if (regExExecReturn) {
@@ -67,19 +78,22 @@ export abstract class CodingFactory {
 
   private static transformValue(
     value: ResponseValueType,
-    processing: ProcessingParameterType[],
+    processing: (ProcessingParameterType | SourceProcessingType)[],
     fragmenting?: string
   ): TransformedResponseValueType {
     // raises exceptions if transformation fails
     const fragmentRegEx = fragmenting ? new RegExp(fragmenting) : undefined;
-    const removeWhiteSpaces = processing && processing.length > 0 && processing.indexOf('REMOVE_WHITE_SPACES') >= 0;
+    const removeAllWhiteSpaces = processing && processing.length > 0 &&
+        (processing.indexOf('REMOVE_ALL_SPACES') || processing.indexOf('IGNORE_ALL_SPACES'))>= 0;
+    const removeDispensableWhiteSpaces = processing && processing.length > 0 &&
+        (processing.indexOf('REMOVE_DISPENSABLE_SPACES') || processing.indexOf('IGNORE_DISPENSABLE_SPACES'))>= 0;
     if (Array.isArray(value)) {
       return value.map(v => {
-        if (v && typeof v === 'string') return this.transformString(v, removeWhiteSpaces, fragmentRegEx);
+        if (v && typeof v === 'string') return this.transformString(v, removeAllWhiteSpaces, removeDispensableWhiteSpaces, fragmentRegEx);
         return v;
       }) as TransformedResponseValueType;
     }
-    if (value && typeof value === 'string') return this.transformString(value, removeWhiteSpaces, fragmentRegEx);
+    if (value && typeof value === 'string') return this.transformString(value, removeAllWhiteSpaces, removeDispensableWhiteSpaces, fragmentRegEx);
     return value;
   }
 

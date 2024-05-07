@@ -83,8 +83,14 @@ export abstract class ToTextFactory {
           case 'IGNORE_CASE':
             returnText += `${i > 0 ? ', ' : ''}Groß-/Kleinschreibung wird ignoriert`;
             break;
-          case 'REMOVE_WHITE_SPACES':
-            returnText += `${i > 0 ? ', ' : ''}Entfernen von Leerzeichen vor Kodierung`;
+          case 'IGNORE_ALL_SPACES':
+            returnText += `${i > 0 ? ', ' : ''}Entfernen aller Leerzeichen vor Kodierung`;
+            break;
+          case 'IGNORE_DISPENSABLE_SPACES':
+            returnText += `${i > 0 ? ', ' : ''}Entfernen unnötiger Leerzeichen vor Kodierung`;
+            break;
+          case 'SORT_ARRAY':
+            returnText += `${i > 0 ? ', ' : ''}Sortieren von Listenwerten vor Kodierung`;
             break;
           case 'ATTACHMENT':
             returnText += `${i > 0 ? ', ' : ''}Zur Kodierung ist eine separate Datei erforderlich (Bild, Audio)`;
