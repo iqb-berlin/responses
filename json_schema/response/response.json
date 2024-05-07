@@ -1,5 +1,5 @@
 {
-  "$id": "response@iqb-standard@1.2",
+  "$id": "response@iqb-standard@1.3",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Response",
   "description": "Data structure produced by verona players",
@@ -12,7 +12,7 @@
     },
     "state": {
       "type": "string",
-      "enum": ["UNSET", "NOT_REACHED", "DISPLAYED", "VALUE_CHANGED", "SOURCE_MISSING", "DERIVE_ERROR", "VALUE_DERIVED",
+      "enum": ["UNSET", "NOT_REACHED", "DISPLAYED", "VALUE_CHANGED", "DERIVE_ERROR",
         "NO_CODING", "INVALID", "CODING_INCOMPLETE", "CODING_ERROR","CODING_COMPLETE"],
       "description": "Status as stage in the workflow of creating and coding a variable's value"
     },
