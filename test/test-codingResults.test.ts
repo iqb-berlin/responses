@@ -7,9 +7,9 @@ type TestCodingResultsTest = {
   subfolder: string;
 };
 
-const codingSchemeSchemaFileName = `${__dirname}/../json_schema/coding-scheme/coding-scheme.json`;
+const codingSchemeSchemaFileName = `${__dirname}/../json_schema/coding-scheme/coding-scheme.schema.json`;
 const codingSchemeSchemaFileContent = fs.readFileSync(codingSchemeSchemaFileName, 'utf8');
-const responseSchemaFileName = `${__dirname}/../json_schema/response/response.json`;
+const responseSchemaFileName = `${__dirname}/../json_schema/response/response.schema.json`;
 const responseSchemaFileContent = fs.readFileSync(responseSchemaFileName, 'utf8');
 const sampleFolder = `${__dirname}/sample_data/coding-results-cases`;
 let fileContent = fs.readFileSync(`${sampleFolder}/codingscheme-tests.json`, 'utf8');

@@ -11,7 +11,7 @@
     "test_coding2text": "cd test && ts-node test-code2text case2",
     "test_getBaseVarsList": "cd test && ts-node test-getBaseVarsList get-base-vars-case",
     "validate_coding_scheme": "cd test && ts-node validate-coding-scheme validate-coding-scheme-case",
-    "generate_docs": "cd json_schema && asyncapi generate fromTemplate asyncapi.yaml @asyncapi/html-template -o ../public --force-write && cat add.css >> ../public/css/global.min.css",
+    "generate_docs": "cd json_schema && ag -o ../public ./asyncapi.yaml @asyncapi/html-template --force-write && cat add.css >> ../public/css/global.min.css",
     "prepare_publish": "rm -rf dist/* && tsc --module commonjs && cp ./package_npm.json ./dist/package.json && cp ./README.md ./dist",
     "npm_publish": "cd dist && npm publish --access public"
   },
@@ -40,18 +40,15 @@
     ]
   },
   "devDependencies": {
-    "@asyncapi/cli": "^1.7.3",
-    "@asyncapi/html-template": "^2.2.2",
+    "@asyncapi/cli": "^1.9.2",
     "@babel/preset-typescript": "^7.24.1",
     "@iqb/eslint-config": "^2.1.1",
     "@types/jest": "^29.5.12",
+    "@jest/globals": "^29.7.0",
     "@types/node": "^20.4.4",
     "ajv": "^8.12.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.2",
     "ts-node": "^10.9.1"
-  },
-  "dependencies": {
-    "@jest/globals": "^29.7.0"
   }
 }

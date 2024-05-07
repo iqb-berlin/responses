@@ -1,5 +1,5 @@
 {
-  "$id": "coding-scheme@iqb-standard@1.1",
+  "$id": "coding-scheme@iqb-standard@2.0",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Response Scheme",
   "description": "Data structure to specify all processing steps of response data in order to get coded and scored data for analyses.",
@@ -40,8 +40,10 @@
               "enum": [
                 "TO_LOWER_CASE",
                 "TO_NUMBER",
-                "REMOVE_WHITE_SPACES",
-                "TAKE_DISPLAYED_AS_VALUE_CHANGED"
+                "REMOVE_ALL_SPACES",
+                "REMOVE_DISPENSABLE_SPACES",
+                "TAKE_DISPLAYED_AS_VALUE_CHANGED",
+                "SORT"
               ]
             }
           }
@@ -61,7 +63,9 @@
           "type": "string",
           "enum": [
             "IGNORE_CASE",
-            "REMOVE_WHITE_SPACES",
+            "IGNORE_ALL_SPACES",
+            "IGNORE_DISPENSABLE_SPACES",
+            "SORT_ARRAY",
             "REPLAY_REQUIRED",
             "ATTACHMENT"
           ]
