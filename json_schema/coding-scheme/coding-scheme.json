@@ -1,5 +1,5 @@
 {
-  "$id": "coding-scheme@iqb-standard@1.0",
+  "$id": "coding-scheme@iqb-standard@1.1",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Response Scheme",
   "description": "Data structure to specify all processing steps of response data in order to get coded and scored data for analyses.",
@@ -9,8 +9,8 @@
     "properties": {
       "id": {
         "type": "string",
-        "pattern": "^[0-9a-zA-Z_]+$",
-        "description": "Identifier for the variable. In case of a scheme for a base variable, this id is identical with the source variable's id. In case of derivation, the processing data create a new derived variable. All ids of a response scheme should be unique."
+        "description": "Identifier for the variable. In case of a scheme for a base variable, this id is identical with the source variable's id. In case of derivation, the processing data create a new derived variable. All ids of a response scheme should be unique.",
+        "pattern": "^[0-9a-zA-Z_]+$"
       },
       "label": {
         "type": "string",
@@ -18,10 +18,34 @@
       },
       "sourceType": {
         "type": "string",
+        "description": "CONCAT means concatenate all source codes as string with delimiter '_', SUM calculates a sum from all source codes or scores.",
         "enum": [
-          "BASE", "COPY_VALUE", "CONCAT_CODE", "SUM_CODE", "SUM_SCORE"
-        ],
-        "description": "CONCAT means concatenate all source codes as string with delimiter '_', SUM calculates a sum from all source codes or scores."
+          "BASE", "COPY_VALUE", "CONCAT_CODE", "SUM_CODE", "SUM_SCORE", "UNIQUE_VALUES", "SOLVER"
+        ]
+      },
+      "sourceParameters": {
+        "type": "object",
+        "description": "Parameters to specify the derive method",
+        "properties": {
+          "solverExpression": {
+            "type": "string",
+            "description": "If sourceType 'solver', this expression is evaluated when deriving. Placeholder for variables are in curly brakes.",
+            "examples": ["${01}*${03}-100"]
+          },
+          "processing": {
+            "type": "array",
+            "description": "Some options to change value or status",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TO_LOWER_CASE",
+                "TO_NUMBER",
+                "REMOVE_WHITE_SPACES",
+                "TAKE_DISPLAYED_AS_VALUE_CHANGED"
+              ]
+            }
+          }
+        }
       },
       "deriveSources": {
         "type": "array",
@@ -32,6 +56,7 @@
       },
       "processing": {
         "type": "array",
+        "description": "This parameter defines what (pre)processing should be done.",
         "items": {
           "type": "string",
           "enum": [
@@ -40,8 +65,7 @@
             "REPLAY_REQUIRED",
             "ATTACHMENT"
           ]
-        },
-        "description": "This parameter defines what (pre)processing should be done."
+        }
       },
       "fragmenting": {
         "type": "string",
@@ -145,6 +169,7 @@
                             "NUMERIC_MAX",
                             "NUMERIC_MIN",
                             "NO_OTHER_MATCHES",
+                            "IS_UNIQUE_IN_ARRAY",
                             "IS_EMPTY",
                             "ELSE",
                             "IS_NULL",
