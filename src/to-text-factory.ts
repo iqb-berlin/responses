@@ -29,7 +29,7 @@ const CODE_RULE_TEXT = {
   NUMERIC_MATCH: 'Übereinstimmung (numerisch) mit',
   NUMERIC_RANGE: '..Kombi..',
   NUMERIC_LESS_THAN: 'Wert geringer als',
-  NO_OTHER_MATCHES: 'Keine anderen Übereinstimmungen',
+  IS_UNIQUE_IN_ARRAY: 'Keine anderen Übereinstimmungen im Array',
   NUMERIC_MORE_THAN: 'Wert größer als',
   NUMERIC_MAX: 'Wert ist maximal als',
   NUMERIC_MIN: 'Wert ist mindestens',
@@ -60,6 +60,12 @@ export abstract class ToTextFactory {
         break;
       case 'SUM_CODE':
         returnText = `Codes von Variablen '${sources.join(', ')}' summiert`;
+        break;
+      case 'UNIQUE_VALUES':
+        returnText = `Prüft, ob die Werte der Variablen '${sources.join(', ')}' unique/einzigartig sind`;
+        break;
+      case 'SOLVER':
+        returnText = `Werte von Variablen '${sources.join(', ')}' werden über einen mathematischen Ausdruck verknüpft`;
         break;
       case 'SUM_SCORE':
         returnText = `Scores von Variablen '${sources.join(', ')}' summiert`;
@@ -164,7 +170,7 @@ export abstract class ToTextFactory {
               }
               break;
             case 'IS_EMPTY':
-            case 'NO_OTHER_MATCHES':
+            case 'IS_UNIQUE_IN_ARRAY':
             case 'IS_NULL':
             case 'IS_TRUE':
             case 'IS_FALSE':
