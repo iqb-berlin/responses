@@ -3,10 +3,21 @@ import {
   Response,
   VariableInfo,
   CodingSchemeProblem,
-  RuleMethodParameterCount, CodingAsText, CodeData, RuleSet, ProcessingParameterType
+  RuleMethodParameterCount,
+  CodingAsText,
+  CodeData,
+  RuleSet,
+  ProcessingParameterType,
+  DeriveConcatDelimiter, responseStatusInOrder
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';
+
+export interface VariableGraphNode {
+  id: string,
+  level: number;
+  sources: string[];
+}
 
 export class CodingScheme {
   variableCodings: VariableCodingData[] = [];
@@ -83,89 +94,169 @@ export class CodingScheme {
     });
   }
 
+  getVariableGraph(): VariableGraphNode[] {
+    const graph: VariableGraphNode[] = this.variableCodings.filter(c => c.sourceType === 'BASE').map(c => {
+      return {
+        id: c.id,
+        level: 0,
+        sources: []
+      }
+    });
+    let found = true;
+    while (found && this.variableCodings.length > graph.length) {
+      found = false;
+      this.variableCodings.forEach(vc => {
+        const existingNode = graph.find(n => n.id === vc.id);
+        if (!existingNode) {
+          let maxLevel = 0;
+          vc.deriveSources.forEach(s => {
+            const node = graph.find(n => n.id === s);
+            if (node) {
+              maxLevel = Math.max(maxLevel, node.level);
+            } else {
+              maxLevel = Number.MAX_VALUE
+            }
+          });
+          if (maxLevel < Number.MAX_VALUE) {
+            found = true;
+            graph.push({
+              id: vc.id,
+              level: maxLevel + 1,
+              sources: [...vc.deriveSources]
+            })
+          }
+        }
+      })
+    }
+    if (found) return graph;
+    throw new Error('circular dependency in coding scheme');
+  };
+
+  static deriveValue(coding: VariableCodingData, sourceResponses: Response[]): Response {
+    const validResponseStatuses = ['CODING_COMPLETE'];
+    if (['SOLVER', 'COPY_VALUE', 'UNIQUE_VALUES'].indexOf(coding.sourceType) >= 0) {
+      validResponseStatuses.push('VALUE_CHANGED', 'NO_CODING', 'CODING_INCOMPLETE', 'CODING_ERROR');
+    }
+    const errorStatuses: string[] = [];
+    sourceResponses.forEach(r => {
+      if (validResponseStatuses.indexOf(r.state) < 0) errorStatuses.push(r.state)
+    })
+    if (errorStatuses.length > 0 && (coding.sourceType !== 'UNIQUE_VALUES' || errorStatuses.length === sourceResponses.length)) {
+      const minStatusIndex = Math.min(...errorStatuses.map(s => responseStatusInOrder.indexOf(s)));
+      return <Response>{
+        id: coding.id,
+        value: null,
+        state: responseStatusInOrder[minStatusIndex]
+      }
+    }
+    // eslint-disable-next-line default-case
+    switch (coding.sourceType) {
+      case 'COPY_VALUE':
+        const stringfiedValue = JSON.stringify(sourceResponses[0].value);
+        return <Response>{
+          id: coding.id,
+          value: JSON.parse(stringfiedValue),
+          state: 'VALUE_CHANGED'
+        }
+      case 'CONCAT_CODE':
+        return <Response>{
+          id: coding.id,
+          value: coding.deriveSources.map(s => {
+            const myResponse = sourceResponses.find(r => r.id === s);
+            if (myResponse) return myResponse.code || 'X';
+            throw new Error('response not found in derive');
+          }).join(DeriveConcatDelimiter),
+          state: 'VALUE_CHANGED'
+        }
+      case 'SUM_CODE':
+        return <Response>{
+          id: coding.id,
+          value: coding.deriveSources.map(s => {
+            const myResponse = sourceResponses.find(r => r.id === s);
+            if (myResponse) return myResponse.code || 0;
+            throw new Error('response not found in derive');
+          }).reduce((sum, current) => sum + current, 0),
+          state: 'VALUE_CHANGED'
+        }
+      case 'SUM_SCORE':
+        return <Response>{
+          id: coding.id,
+          value: coding.deriveSources.map(s => {
+            const myResponse = sourceResponses.find(r => r.id === s);
+            if (myResponse) return myResponse.score || 0;
+            throw new Error('response not found in derive');
+          }).reduce((sum, current) => sum + current, 0),
+          state: 'VALUE_CHANGED'
+        }
+    }
+    throw new Error('deriving failed');
+  }
+
   code(unitResponses: Response[]): Response[] {
+    // decouple object from caller variable
     const stringifiedResponses = JSON.stringify(unitResponses);
     const newResponses: Response[] = JSON.parse(stringifiedResponses);
-    let changed = true;
-    let cycleCount = 0;
-    while (changed && cycleCount < 1000) {
-      cycleCount += 1;
-      const changes = this.variableCodings.map((coding): boolean => {
-        let codingChanged = false;
-        let newResponse = newResponses.find(r => r.id === coding.id);
-        if (coding.sourceType === 'BASE') {
-          if (!newResponse) {
-            newResponse = {
-              id: coding.id,
-              value: null,
-              state: 'UNSET'
-            };
-            newResponses.push(newResponse);
-            codingChanged = true;
-          } else if (newResponse.state === 'VALUE_CHANGED') {
-            if (coding.codes.length > 0) {
-              const codedResponse = CodingFactory.code(newResponse, coding);
-              if (codedResponse.state !== newResponse.state) {
-                newResponse.state = codedResponse.state;
-                newResponse.code = codedResponse.code;
-                newResponse.score = codedResponse.score;
-                codingChanged = true;
+
+    // change DISPLAYED to VALUE_CHANGED if requested
+    newResponses.filter(r => r.state === 'DISPLAYED').forEach(r => {
+      const myCoding = this.variableCodings.find(c => c.id === r.id);
+      if (myCoding && myCoding.sourceType === 'BASE' && myCoding.sourceParameters.processing &&
+          myCoding.sourceParameters.processing.indexOf('TAKE_DISPLAYED_AS_VALUE_CHANGED') >= 0) {
+        r.state = 'VALUE_CHANGED';
+      }
+    });
+
+    // set invalid if value is empty
+    newResponses.filter(r => r.state === 'VALUE_CHANGED' && r.value === '').forEach(r => {
+      const myCoding = this.variableCodings.find(c => c.id === r.id);
+      if (myCoding && myCoding.sourceType === 'BASE' && (!myCoding.sourceParameters.processing ||
+          myCoding.sourceParameters.processing.indexOf('TAKE_EMPTY_AS_VALID') < 0)) {
+        r.state = 'INVALID';
+      }
+    });
+
+    // set up derived variables
+    this.variableCodings.filter(c => c.sourceType !== 'BASE').forEach(c => {
+      const existingResponse = newResponses.find(r => r.id === c.id);
+      if (!existingResponse) newResponses.push({
+        id: c.id,
+        value: null,
+        state: 'UNSET'
+      })
+    })
+
+    // set up variable graph
+    const varGraph = this.getVariableGraph();
+    const maxVarLevel = Math.max(...varGraph.map(n => n.level))
+
+    for (var level = 0; level <= maxVarLevel; level++) {
+      varGraph.filter(n => n.level === level).forEach(varNode => {
+        const targetResponse = newResponses.find(r => r.id === varNode.id);
+        const varCoding = this.variableCodings.find(vc => vc.id === varNode.id);
+        if (targetResponse && varCoding) {
+          if (varNode.sources.length > 0 && targetResponse.state === 'UNSET') {
+            // derive
+            const derivedResponse = CodingScheme.deriveValue(
+                varCoding, newResponses.filter(r => varNode.sources.indexOf(r.id) >= 0));
+            targetResponse.state = derivedResponse.state;
+            if (derivedResponse.state === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
+          }
+          if (targetResponse.state === 'VALUE_CHANGED') {
+            if (varCoding.codes.length > 0) {
+              const codedResponse = CodingFactory.code(targetResponse, varCoding);
+              if (codedResponse.state !== targetResponse.state) {
+                targetResponse.state = codedResponse.state;
+                targetResponse.code = codedResponse.code;
+                targetResponse.score = codedResponse.score;
               }
             } else {
-              newResponse.state = 'NO_CODING';
-              codingChanged = true;
-            }
-          }
-        } else if (coding.deriveSources.length > 0) {
-          if (!newResponse) {
-            newResponse = {
-              id: coding.id,
-              value: null,
-              state: 'UNSET'
-            };
-            newResponses.push(newResponse);
-            codingChanged = true;
-          }
-          if (newResponse.state === 'UNSET') {
-            if (coding.sourceType === 'COPY_VALUE') {
-              const sourceResponse = newResponses.find(r => r.id === coding.deriveSources[0]);
-              if (sourceResponse &&
-                  ['VALUE_CHANGED', 'CODING_COMPLETE'].indexOf(sourceResponse.state) >= 0) {
-                newResponse.value = JSON.stringify(sourceResponse.value);
-                newResponse.state = 'VALUE_CHANGED';
-                codingChanged = true;
-              }
-            } else {
-              const deriveSources = newResponses.filter(r => coding.deriveSources
-                .indexOf(r.id) >= 0 && r.state === 'CODING_COMPLETE');
-              if (deriveSources.length === coding.deriveSources.length) {
-                try {
-                  newResponse.value = CodingFactory.deriveValue(coding, newResponses);
-                  newResponse.state = 'VALUE_CHANGED';
-                  codingChanged = true;
-                } catch (e) {
-                  newResponse.state = 'DERIVE_ERROR';
-                  codingChanged = true;
-                }
-              }
-            }
-          }
-          if (newResponse.state === 'VALUE_CHANGED') {
-            const codedResponse = CodingFactory.code(newResponse, coding);
-            if (codedResponse.state !== newResponse.state) {
-              newResponse.state = codedResponse.state;
-              newResponse.code = codedResponse.code;
-              newResponse.score = codedResponse.score;
-              codingChanged = true;
+              targetResponse.state = 'NO_CODING';
             }
           }
         }
-        return codingChanged;
-      }).filter((ch: boolean) => ch);
-      changed = changes.length > 0;
+      })
     }
-    // eslint-disable-next-line no-console
-    if (cycleCount >= 1000) console.log('iteration cancelled');
+
     return newResponses;
   }
 

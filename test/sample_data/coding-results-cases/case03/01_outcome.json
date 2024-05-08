@@ -1,0 +1,21 @@
+[{
+        "id": "v1100",
+        "state": "CODING_COMPLETE",
+        "value": "123",
+        "code": 1,
+        "score": 0
+    }, {
+        "id": "v1101",
+        "state": "CODING_COMPLETE",
+        "value": "12",
+        "code": 1,
+        "score": 0
+    }, {
+        "id": "v1102",
+        "state": "CODING_COMPLETE",
+        "value": "1",
+        "code": 1,
+        "score": 0
+    },{"id":"vx01","value":"12","state":"NO_CODING"},{"id":"vx02","value":"1","state":"NO_CODING"},
+  {"id":"vx03","value":"1","state":"NO_CODING"},{"id":"vx04","value":"12","state":"NO_CODING"}
+]

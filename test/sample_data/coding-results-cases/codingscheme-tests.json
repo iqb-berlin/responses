@@ -6,5 +6,9 @@
   {
     "test_label": "fragmentation",
     "subfolder": "case02"
+  },
+  {
+    "test_label": "variable graph",
+    "subfolder": "case03"
   }
 ]

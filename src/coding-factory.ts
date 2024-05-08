@@ -4,7 +4,6 @@ import {
   VariableInfo,
   Response,
   ProcessingParameterType,
-  DeriveConcatDelimiter,
   CodingRule,
   ResponseValueSingleType,
   TransformedResponseValueType,
@@ -30,27 +29,6 @@ export abstract class CodingFactory {
       codes: [],
       page: ''
     };
-  }
-
-  static deriveValue(coding: VariableCodingData, allResponses: Response[]): ResponseValueType {
-    // raises exceptions if deriving fails
-    // ensure before, that sourceType is not 'BASE' and there are enough valid sources
-    // eslint-disable-next-line default-case
-    switch (coding.sourceType) {
-      case 'CONCAT_CODE':
-        return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
-          .map(r => (r.code ? r.code.toString() : ''))
-          .join(DeriveConcatDelimiter);
-      case 'SUM_CODE':
-        return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
-          .map(r => (r.code ? r.code : 0))
-          .reduce((sum, current) => sum + current, 0);
-      case 'SUM_SCORE':
-        return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
-          .map(r => (r.score ? r.score : 0))
-          .reduce((sum, current) => sum + current, 0);
-    }
-    throw new TypeError('deriving failed');
   }
 
   private static transformString(
