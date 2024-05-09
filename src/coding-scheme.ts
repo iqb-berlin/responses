@@ -94,7 +94,7 @@ export class CodingScheme {
     });
   }
 
-  getVariableGraph(): VariableGraphNode[] {
+  getVariableDependencyTree(): VariableGraphNode[] {
     const graph: VariableGraphNode[] = this.variableCodings.filter(c => c.sourceType === 'BASE').map(c => {
       return {
         id: c.id,
@@ -215,31 +215,52 @@ export class CodingScheme {
       }
     });
 
+    // set up variable tree
+    let varDependencies: VariableGraphNode[] = [];
+    let globalDeriveError = false;
+    try {
+      varDependencies = this.getVariableDependencyTree();
+    } catch {
+      globalDeriveError = true;
+      varDependencies = [];
+    }
+
     // set up derived variables
-    this.variableCodings.filter(c => c.sourceType !== 'BASE').forEach(c => {
-      const existingResponse = newResponses.find(r => r.id === c.id);
-      if (!existingResponse) newResponses.push({
-        id: c.id,
-        value: null,
-        state: 'UNSET'
-      })
+    this.variableCodings.forEach(c => {
+      if (c.sourceType === 'BASE') {
+        if (globalDeriveError) varDependencies.push({
+          id: c.id,
+          level: 0,
+          sources: []
+        });
+      } else {
+        const existingResponse = newResponses.find(r => r.id === c.id);
+        if (!existingResponse) newResponses.push({
+          id: c.id,
+          value: null,
+          state: globalDeriveError ? 'DERIVE_ERROR' : 'UNSET'
+        })
+      }
     })
 
-    // set up variable graph
-    const varGraph = this.getVariableGraph();
-    const maxVarLevel = Math.max(...varGraph.map(n => n.level))
+    const maxVarLevel = Math.max(...varDependencies.map(n => n.level))
 
     for (var level = 0; level <= maxVarLevel; level++) {
-      varGraph.filter(n => n.level === level).forEach(varNode => {
+      varDependencies.filter(n => n.level === level).forEach(varNode => {
         const targetResponse = newResponses.find(r => r.id === varNode.id);
         const varCoding = this.variableCodings.find(vc => vc.id === varNode.id);
         if (targetResponse && varCoding) {
-          if (varNode.sources.length > 0 && targetResponse.state === 'UNSET') {
+          if (varNode.sources.length > 0 && ['UNSET', 'CODING_ERROR', 'CODING_INCOMPLETE'].indexOf(targetResponse.state) >= 0) {
             // derive
-            const derivedResponse = CodingScheme.deriveValue(
-                varCoding, newResponses.filter(r => varNode.sources.indexOf(r.id) >= 0));
-            targetResponse.state = derivedResponse.state;
-            if (derivedResponse.state === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
+            try {
+              const derivedResponse = CodingScheme.deriveValue(
+                  varCoding, newResponses.filter(r => varNode.sources.indexOf(r.id) >= 0));
+              targetResponse.state = derivedResponse.state;
+              if (derivedResponse.state === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
+            } catch {
+              targetResponse.state = 'DERIVE_ERROR';
+              targetResponse.value = null;
+            }
           }
           if (targetResponse.state === 'VALUE_CHANGED') {
             if (varCoding.codes.length > 0) {
