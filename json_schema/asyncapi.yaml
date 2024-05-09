@@ -22,10 +22,10 @@ channels:
 components:
   schemas:
     response:
-      $ref: './response/response.schema.json'
+      $ref: './response.schema.json'
     coding_scheme:
-      $ref: './coding-scheme/coding-scheme.schema.json'
+      $ref: './coding-scheme.schema.json'
     missing:
-      $ref: './missing/missing.schema.json'
+      $ref: './missing.schema.json'
     state_map:
-      $ref: './state-map/state-map.schema.json'
+      $ref: './state-map.schema.json'

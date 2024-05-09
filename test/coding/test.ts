@@ -1,22 +1,15 @@
 import fs from 'fs';
 import Ajv, { ValidateFunction } from 'ajv';
-import { CodingScheme } from '../src';
+import {CodingScheme} from "../../src";
 
-type TestCodingResultsTest = {
-  test_label: string;
-  subfolder: string;
-};
-
-const codingSchemeSchemaFileName = `${__dirname}/../json_schema/coding-scheme/coding-scheme.schema.json`;
+const codingSchemeSchemaFileName = `${__dirname}/../../json_schema/coding-scheme.schema.json`;
 const codingSchemeSchemaFileContent = fs.readFileSync(codingSchemeSchemaFileName, 'utf8');
-const responseSchemaFileName = `${__dirname}/../json_schema/response/response.schema.json`;
+const responseSchemaFileName = `${__dirname}/../../json_schema/response.schema.json`;
 const responseSchemaFileContent = fs.readFileSync(responseSchemaFileName, 'utf8');
-const sampleFolder = `${__dirname}/sample_data/coding-results-cases`;
-let fileContent = fs.readFileSync(`${sampleFolder}/codingscheme-tests.json`, 'utf8');
+const sampleFolder = __dirname;
 const ajv = new Ajv();
 let compiledCodingSchemeSchema: ValidateFunction<unknown> | null = ajv.compile(JSON.parse(codingSchemeSchemaFileContent));
 let compiledResponseSchema: ValidateFunction<unknown> | null = ajv.compile(JSON.parse(responseSchemaFileContent));
-const testConfigs : TestCodingResultsTest[] = JSON.parse(fileContent);
 const regexInput = /^(.+)_input.json$/;
 describe('schema is valid', () => {
     test('for coding scheme', () => {
@@ -27,31 +20,33 @@ describe('schema is valid', () => {
     });
 });
 
-testConfigs.forEach(testConfig => {
-  describe(testConfig.test_label, () => {
-      let inputIds: string[] = [];
+let fileContent;
+let testFolders = fs.readdirSync(sampleFolder, { withFileTypes: true })
+    .filter(dirEntry => dirEntry.isDirectory())
+    .map(dirEntry => dirEntry.name);
+if (process.argv[3] && testFolders.includes(process.argv[3])) testFolders = [process.argv[3]];
+
+testFolders.forEach(testCaseFolder => {
+  describe(testCaseFolder, () => {
       let codingScheme: CodingScheme | null = null;
-      const fileContentCodingScheme = fs.readFileSync(`${sampleFolder}/${testConfig.subfolder}/coding-scheme.json`, 'utf8');
-      test('coding scheme: file exists', () => {
-          expect(fileContentCodingScheme).not.toBeNull();
-      });
-      codingScheme = JSON.parse(fileContentCodingScheme);
-      test('coding scheme: valid', () => {
-          expect(compiledCodingSchemeSchema ? compiledCodingSchemeSchema(codingScheme) : null).not.toBeNull();
-      });
-      const allFileNames = fs.readdirSync(`${sampleFolder}/${testConfig.subfolder}`);
-      inputIds = allFileNames.filter(fn => fn.match(regexInput)).map(fn => {
-          const matches = regexInput.exec(fn);
-          return matches ? matches[1] : ''
-      });
-      test('number of input files greater then 0', () => {
-          expect(inputIds.length).toBeGreaterThan(0);
-      })
-      if (codingScheme) {
+      const codingSchemeFilename = `${sampleFolder}/${testCaseFolder}/coding-scheme.json`;
+      if (fs.existsSync(codingSchemeFilename)) {
+          const fileContentCodingScheme = fs.readFileSync(codingSchemeFilename, 'utf8');
+          codingScheme = JSON.parse(fileContentCodingScheme);
+          const codingSchemeValid = compiledCodingSchemeSchema ? compiledCodingSchemeSchema(codingScheme) : null
+          test('valid coding scheme', () => {
+              expect(codingSchemeValid).not.toBeNull();
+          });
+          if (codingSchemeValid === null) codingScheme = null;
+      }
+      const inputFiles = fs.readdirSync(`${sampleFolder}/${testCaseFolder}`).filter(fn => fn.endsWith('_input.json'));
+      if (codingScheme && inputFiles.length > 0) {
           const codingSchemeObject = new CodingScheme((codingScheme as CodingScheme).variableCodings);
-          inputIds.forEach(inputId => {
+          inputFiles.forEach(inputFile => {
+              const matches = regexInput.exec(inputFile);
+              const inputId =  matches ? matches[1] : '';
               let problems: string[] = [];
-              fileContent = fs.readFileSync(`${sampleFolder}/${testConfig.subfolder}/${inputId}_input.json`, 'utf8');
+              fileContent = fs.readFileSync(`${sampleFolder}/${testCaseFolder}/${inputId}_input.json`, 'utf8');
               if (fileContent) {
                   let parsedInput;
                   try {
@@ -69,7 +64,7 @@ testConfigs.forEach(testConfig => {
                       });
                   }
                   if (problems.length === 0) {
-                      fileContent = fs.readFileSync(`${sampleFolder}/${testConfig.subfolder}/${inputId}_outcome.json`, 'utf8');
+                      fileContent = fs.readFileSync(`${sampleFolder}/${testCaseFolder}/${inputId}_outcome.json`, 'utf8');
                       if (fileContent) {
                           let parsedOutcome: any[] | null;
                           try {
@@ -87,7 +82,7 @@ testConfigs.forEach(testConfig => {
                               });
                               if (problems.length === 0) {
                                   const result = codingSchemeObject.code(parsedInput);
-                                  test(`${inputId}: outcome as expected`, () => {
+                                  test(inputId, () => {
                                       expect(JSON.stringify(result)).toBe(JSON.stringify(parsedOutcome));
                                   });
                               }

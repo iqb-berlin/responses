@@ -4,10 +4,8 @@
   "license": "MIT",
   "description": "Data interfaces for processing assessment data.",
   "scripts": {
-    "test_codingResults": "cd test && jest test-codingResults.test.ts",
-    "test_response": "ts-node test/test-jsonSchemas.ts response",
-    "test_coding_scheme": "ts-node test/test-jsonSchemas.ts coding-scheme",
-    "test_coding": "cd test && ts-node test-coding case2",
+    "test_coding": "jest test/coding",
+    "test_schema": "jest test/schema",
     "test_coding2text": "cd test && ts-node test-code2text case2",
     "test_getBaseVarsList": "cd test && ts-node test-getBaseVarsList get-base-vars-case",
     "validate_coding_scheme": "cd test && ts-node validate-coding-scheme validate-coding-scheme-case",

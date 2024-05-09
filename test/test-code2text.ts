@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import fs from 'fs';
-import { CodingScheme } from '../src';
+import { CodingScheme } from "../src";
 
 const sampleFolder = `${__dirname}/sample_data/${process.argv[2]}`;
 let codingScheme;

@@ -8,7 +8,11 @@ import {
   CodeData,
   RuleSet,
   ProcessingParameterType,
-  DeriveConcatDelimiter, responseStatusInOrder
+  DeriveConcatDelimiter,
+  responseStatesInOrder,
+  validStatesForDerivingValue,
+  validStatesForDerivingCode,
+  validStatesToStartDeriving, deriveMethodsFromValue
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';
@@ -28,7 +32,7 @@ export class CodingScheme {
     // transforming old versions
     codings.forEach(c => {
       let valueProcessing: string[] = c.processing || c.preProcessing || c.valueTransformations || [];
-      if (valueProcessing && valueProcessing.indexOf('REMOVE_WHITE_SPACES') > 0) {
+      if (valueProcessing && valueProcessing.includes('REMOVE_WHITE_SPACES')) {
         valueProcessing = valueProcessing.filter(vp => vp !== 'REMOVE_WHITE_SPACES');
         valueProcessing.push('IGNORE_ALL_SPACES')
       }
@@ -133,20 +137,19 @@ export class CodingScheme {
   };
 
   static deriveValue(coding: VariableCodingData, sourceResponses: Response[]): Response {
-    const validResponseStatuses = ['CODING_COMPLETE'];
-    if (['SOLVER', 'COPY_VALUE', 'UNIQUE_VALUES'].indexOf(coding.sourceType) >= 0) {
-      validResponseStatuses.push('VALUE_CHANGED', 'NO_CODING', 'CODING_INCOMPLETE', 'CODING_ERROR');
-    }
+    const validResponseStatuses =
+        deriveMethodsFromValue.includes(coding.sourceType) ?
+            validStatesForDerivingValue : validStatesForDerivingCode;
     const errorStatuses: string[] = [];
     sourceResponses.forEach(r => {
-      if (validResponseStatuses.indexOf(r.state) < 0) errorStatuses.push(r.state)
+      if (!validResponseStatuses.includes(r.state)) errorStatuses.push(r.state)
     })
     if (errorStatuses.length > 0 && (coding.sourceType !== 'UNIQUE_VALUES' || errorStatuses.length === sourceResponses.length)) {
-      const minStatusIndex = Math.min(...errorStatuses.map(s => responseStatusInOrder.indexOf(s)));
+      const minStatusIndex = Math.min(...errorStatuses.map(s => responseStatesInOrder.indexOf(s)));
       return <Response>{
         id: coding.id,
         value: null,
-        state: responseStatusInOrder[minStatusIndex]
+        state: responseStatesInOrder[minStatusIndex]
       }
     }
     // eslint-disable-next-line default-case
@@ -188,6 +191,31 @@ export class CodingScheme {
           }).reduce((sum, current) => sum + current, 0),
           state: 'VALUE_CHANGED'
         }
+      case 'UNIQUE_VALUES':
+        const valuesToCompare: string[] = [];
+        sourceResponses.filter(r => validStatesForDerivingValue.includes(r.state)).forEach(r => {
+          if (coding.sourceParameters && coding.sourceParameters.processing && coding.sourceParameters.processing.includes('TO_NUMBER')) {
+            if (Array.isArray(r.value)) {
+              valuesToCompare.push(r.value.map(v => (CodingFactory.getValueAsNumber(v) || 0).toString(10)).join('##'));
+            } else {
+              valuesToCompare.push((CodingFactory.getValueAsNumber(r.value) || 0).toString(10));
+            }
+          } else {
+            let newValue;
+            if (Array.isArray(r.value)) {
+              newValue = r.value.map(v => (CodingFactory.getValueAsString(v, coding.sourceParameters?.processing) || '')).join('##')
+            } else {
+              newValue = CodingFactory.getValueAsString(r.value, coding.sourceParameters?.processing) || ''
+            }
+            valuesToCompare.push(newValue);
+          }
+        });
+        const duplicates = valuesToCompare.filter((value, index, array) => array.indexOf(value) < index);
+        return <Response>{
+          id: coding.id,
+          value: duplicates.length === 0,
+          state: 'VALUE_CHANGED'
+        }
     }
     throw new Error('deriving failed');
   }
@@ -201,7 +229,7 @@ export class CodingScheme {
     newResponses.filter(r => r.state === 'DISPLAYED').forEach(r => {
       const myCoding = this.variableCodings.find(c => c.id === r.id);
       if (myCoding && myCoding.sourceType === 'BASE' && myCoding.sourceParameters.processing &&
-          myCoding.sourceParameters.processing.indexOf('TAKE_DISPLAYED_AS_VALUE_CHANGED') >= 0) {
+          myCoding.sourceParameters.processing.includes('TAKE_DISPLAYED_AS_VALUE_CHANGED')) {
         r.state = 'VALUE_CHANGED';
       }
     });
@@ -209,8 +237,8 @@ export class CodingScheme {
     // set invalid if value is empty
     newResponses.filter(r => r.state === 'VALUE_CHANGED' && r.value === '').forEach(r => {
       const myCoding = this.variableCodings.find(c => c.id === r.id);
-      if (myCoding && myCoding.sourceType === 'BASE' && (!myCoding.sourceParameters.processing ||
-          myCoding.sourceParameters.processing.indexOf('TAKE_EMPTY_AS_VALID') < 0)) {
+      if (myCoding && myCoding.sourceType === 'BASE' && !(myCoding.sourceParameters.processing &&
+          myCoding.sourceParameters.processing.includes('TAKE_EMPTY_AS_VALID'))) {
         r.state = 'INVALID';
       }
     });
@@ -250,11 +278,11 @@ export class CodingScheme {
         const targetResponse = newResponses.find(r => r.id === varNode.id);
         const varCoding = this.variableCodings.find(vc => vc.id === varNode.id);
         if (targetResponse && varCoding) {
-          if (varNode.sources.length > 0 && ['UNSET', 'CODING_ERROR', 'CODING_INCOMPLETE'].indexOf(targetResponse.state) >= 0) {
+          if (varNode.sources.length > 0 && validStatesToStartDeriving.includes(targetResponse.state)) {
             // derive
             try {
               const derivedResponse = CodingScheme.deriveValue(
-                  varCoding, newResponses.filter(r => varNode.sources.indexOf(r.id) >= 0));
+                  varCoding, newResponses.filter(r => varNode.sources.includes(r.id)));
               targetResponse.state = derivedResponse.state;
               if (derivedResponse.state === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
             } catch {

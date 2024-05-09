@@ -61,10 +61,8 @@ export abstract class CodingFactory {
   ): TransformedResponseValueType {
     // raises exceptions if transformation fails
     const fragmentRegEx = fragmenting ? new RegExp(fragmenting) : undefined;
-    const removeAllWhiteSpaces = processing && processing.length > 0 &&
-        (processing.indexOf('REMOVE_ALL_SPACES') || processing.indexOf('IGNORE_ALL_SPACES'))>= 0;
-    const removeDispensableWhiteSpaces = processing && processing.length > 0 &&
-        (processing.indexOf('REMOVE_DISPENSABLE_SPACES') || processing.indexOf('IGNORE_DISPENSABLE_SPACES'))>= 0;
+    const removeAllWhiteSpaces = processing.includes('REMOVE_ALL_SPACES') || processing.includes('IGNORE_ALL_SPACES');
+    const removeDispensableWhiteSpaces = processing.includes('REMOVE_DISPENSABLE_SPACES') || processing.includes('IGNORE_DISPENSABLE_SPACES');
     if (Array.isArray(value)) {
       return value.map(v => {
         if (v && typeof v === 'string') return this.transformString(v, removeAllWhiteSpaces, removeDispensableWhiteSpaces, fragmentRegEx);
@@ -97,14 +95,34 @@ export abstract class CodingFactory {
     return trueCases.length > 0;
   }
 
-  static getValueAsNumber(value: ResponseValueType): number | null {
+  static getValueAsNumber(value: ResponseValueSingleType): number | null {
     if (typeof value === 'number') return value;
     if (typeof value === 'boolean') return (value as boolean) ? 1 : 0;
     if (typeof value === 'string') {
-      const normalizedString = (value as string).replace(',', '.').trim();
+      let normalizedString = (value as string).replace('.', '');
+      normalizedString = normalizedString.replace(/\s/g, '');
+      normalizedString = normalizedString.replace(',', '.');
       const valueAsString = Number.parseFloat(normalizedString);
       if (Number.isNaN(valueAsString)) return null;
       return valueAsString;
+    }
+    return null;
+  }
+
+  static getValueAsString(
+      value: ResponseValueSingleType,
+      processing: (ProcessingParameterType | SourceProcessingType)[] = []): string | null {
+    if (typeof value === 'number') return value.toString(10);
+    if (typeof value === 'boolean') return (value as boolean) ? 'true' : 'false';
+    if (typeof value === 'string') {
+      let newString = value as string;
+      if (processing.includes('REMOVE_ALL_SPACES') || processing.includes('IGNORE_ALL_SPACES')) {
+        newString = newString.replace(/\s/g, '');
+      } else if (processing.includes('REMOVE_DISPENSABLE_SPACES') || processing.includes('IGNORE_DISPENSABLE_SPACES')) {
+        newString = newString.trim().replace(/\s+/g, ' ');
+      }
+      if (processing.includes('TO_LOWER_CASE')) newString = newString.toLowerCase();
+      return newString;
     }
     return null;
   }
@@ -295,8 +313,13 @@ export abstract class CodingFactory {
         if (ruleSet.valueArrayPos >= 0 &&
             valueToCheck.length < ruleSet.valueArrayPos) valueMemberToCheck = valueToCheck[ruleSet.valueArrayPos];
       } else if (ruleSet.valueArrayPos === 'SUM') {
-        valueMemberToCheck = valueToCheck.map(v => this.getValueAsNumber(v) || 0)
-          .reduce((pv, cv) => pv + cv, 0);
+        valueMemberToCheck = valueToCheck.map(v => {
+          if (Array.isArray(v)) {
+            return v.map(s => this.getValueAsNumber(s) || 0).reduce((a, b) => a + b, 0)
+          } else {
+            return this.getValueAsNumber(v) || 0
+          }
+        }).reduce((pv, cv) => pv + cv, 0);
       }
     }
     let oneMatch = false;
