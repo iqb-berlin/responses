@@ -16,15 +16,11 @@
   {
     "id": "b3",
     "state": "CODING_INCOMPLETE",
-    "value": "1",
-    "code": 0,
-    "score": 0
+    "value": "1"
   },
   {
     "id": "d1",
     "value": 3,
-    "state": "CODING_INCOMPLETE",
-    "code": 0,
-    "score": 0
+    "state": "CODING_INCOMPLETE"
   }
 ]

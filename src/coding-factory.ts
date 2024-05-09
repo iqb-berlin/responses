@@ -193,7 +193,7 @@ export abstract class CodingFactory {
         if (valueToCheck === '') returnValue = true;
         break;
       case 'MATCH':
-        if (valueToCheck) {
+        if (valueToCheck !== null) {
           if (typeof valueToCheck === 'number') {
             // eslint-disable-next-line no-param-reassign
             valueToCheck = valueToCheck.toString(10);
@@ -414,8 +414,6 @@ export abstract class CodingFactory {
               newResponse.state = 'CODING_COMPLETE';
             }
           } else {
-            newResponse.code = 0;
-            newResponse.score = 0;
             newResponse.state = 'CODING_INCOMPLETE';
           }
           changed = true;
