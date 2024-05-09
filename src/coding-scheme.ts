@@ -12,7 +12,7 @@ import {
   responseStatesInOrder,
   validStatesForDerivingValue,
   validStatesForDerivingCode,
-  validStatesToStartDeriving, deriveMethodsFromValue
+  validStatesToStartDeriving, deriveMethodsFromValue, statesToReplaceByDeriveError
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';
@@ -146,10 +146,12 @@ export class CodingScheme {
     })
     if (errorStatuses.length > 0 && (coding.sourceType !== 'UNIQUE_VALUES' || errorStatuses.length === sourceResponses.length)) {
       const minStatusIndex = Math.min(...errorStatuses.map(s => responseStatesInOrder.indexOf(s)));
+      let newState = responseStatesInOrder[minStatusIndex];
+      if (statesToReplaceByDeriveError.includes(newState)) newState = 'DERIVE_ERROR';
       return <Response>{
         id: coding.id,
         value: null,
-        state: responseStatesInOrder[minStatusIndex]
+        state: newState
       }
     }
     // eslint-disable-next-line default-case

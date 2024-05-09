@@ -1,11 +1,12 @@
 export type ResponseStatusType = 'UNSET' | 'NOT_REACHED' | 'DISPLAYED' | 'VALUE_CHANGED' |
     'DERIVE_ERROR' | 'CODING_COMPLETE' | 'NO_CODING' | 'INVALID' | 'CODING_INCOMPLETE' | 'CODING_ERROR';
-export const responseStatesInOrder = ['UNSET', 'NOT_REACHED', 'DISPLAYED', 'VALUE_CHANGED',
-    'DERIVE_ERROR', 'CODING_COMPLETE', 'NO_CODING', 'INVALID', 'CODING_INCOMPLETE', 'CODING_ERROR'];
+export const responseStatesInOrder = ['UNSET', 'NOT_REACHED', 'DISPLAYED', 'VALUE_CHANGED', 'INVALID',
+  'DERIVE_ERROR', 'CODING_COMPLETE', 'NO_CODING', 'CODING_INCOMPLETE', 'CODING_ERROR'];
 export const validStatesForDerivingValue = ['VALUE_CHANGED', 'NO_CODING', 'CODING_INCOMPLETE',
   'CODING_ERROR', 'CODING_COMPLETE'];
 export const validStatesForDerivingCode = ['CODING_COMPLETE'];
 export const validStatesToStartDeriving = ['UNSET', 'CODING_ERROR', 'CODING_INCOMPLETE'];
+export const statesToReplaceByDeriveError = ['NO_CODING', 'CODING_INCOMPLETE', 'CODING_ERROR'];
 export const deriveMethodsFromValue = ['SOLVER', 'COPY_VALUE', 'UNIQUE_VALUES'];
 
 export type ResponseValueSingleType = null | string | number | boolean;
