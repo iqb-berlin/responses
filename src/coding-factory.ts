@@ -395,7 +395,7 @@ export abstract class CodingFactory {
                     newResponse.state = 'INVALID';
                   } else {
                     newResponse.code = c.id;
-                    newResponse.score = c.score;
+                    newResponse.score = c.score || 0;
                     newResponse.state = 'CODING_COMPLETE';
                   }
                   changed = true;
