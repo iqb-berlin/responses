@@ -16,6 +16,7 @@ import {
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';
+import { evaluate } from 'mathjs';
 
 export interface VariableGraphNode {
   id: string,
@@ -218,6 +219,46 @@ export class CodingScheme {
           value: duplicates.length === 0,
           state: 'VALUE_CHANGED'
         }
+      case 'SOLVER':
+        if (coding.sourceParameters && coding.sourceParameters.processing && coding.sourceParameters.solverExpression) {
+          const varSearchPattern = new RegExp(/\$\{(\s*\w+\s*)}/, 'g');
+          const sourceIds: string[] = [];
+          const replacements = new Map();
+          const regExExecReturn = coding.sourceParameters.solverExpression.matchAll(varSearchPattern);
+          for (const match of regExExecReturn) {
+            if (!sourceIds.includes(match[1].trim())) sourceIds.push(match[1].trim());
+            if (!replacements.has(match[1])) replacements.set(match[1], match[1].trim());
+          }
+          if (sourceIds.length > 0) {
+            const missingDeriveVars = sourceIds.filter(s => !coding.deriveSources.includes(s));
+            if (missingDeriveVars.length === 0) {
+              let newExpression = coding.sourceParameters.solverExpression;
+              replacements.forEach((varId: string, toReplace: string) => {
+                const responseToReplace = sourceResponses.find(r => r.id === varId);
+                if (responseToReplace && !Array.isArray(responseToReplace.value)) {
+                  const valueToReplace = CodingFactory.getValueAsNumber(responseToReplace.value)
+                  if (valueToReplace === null) {
+                    throw new Error('response value not numeric')
+                  } else {
+                    const replacePattern = new RegExp(`\\\$\\\{${toReplace}}`, 'g');
+                    newExpression = newExpression.replace(replacePattern, valueToReplace.toString(10));
+                  }
+                } else {
+                  throw new Error('response missing or value is array in solver')
+                }
+              })
+              let newValue = evaluate(newExpression);
+              if (isNaN(newValue) || newValue === Number.POSITIVE_INFINITY || newValue === Number.NEGATIVE_INFINITY) {
+                newValue = null;
+              }
+              return <Response>{
+                id: coding.id,
+                value: newValue,
+                state: newValue === null ? 'DERIVE_ERROR' : 'VALUE_CHANGED'
+              }
+            }
+          }
+        }
     }
     throw new Error('deriving failed');
   }
@@ -287,7 +328,7 @@ export class CodingScheme {
                   varCoding, newResponses.filter(r => varNode.sources.includes(r.id)));
               targetResponse.state = derivedResponse.state;
               if (derivedResponse.state === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
-            } catch {
+            } catch (e) {
               targetResponse.state = 'DERIVE_ERROR';
               targetResponse.value = null;
             }
