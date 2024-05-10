@@ -5,3 +5,14 @@ This package contains of type definitions for processing assessment data. Additi
 
 * [specification of interfaces in Html format](https://iqb-berlin.github.io/responses)
 * [Ausführliche Darstellungen zum Kodieren](https://iqb-berlin.github.io/coding-info)
+* release notes for data structures (German only): [missing](release_notes/missing.md), [coding-scheme](release_notes/coding-scheme.md), [response](release_notes/response.md), [state-map](release_notes/state-map.md)
+
+## Versionsänderungen npm-package `@iqb/responses`
+
+### 2.0
+
+* Umsetzung der Änderungen Datenstruktur coding-scheme v2.0: 
+  * Neue Ableitungsmethoden `UNIQUE_VALUES`, `SOLVER`
+  * neue Parameter 'sourceParameters' mit den Eigenschaften 'solverExpression' und 'processing' (mögliche Werte `TO_LOWER_CASE`, `TO_NUMBER`, `REMOVE_ALL_SPACES`, `REMOVE_DISPENSABLE_SPACES`, `TAKE_DISPLAYED_AS_VALUE_CHANGED`, `SORT`, `TAKE_EMPTY_AS_VALID`)
+  * processing `REMOVE_WHITE_SPACES` entfernt; stattdessen `IGNORE_ALL_SPACES`, `IGNORE_DISPENSABLE_SPACES`, `SORT_ARRAY`
+* Umbau der Tests auf Jest (für coding-scheme und die Validierung der JSON-Schema)
