@@ -57,15 +57,29 @@ export abstract class CodingFactory {
 
   private static transformValue(
     value: ResponseValueType,
-    fragmenting?: string
+    fragmenting: string,
+    sortArray : boolean
   ): TransformedResponseValueType {
     // raises exceptions if transformation fails
     const fragmentRegEx = fragmenting ? new RegExp(fragmenting) : undefined;
     if (Array.isArray(value)) {
-      return value.map(v => {
-        if (v && typeof v === 'string') return this.transformString(v, [], fragmentRegEx);
-        return v;
-      }) as TransformedResponseValueType;
+      if (sortArray) {
+        return value.sort((a, b) => {
+          const aAsString = this.getValueAsString(a) || '';
+          const bAsString = this.getValueAsString(b) || '';
+          if (aAsString < bAsString) return -1;
+          if (aAsString > bAsString) return 1;
+          return 0
+        }).map(v => {
+          if (v && typeof v === 'string') return this.transformString(v, [], fragmentRegEx);
+          return v;
+        }) as TransformedResponseValueType;
+      } else {
+        return value.map(v => {
+          if (v && typeof v === 'string') return this.transformString(v, [], fragmentRegEx);
+          return v;
+        }) as TransformedResponseValueType;
+      }
     }
     if (value && typeof value === 'string') return this.transformString(value, [], fragmentRegEx);
     return value;
@@ -333,8 +347,9 @@ export abstract class CodingFactory {
     let valueMemberToCheck;
     if (ruleSet.valueArrayPos && isValueArray && Array.isArray(valueToCheck)) {
       if (typeof ruleSet.valueArrayPos === 'number') {
-        if (ruleSet.valueArrayPos >= 0 &&
-            valueToCheck.length < ruleSet.valueArrayPos) valueMemberToCheck = valueToCheck[ruleSet.valueArrayPos];
+        if (ruleSet.valueArrayPos >= 0 && ruleSet.valueArrayPos < valueToCheck.length) {
+          valueMemberToCheck = valueToCheck[ruleSet.valueArrayPos];
+        }
       } else if (ruleSet.valueArrayPos === 'SUM') {
         valueMemberToCheck = valueToCheck.map(v => {
           if (Array.isArray(v)) {
@@ -368,10 +383,12 @@ export abstract class CodingFactory {
   static code(response: Response, coding: VariableCodingData): Response {
     const stringifiedResponse = JSON.stringify(response);
     const newResponse: Response = JSON.parse(stringifiedResponse);
-    if (coding && coding.codes.length > 0 && !Array.isArray(newResponse.value)) {
+    if (coding && coding.codes.length > 0) {
       let valueToCheck: TransformedResponseValueType;
       try {
-        valueToCheck = this.transformValue(newResponse.value, coding.fragmenting);
+        valueToCheck = this.transformValue(
+            newResponse.value, coding.fragmenting || '', coding.processing && coding.processing.includes('SORT_ARRAY')
+        );
       } catch (e) {
         newResponse.state = 'CODING_ERROR';
         valueToCheck = null;
