@@ -305,14 +305,13 @@ export class CodingScheme {
           level: 0,
           sources: []
         });
-      } else {
-        const existingResponse = newResponses.find(r => r.id === c.id);
-        if (!existingResponse) newResponses.push({
-          id: c.id,
-          value: null,
-          state: globalDeriveError ? 'DERIVE_ERROR' : 'UNSET'
-        })
       }
+      const existingResponse = newResponses.find(r => r.id === c.id);
+      if (!existingResponse) newResponses.push({
+        id: c.id,
+        value: null,
+        state: globalDeriveError && c.sourceType !== 'BASE' ? 'DERIVE_ERROR' : 'UNSET'
+      })
     })
 
     const maxVarLevel = Math.max(...varDependencies.map(n => n.level))
