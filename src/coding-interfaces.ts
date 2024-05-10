@@ -24,7 +24,7 @@ export interface Response {
 
 // eslint-disable-next-line max-len
 export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THAN' |
-'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE' | 'IS_UNIQUE_IN_ARRAY';
+'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
 export const RuleMethodParameterCount = {
   MATCH: -1,
   MATCH_REGEX: -1,
@@ -34,7 +34,6 @@ export const RuleMethodParameterCount = {
   NUMERIC_MORE_THAN: 1,
   NUMERIC_MAX: 1,
   NUMERIC_MIN: 1,
-  IS_UNIQUE_IN_ARRAY: 0,
   IS_EMPTY: 0,
   ELSE: 0,
   IS_NULL: 0,

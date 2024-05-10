@@ -1,19 +1,23 @@
 [
   {
     "id": "b1",
-    "state": "CODING_ERROR",
-    "value": null
+    "state": "CODING_COMPLETE",
+    "value": true,
+    "code": 1,
+    "score": 1
   },
   {
     "id": "b2",
     "state": "CODING_COMPLETE",
-    "value": null,
-    "code": 1,
-    "score": 100
+    "value": "true",
+    "code": 2,
+    "score": 5
   },
   {
     "id": "b3",
-    "state": "CODING_ERROR",
-    "value": null
+    "state": "CODING_COMPLETE",
+    "value": 1,
+    "code": 2,
+    "score": 2
   }
 ]

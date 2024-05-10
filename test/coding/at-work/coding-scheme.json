@@ -3,15 +3,18 @@
     {
       "id": "b1",
       "sourceType": "BASE",
+      "processing": ["SORT_ARRAY"],
       "codes": [
         {
           "id": 1,
           "score": 1,
           "ruleSets": [
             {
+              "valueArrayPos": 1,
               "rules": [
                 {
-                  "method": "IS_TRUE"
+                  "method": "MATCH",
+                  "parameters": ["2"]
                 }
               ]
             }
@@ -22,9 +25,11 @@
           "score": 2,
           "ruleSets": [
             {
+              "valueArrayPos": 1,
               "rules": [
                 {
-                  "method": "IS_FALSE"
+                  "method": "MATCH",
+                  "parameters": ["3"]
                 }
               ]
             }

@@ -2,7 +2,7 @@
   {
     "id": "b1",
     "state": "VALUE_CHANGED",
-    "value": true
+    "value": ["3", "9", "1", "2"]
   },
   {
     "id": "b2",

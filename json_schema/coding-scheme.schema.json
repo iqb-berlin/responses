@@ -167,7 +167,6 @@
                             "NUMERIC_MORE_THAN",
                             "NUMERIC_MAX",
                             "NUMERIC_MIN",
-                            "IS_UNIQUE_IN_ARRAY",
                             "IS_EMPTY",
                             "ELSE",
                             "IS_NULL",

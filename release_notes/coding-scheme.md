@@ -8,7 +8,7 @@
 * Für Ableitungsmethode `CONCAT_CODE` eine Sortierungsoption `SORT` eingeführt
 * processing `REMOVE_WHITE_SPACES` entfernt; stattdessen `IGNORE_ALL_SPACES`, `IGNORE_DISPENSABLE_SPACES`, `SORT_ARRAY`
 * codeModelParameters entfernt
-* Regel `NO_OTHER_MATCHES` ersetzt durch `IS_UNIQUE_IN_ARRAY`
+* Regel `NO_OTHER_MATCHES` entfernt (vorerst keine Unterstützung)
 
 ### 1.0
 

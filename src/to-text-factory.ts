@@ -29,7 +29,6 @@ const CODE_RULE_TEXT = {
   NUMERIC_MATCH: 'Übereinstimmung (numerisch) mit',
   NUMERIC_RANGE: '..Kombi..',
   NUMERIC_LESS_THAN: 'Wert geringer als',
-  IS_UNIQUE_IN_ARRAY: 'Keine anderen Übereinstimmungen im Array',
   NUMERIC_MORE_THAN: 'Wert größer als',
   NUMERIC_MAX: 'Wert ist maximal als',
   NUMERIC_MIN: 'Wert ist mindestens',
@@ -170,7 +169,6 @@ export abstract class ToTextFactory {
               }
               break;
             case 'IS_EMPTY':
-            case 'IS_UNIQUE_IN_ARRAY':
             case 'IS_NULL':
             case 'IS_TRUE':
             case 'IS_FALSE':
