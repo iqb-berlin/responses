@@ -42,6 +42,11 @@
       "id": "b2",
       "score": 1,
       "sourceType": "BASE",
+      "sourceParameters": {
+        "processing": [
+          "TAKE_EMPTY_AS_VALID"
+        ]
+      },
       "codes": [
         {
           "id": 1,
@@ -50,7 +55,7 @@
             {
               "rules": [
                 {
-                  "method": "IS_NULL"
+                  "method": "IS_EMPTY"
                 }
               ]
             }

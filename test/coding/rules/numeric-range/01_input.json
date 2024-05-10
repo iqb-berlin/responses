@@ -2,16 +2,16 @@
   {
     "id": "b1",
     "state": "VALUE_CHANGED",
-    "value": null
+    "value": "111"
   },
   {
     "id": "b2",
     "state": "VALUE_CHANGED",
-    "value": null
+    "value": 555
   },
   {
     "id": "b3",
     "state": "VALUE_CHANGED",
-    "value": null
+    "value": 60
   }
 ]

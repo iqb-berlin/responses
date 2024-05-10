@@ -50,7 +50,10 @@
             {
               "rules": [
                 {
-                  "method": "IS_NULL"
+                  "method": "NUMERIC_LESS_THAN",
+                  "parameters": [
+                    "333"
+                  ]
                 }
               ]
             }
@@ -63,9 +66,9 @@
             {
               "rules": [
                 {
-                  "method": "NUMERIC_LESS_THAN",
+                  "method": "NUMERIC_MORE_THAN",
                   "parameters": [
-                    "333"
+                    "444"
                   ]
                 }
               ]

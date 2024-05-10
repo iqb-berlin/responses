@@ -210,7 +210,7 @@ export abstract class CodingFactory {
         if (valueToCheck === '') returnValue = true;
         break;
       case 'MATCH':
-        if (valueToCheck !== null) {
+        if (valueToCheck !== null && valueToCheck !== '') {
           if (typeof valueToCheck === 'number') {
             // eslint-disable-next-line no-param-reassign
             valueToCheck = valueToCheck.toString(10);
@@ -222,7 +222,7 @@ export abstract class CodingFactory {
         }
         break;
       case 'MATCH_REGEX':
-        if (valueToCheck) {
+        if (valueToCheck !== null && valueToCheck !== '') {
           if (typeof valueToCheck === 'number') {
             // eslint-disable-next-line no-param-reassign
             valueToCheck = valueToCheck.toString(10);
@@ -234,43 +234,53 @@ export abstract class CodingFactory {
         }
         break;
       case 'NUMERIC_MATCH':
-        returnValue = this.findNumericValue(valueToCheck, rule.parameters);
+        if (valueToCheck !== null && valueToCheck !== '') returnValue = this.findNumericValue(valueToCheck, rule.parameters);
         break;
       case 'NUMERIC_LESS_THAN':
-        valueAsNumber = this.getValueAsNumber(valueToCheck);
-        if (typeof valueAsNumber === 'number' && rule.parameters) {
-          const compareValue = Number.parseFloat(rule.parameters[0]);
-          returnValue = !Number.isNaN(compareValue) && valueAsNumber < compareValue;
+        if (valueToCheck !== null && valueToCheck !== '') {
+          valueAsNumber = this.getValueAsNumber(valueToCheck);
+          if (typeof valueAsNumber === 'number' && rule.parameters) {
+            const compareValue = Number.parseFloat(rule.parameters[0]);
+            returnValue = !Number.isNaN(compareValue) && valueAsNumber < compareValue;
+          }
         }
         break;
       case 'NUMERIC_MAX':
-        valueAsNumber = this.getValueAsNumber(valueToCheck);
-        if (typeof valueAsNumber === 'number' && rule.parameters) {
-          const compareValue = Number.parseFloat(rule.parameters[0]);
-          returnValue = !Number.isNaN(compareValue) && valueAsNumber <= compareValue;
+        if (valueToCheck !== null && valueToCheck !== '') {
+          valueAsNumber = this.getValueAsNumber(valueToCheck);
+          if (typeof valueAsNumber === 'number' && rule.parameters) {
+            const compareValue = Number.parseFloat(rule.parameters[0]);
+            returnValue = !Number.isNaN(compareValue) && valueAsNumber <= compareValue;
+          }
         }
         break;
       case 'NUMERIC_MORE_THAN':
-        valueAsNumber = this.getValueAsNumber(valueToCheck);
-        if (typeof valueAsNumber === 'number' && rule.parameters) {
-          const compareValue = Number.parseFloat(rule.parameters[0]);
-          returnValue = !Number.isNaN(compareValue) && valueAsNumber > compareValue;
+        if (valueToCheck !== null && valueToCheck !== '') {
+          valueAsNumber = this.getValueAsNumber(valueToCheck);
+          if (typeof valueAsNumber === 'number' && rule.parameters) {
+            const compareValue = Number.parseFloat(rule.parameters[0]);
+            returnValue = !Number.isNaN(compareValue) && valueAsNumber > compareValue;
+          }
         }
         break;
       case 'NUMERIC_MIN':
-        valueAsNumber = this.getValueAsNumber(valueToCheck);
-        if (typeof valueAsNumber === 'number' && rule.parameters) {
-          const compareValue = Number.parseFloat(rule.parameters[0]);
-          returnValue = !Number.isNaN(compareValue) && valueAsNumber >= compareValue;
+        if (valueToCheck !== null && valueToCheck !== '') {
+          valueAsNumber = this.getValueAsNumber(valueToCheck);
+          if (typeof valueAsNumber === 'number' && rule.parameters) {
+            const compareValue = Number.parseFloat(rule.parameters[0]);
+            returnValue = !Number.isNaN(compareValue) && valueAsNumber >= compareValue;
+          }
         }
         break;
       case 'NUMERIC_RANGE':
-        valueAsNumber = this.getValueAsNumber(valueToCheck);
-        if (typeof valueAsNumber === 'number' && rule.parameters) {
-          const compareValueLL = Number.parseFloat(rule.parameters[0]);
-          const compareValueUL = Number.parseFloat(rule.parameters[1]);
-          returnValue = !Number.isNaN(compareValueUL) && Number.isNaN(compareValueLL) &&
-              valueAsNumber > compareValueLL && valueAsNumber <= compareValueUL;
+        if (valueToCheck !== null && valueToCheck !== '') {
+          valueAsNumber = this.getValueAsNumber(valueToCheck);
+          if (typeof valueAsNumber === 'number' && rule.parameters) {
+            const compareValueLL = this.getValueAsNumber(rule.parameters[0]);
+            const compareValueUL = this.getValueAsNumber(rule.parameters[1]);
+            if (typeof compareValueLL === 'number' && typeof compareValueUL === 'number')
+              returnValue = valueAsNumber > compareValueLL && valueAsNumber <= compareValueUL;
+          }
         }
         break;
       case 'IS_TRUE':
@@ -388,6 +398,7 @@ export abstract class CodingFactory {
                 return !CodingFactory.isValidRule(valueToCheck, r, Array.isArray(newResponse.value));
               }));
               if (invalidRule) {
+                console.log('########')
                 newResponse.state = 'CODING_ERROR';
                 changed = true;
               } else {
