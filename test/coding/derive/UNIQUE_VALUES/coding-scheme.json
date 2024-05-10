@@ -171,6 +171,63 @@
           ]
         }
       ]
+    },
+    {
+      "id": "d4",
+      "sourceType": "UNIQUE_VALUES",
+      "deriveSources": [
+        "b1",
+        "b2",
+        "b3"
+      ],
+      "sourceParameters": {
+        "processing": [
+          "REMOVE_ALL_SPACES"
+        ]
+      }
+    },
+    {
+      "id": "d5",
+      "sourceType": "UNIQUE_VALUES",
+      "deriveSources": [
+        "b1",
+        "b2",
+        "b3"
+      ],
+      "sourceParameters": {
+        "processing": [
+          "REMOVE_DISPENSABLE_SPACES"
+        ]
+      }
+    },
+    {
+      "id": "d6",
+      "sourceType": "UNIQUE_VALUES",
+      "deriveSources": [
+        "b1",
+        "b2",
+        "b3"
+      ],
+      "sourceParameters": {
+        "processing": [
+          "TO_NUMBER"
+        ]
+      }
+    },
+    {
+      "id": "d7",
+      "sourceType": "UNIQUE_VALUES",
+      "deriveSources": [
+        "b1",
+        "b2",
+        "b3"
+      ],
+      "sourceParameters": {
+        "processing": [
+          "TO_LOWER_CASE", "REMOVE_DISPENSABLE_SPACES"
+        ]
+      }
     }
   ]
 }
+

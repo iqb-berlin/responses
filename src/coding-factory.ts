@@ -1,7 +1,6 @@
 import {
   ResponseValueType,
   VariableCodingData,
-  VariableInfo,
   Response,
   ProcessingParameterType,
   CodingRule,
@@ -12,9 +11,9 @@ import {
 } from './coding-interfaces';
 
 export abstract class CodingFactory {
-  static createCodingVariableFromVarInfo(varInfo: VariableInfo): VariableCodingData {
+  static createCodingVariable(varId: string): VariableCodingData {
     return <VariableCodingData>{
-      id: varInfo.id,
+      id: varId,
       label: '',
       sourceType: 'BASE',
       sourceParameters: {
@@ -23,11 +22,10 @@ export abstract class CodingFactory {
       },
       deriveSources: [],
       processing: [],
+      fragmenting: '',
       manualInstruction: '',
       codeModel: 'NONE',
-      codeModelParameters: [],
-      codes: [],
-      page: ''
+      codes: []
     };
   }
 

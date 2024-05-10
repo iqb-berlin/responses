@@ -16,3 +16,4 @@ This package contains of type definitions for processing assessment data. Additi
   * neue Parameter 'sourceParameters' mit den Eigenschaften 'solverExpression' und 'processing' (mögliche Werte `TO_LOWER_CASE`, `TO_NUMBER`, `REMOVE_ALL_SPACES`, `REMOVE_DISPENSABLE_SPACES`, `TAKE_DISPLAYED_AS_VALUE_CHANGED`, `SORT`, `TAKE_EMPTY_AS_VALID`)
   * processing `REMOVE_WHITE_SPACES` entfernt; stattdessen `IGNORE_ALL_SPACES`, `IGNORE_DISPENSABLE_SPACES`, `SORT_ARRAY`
 * Umbau der Tests auf Jest (für coding-scheme und die Validierung der JSON-Schema)
+* Ersetzen `createCodingVariableFromVarInfo` mit `createCodingVariable` in `CodingFactory`

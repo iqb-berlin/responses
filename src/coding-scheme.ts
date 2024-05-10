@@ -50,9 +50,7 @@ export class CodingScheme {
         fragmenting: c.fragmenting || '',
         manualInstruction: c.manualInstruction || '',
         codeModel: c.codeModel || 'NONE',
-        codeModelParameters: c.codeModelParameters || [],
-        codes: [],
-        page: c.page || ''
+        codes: []
       };
       if (c.sourceType === 'DERIVE_CONCAT') {
         if (c.deriveSourceType === 'VALUE') {

@@ -87,9 +87,7 @@ export interface VariableCodingData {
   fragmenting?: string,
   manualInstruction: string,
   codeModel?: CodeModelType,
-  codeModelParameters?: string[],
-  codes: CodeData[],
-  page: string
+  codes: CodeData[]
 }
 
 export interface CodingSchemeProblem {
