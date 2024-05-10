@@ -165,13 +165,16 @@ export class CodingScheme {
           state: 'VALUE_CHANGED'
         }
       case 'CONCAT_CODE':
+        let codes = coding.deriveSources.map(s => {
+          const myResponse = sourceResponses.find(r => r.id === s);
+          return myResponse && myResponse.code ? myResponse.code.toString(10) : '?';
+        });
+        if (coding.sourceParameters && coding.sourceParameters.processing && coding.sourceParameters.processing.includes('SORT')) {
+          codes = codes.sort();
+        }
         return <Response>{
           id: coding.id,
-          value: coding.deriveSources.map(s => {
-            const myResponse = sourceResponses.find(r => r.id === s);
-            if (myResponse) return myResponse.code || 'X';
-            throw new Error('response not found in derive');
-          }).join(DeriveConcatDelimiter),
+          value: codes.join(DeriveConcatDelimiter),
           state: 'VALUE_CHANGED'
         }
       case 'SUM_CODE':

@@ -36,5 +36,10 @@
     "state": "CODING_COMPLETE",
     "code": 1,
     "score": 7
+  },
+  {
+    "id": "d4",
+    "value": "1_1_2",
+    "state": "NO_CODING"
   }
 ]

@@ -171,6 +171,20 @@
           ]
         }
       ]
+    },
+    {
+      "id": "d4",
+      "sourceType": "CONCAT_CODE",
+      "deriveSources": [
+        "b1",
+        "b2",
+        "b3"
+      ],
+      "sourceParameters": {
+        "processing": [
+          "SORT"
+        ]
+      }
     }
   ]
 }
