@@ -3,16 +3,16 @@
     {
       "id": "b1",
       "sourceType": "BASE",
-      "processing": ["SORT_ARRAY"],
+      "fragmenting": "(\\d+)\\s*(\\w+)",
       "codes": [
         {
           "id": 1,
           "score": 1,
           "ruleSets": [
             {
-              "valueArrayPos": 1,
               "rules": [
                 {
+                  "fragment":  0,
                   "method": "MATCH",
                   "parameters": ["2"]
                 }
@@ -25,9 +25,9 @@
           "score": 2,
           "ruleSets": [
             {
-              "valueArrayPos": 1,
               "rules": [
                 {
+                  "fragment":  0,
                   "method": "MATCH",
                   "parameters": ["3"]
                 }
@@ -41,18 +41,19 @@
       "id": "b2",
       "score": 1,
       "sourceType": "BASE",
+      "fragmenting": "(\\d+)\\s*(\\w+)",
       "codes": [
         {
           "id": 1,
           "score": 1,
           "ruleSets": [
             {
-              "valueArrayPos": 1,
               "rules": [
                 {
+                  "fragment": 1,
                   "method": "MATCH",
                   "parameters": [
-                    "2"
+                    "kg"
                   ]
                 }
               ]
@@ -64,12 +65,12 @@
           "score": 2,
           "ruleSets": [
             {
-              "valueArrayPos": 1,
               "rules": [
                 {
+                  "fragment": 1,
                   "method": "MATCH",
                   "parameters": [
-                    "3"
+                    "322"
                   ]
                 }
               ]
@@ -82,17 +83,19 @@
       "id": "b3",
       "score": 1,
       "sourceType": "BASE",
+      "processing": ["IGNORE_CASE"],
+      "fragmenting": "(\\d+)\\s*(\\w+)",
       "codes": [
         {
           "id": 1,
           "score": 7,
           "ruleSets": [
             {
-              "valueArrayPos": "SUM",
               "rules": [
                 {
+                  "fragment": 1,
                   "method": "MATCH",
-                  "parameters": ["10"]
+                  "parameters": ["KG"]
                 }
               ]
             }
@@ -103,9 +106,9 @@
           "score": 2,
           "ruleSets": [
             {
-              "valueArrayPos": "SUM",
               "rules": [
                 {
+                  "fragment": 1,
                   "method": "MATCH",
                   "parameters": ["20"]
                 }

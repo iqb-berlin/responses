@@ -34,23 +34,16 @@ export abstract class CodingFactory {
     processing: (ProcessingParameterType | SourceProcessingType)[],
     fragmentExp?: RegExp
   ): string | string[] {
-    const removeAllWhiteSpaces = processing.includes('REMOVE_ALL_SPACES') || processing.includes('IGNORE_ALL_SPACES');
-    const removeDispensableWhiteSpaces = processing.includes('REMOVE_DISPENSABLE_SPACES') || processing.includes('IGNORE_DISPENSABLE_SPACES');
-    const toLowerCase = processing.includes('IGNORE_CASE') || processing.includes('TO_LOWER_CASE');
-    let newString = removeAllWhiteSpaces ? value.replace(/\s+/g, '') : value;
-    if (removeDispensableWhiteSpaces) newString = newString.trim().replace(/\s+/g, ' ');
-    if (toLowerCase) newString = newString.toLowerCase();
     if (fragmentExp) {
-      const regExExecReturn = fragmentExp.exec(newString);
-      if (regExExecReturn) {
-        const newStringArray: string[] = [];
-        for (let i = 1; i < regExExecReturn.length; i++) {
-          newStringArray.push(regExExecReturn[i]);
-        }
-        return newStringArray;
-      }
-      throw new TypeError('fragmenting failed');
+      const newValueArray= [...value.matchAll(fragmentExp)]
+      return newValueArray[0].filter((v, i) => i > 0);
     } else {
+      const removeAllWhiteSpaces = processing.includes('REMOVE_ALL_SPACES') || processing.includes('IGNORE_ALL_SPACES');
+      const removeDispensableWhiteSpaces = processing.includes('REMOVE_DISPENSABLE_SPACES') || processing.includes('IGNORE_DISPENSABLE_SPACES');
+      const toLowerCase = processing.includes('IGNORE_CASE') || processing.includes('TO_LOWER_CASE');
+      let newString = value && removeAllWhiteSpaces ? value.replace(/\s+/g, '') : value;
+      if (newString && removeDispensableWhiteSpaces) newString = newString.trim().replace(/\s+/g, ' ');
+      if (newString && toLowerCase) newString = newString.toLowerCase();
       return newString;
     }
   }
@@ -61,7 +54,7 @@ export abstract class CodingFactory {
     sortArray : boolean
   ): TransformedResponseValueType {
     // raises exceptions if transformation fails
-    const fragmentRegEx = fragmenting ? new RegExp(fragmenting) : undefined;
+    const fragmentRegEx = fragmenting ? new RegExp(fragmenting, 'g') : undefined;
     if (Array.isArray(value)) {
       if (sortArray) {
         return value.sort((a, b) => {

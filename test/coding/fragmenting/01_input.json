@@ -2,16 +2,16 @@
   {
     "id": "b1",
     "state": "VALUE_CHANGED",
-    "value": ["3", "9", "1", "2"]
+    "value": "2 kg"
   },
   {
     "id": "b2",
     "state": "VALUE_CHANGED",
-    "value": ["3", "2", "10", "22"]
+    "value": "2 kg"
   },
   {
     "id": "b3",
     "state": "VALUE_CHANGED",
-    "value": ["3", "2", "5", ""]
+    "value": "2 kg"
   }
 ]
