@@ -155,7 +155,7 @@ export abstract class CodingFactory {
       return typeof valueAsNumber === 'number';
     }
     if (valueMustBeBoolean) {
-      return valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true' ||
+      return valueToCheck === 0 || valueToCheck === 1 || valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true' ||
           valueToCheck === '0' || valueToCheck === false ||
           valueToCheck === 'false' || valueToCheck === null;
     }
@@ -284,10 +284,10 @@ export abstract class CodingFactory {
         }
         break;
       case 'IS_TRUE':
-        returnValue = valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true';
+        returnValue = valueToCheck === 1 || valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true';
         break;
       case 'IS_FALSE':
-        returnValue = valueToCheck === '0' || valueToCheck === false || valueToCheck === 'false';
+        returnValue = valueToCheck === 0 || valueToCheck === '0' || valueToCheck === false || valueToCheck === 'false';
         break;
     }
     return returnValue;
@@ -398,7 +398,6 @@ export abstract class CodingFactory {
                 return !CodingFactory.isValidRule(valueToCheck, r, Array.isArray(newResponse.value));
               }));
               if (invalidRule) {
-                console.log('########')
                 newResponse.state = 'CODING_ERROR';
                 changed = true;
               } else {
