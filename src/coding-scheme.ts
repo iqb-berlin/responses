@@ -20,8 +20,9 @@ import { evaluate } from 'mathjs';
 
 export interface VariableGraphNode {
   id: string,
-  level: number;
-  sources: string[];
+  level: number,
+  sources: string[],
+  page: string
 }
 
 export class CodingScheme {
@@ -50,6 +51,7 @@ export class CodingScheme {
         fragmenting: c.fragmenting || '',
         manualInstruction: c.manualInstruction || '',
         codeModel: c.codeModel || 'NONE',
+        page: c.page || '0',
         codes: []
       };
       if (c.sourceType === 'DERIVE_CONCAT') {
@@ -102,7 +104,8 @@ export class CodingScheme {
       return {
         id: c.id,
         level: 0,
-        sources: []
+        sources: [],
+        page: c.page || ''
       }
     });
     let found = true;
@@ -112,10 +115,12 @@ export class CodingScheme {
         const existingNode = graph.find(n => n.id === vc.id);
         if (!existingNode) {
           let maxLevel = 0;
+          let newPage: string | null = null;
           vc.deriveSources.forEach(s => {
             const node = graph.find(n => n.id === s);
             if (node) {
               maxLevel = Math.max(maxLevel, node.level);
+              newPage = newPage === null ? node.page : (newPage === node.page ? node.page : '');
             } else {
               maxLevel = Number.MAX_VALUE
             }
@@ -125,7 +130,8 @@ export class CodingScheme {
             graph.push({
               id: vc.id,
               level: maxLevel + 1,
-              sources: [...vc.deriveSources]
+              sources: [...vc.deriveSources],
+              page: newPage || ''
             })
           }
         }
@@ -297,13 +303,14 @@ export class CodingScheme {
       varDependencies = [];
     }
 
-    // set up derived variables
+    // add derived variables when error and missing responses
     this.variableCodings.forEach(c => {
       if (c.sourceType === 'BASE') {
         if (globalDeriveError) varDependencies.push({
           id: c.id,
           level: 0,
-          sources: []
+          sources: [],
+          page: c.page || ''
         });
       }
       const existingResponse = newResponses.find(r => r.id === c.id);

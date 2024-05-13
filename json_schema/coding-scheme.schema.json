@@ -91,6 +91,10 @@
         ],
         "description": "Info for applications to simplify UI"
       },
+      "page": {
+        "type": "string",
+        "description": "If the unit supports paging, this property defines the page to be presented to the coder if manually coded."
+      },
       "codes": {
         "type": "array",
         "items": {

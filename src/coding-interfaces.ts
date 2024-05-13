@@ -89,6 +89,7 @@ export interface VariableCodingData {
   fragmenting?: string,
   manualInstruction: string,
   codeModel?: CodeModelType,
+  page?: string,
   codes: CodeData[]
 }
 
@@ -116,7 +117,7 @@ export interface VariableInfo {
   values: VariableValue[];
   valuePositionLabels: string[];
   valuesComplete?: boolean;
-  page: string;
+  page?: string;
 }
 
 export interface CodeAsText {

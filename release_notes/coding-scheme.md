@@ -1,6 +1,10 @@
 # `coding-scheme`
 ## Versionsänderungen der Datenstruktur
 
+### 2.1
+
+* Neue Funktion `getVariableDependencyTree()`, um Zirkularbezüge festzustellen und die Reihenfolge der Ableitung bzw. Kodierung zu ermitteln. Außerdem werden hier Orte (page) abgeleiteter Variablen gesetzt. 
+
 ### 2.0
 
 * Neue Ableitungsmethoden `UNIQUE_VALUES`, `SOLVER`
@@ -28,3 +32,4 @@
   + manualInstruction
   + ruleSetOperatorAnd
   + ruleSets
+* page
