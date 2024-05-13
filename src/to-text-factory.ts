@@ -1,5 +1,11 @@
 import {
-  CodeAsText, CodeData, DeriveConcatDelimiter, ProcessingParameterType, SourceType, VariableInfo
+  CodeAsText,
+  CodeData,
+  DeriveConcatDelimiter,
+  ProcessingParameterType,
+  SourceType,
+  VariableInfo,
+  VariableSourceParameters
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 
@@ -40,11 +46,19 @@ const CODE_RULE_TEXT = {
 };
 
 export abstract class ToTextFactory {
-  static sourceAsText(variableId: string, sourceType: SourceType, sources: string[]): string {
+  static sourceAsText(variableId: string, sourceType: SourceType, sources: string[], parameters?: VariableSourceParameters): string {
     let returnText;
     switch (sourceType) {
       case 'BASE':
-        returnText = `Basisvariable '${variableId}'`;
+        const parameterTextsBase: string[] = [];
+        if (parameters && parameters.processing && parameters.processing.includes('TAKE_DISPLAYED_AS_VALUE_CHANGED')) {
+          parameterTextsBase.push('stets als geändert gesehen')
+        }
+        if (parameters && parameters.processing && parameters.processing.includes('TAKE_EMPTY_AS_VALID')) {
+          parameterTextsBase.push('leerer Wert ist gültig')
+        }
+        const parameterTextBase = parameterTextsBase.length > 0 ? ` (${parameterTextsBase.join('; ')})` : '';
+        returnText = `Basisvariable '${variableId}'${parameterTextBase}`;
         break;
       case 'COPY_VALUE':
         if (sources && sources.length > 0) {
@@ -54,17 +68,34 @@ export abstract class ToTextFactory {
         }
         break;
       case 'CONCAT_CODE':
+        const parameterTextConcatCodeSolver = parameters && parameters.processing
+          && parameters.processing.includes('SORT') ? ' (sortiert)' : '';
         returnText = `Codes von Variablen '${
-          sources.join(', ')}' aneinandergehängt mit Trennzeichen '${DeriveConcatDelimiter}'`;
+          sources.join(', ')}' aneinandergehängt mit Trennzeichen '${DeriveConcatDelimiter}'${parameterTextConcatCodeSolver}`;
         break;
       case 'SUM_CODE':
         returnText = `Codes von Variablen '${sources.join(', ')}' summiert`;
         break;
       case 'UNIQUE_VALUES':
-        returnText = `Prüft, ob die Werte der Variablen '${sources.join(', ')}' unique/einzigartig sind`;
+        const parameterTextsUniqueValues: string[] = [];
+        if (parameters && parameters.processing && parameters.processing.includes('REMOVE_ALL_SPACES')) {
+          parameterTextsUniqueValues.push('alle Leerzeichen werden entfernt')
+        }
+        if (parameters && parameters.processing && parameters.processing.includes('REMOVE_DISPENSABLE_SPACES')) {
+          parameterTextsUniqueValues.push('alle Leerzeichen vorn und hinten sowie die doppelten werden entfernt')
+        }
+        if (parameters && parameters.processing && parameters.processing.includes('TO_NUMBER')) {
+          parameterTextsUniqueValues.push('Umwandlung vorher in numerischen Wert')
+        }
+        if (parameters && parameters.processing && parameters.processing.includes('TO_LOWER_CASE')) {
+          parameterTextsUniqueValues.push('Umwandlung vorher in Kleinbuchstaben')
+        }
+        const parameterTextUniqueValues = parameterTextsUniqueValues.length > 0 ? ` (${parameterTextsUniqueValues.join('; ')})` : '';
+        returnText = `Prüft, ob die Werte der Variablen '${sources.join(', ')}' unique/einzigartig sind${parameterTextUniqueValues}`;
         break;
       case 'SOLVER':
-        returnText = `Werte von Variablen '${sources.join(', ')}' werden über einen mathematischen Ausdruck verknüpft`;
+        const parameterTextSolver = parameters && parameters.solverExpression ? `"${parameters.solverExpression}"` : 'FEHLT';
+        returnText = `Werte von Variablen '${sources.join(', ')}' werden über einen mathematischen Ausdruck verknüpft (Ausdruck: ${parameterTextSolver})`;
         break;
       case 'SUM_SCORE':
         returnText = `Scores von Variablen '${sources.join(', ')}' summiert`;

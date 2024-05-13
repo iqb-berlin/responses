@@ -471,7 +471,7 @@ export class CodingScheme {
       const newCodingText: CodingAsText = {
         id: c.id,
         label: c.label,
-        source: ToTextFactory.sourceAsText(c.id, c.sourceType, c.deriveSources),
+        source: ToTextFactory.sourceAsText(c.id, c.sourceType, c.deriveSources, c.sourceParameters),
         processing: ToTextFactory.processingAsText(c.processing, c.fragmenting),
         hasManualInstruction: !!c.manualInstruction,
         codes: c.codes.map(code => ToTextFactory.codeAsText(code))

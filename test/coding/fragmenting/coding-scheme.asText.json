@@ -1,0 +1,83 @@
+[
+  {
+    "id": "b1",
+    "label": "",
+    "source": "Basisvariable 'b1'",
+    "processing": "Es wurde ein Ausdruck festgelegt, mit dem Teile der Antwort vor der Kodierung extrahiert werden (Fragmentierung): '(\\d+)\\s*(\\w+)'",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 1,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '2' - F1"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 2,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '3' - F1"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b2",
+    "label": "",
+    "source": "Basisvariable 'b2'",
+    "processing": "Es wurde ein Ausdruck festgelegt, mit dem Teile der Antwort vor der Kodierung extrahiert werden (Fragmentierung): '(\\d+)\\s*(\\w+)'",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 1,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit 'kg' - F2"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 2,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '322' - F2"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b3",
+    "label": "",
+    "source": "Basisvariable 'b3'",
+    "processing": "Groß-/Kleinschreibung wird ignoriert; Es wurde ein Ausdruck festgelegt, mit dem Teile der Antwort vor der Kodierung extrahiert werden (Fragmentierung): '(\\d+)\\s*(\\w+)'",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 7,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit 'KG' - F2"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 2,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '20' - F2"
+        ]
+      }
+    ]
+  }
+]

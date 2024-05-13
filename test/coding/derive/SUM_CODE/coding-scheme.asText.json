@@ -1,0 +1,104 @@
+[
+  {
+    "id": "b1",
+    "label": "",
+    "source": "Basisvariable 'b1'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "scoreLabel": "",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '111'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 0,
+        "scoreLabel": "",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '222'"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b2",
+    "label": "",
+    "source": "Basisvariable 'b2'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "scoreLabel": "",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '333'"
+        ]
+      },
+      {
+        "code": "2",
+        "scoreLabel": "",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '444'"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b3",
+    "label": "",
+    "source": "Basisvariable 'b3'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "scoreLabel": "",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '555'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 1,
+        "scoreLabel": "",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '666'"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "d1",
+    "label": "",
+    "source": "Codes von Variablen 'b1, b2' summiert",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "scoreLabel": "",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '1'"
+        ]
+      },
+      {
+        "code": "2",
+        "scoreLabel": "",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '2'"
+        ]
+      }
+    ]
+  }
+]

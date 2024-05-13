@@ -23,9 +23,9 @@ function testOneFolder(path: string, label: string) {
                 expect(codingSchemeValid).not.toBeNull();
             });
             if (codingSchemeValid !== null) {
+                const codingSchemeObject = new CodingScheme((codingScheme as CodingScheme).variableCodings);
                 const inputFiles = fs.readdirSync(path).filter(fn => fn.endsWith('_input.json'));
                 if (inputFiles.length > 0) {
-                    const codingSchemeObject = new CodingScheme((codingScheme as CodingScheme).variableCodings);
                     inputFiles.forEach(inputFile => {
                         const matches = regexInput.exec(inputFile);
                         const inputId =  matches ? matches[1] : '';
@@ -84,6 +84,19 @@ function testOneFolder(path: string, label: string) {
                             })
                         }
                     })
+                }
+                const codingToText = codingSchemeObject.asText();
+                const codingToTextStringified = JSON.stringify(codingToText);
+                const codingToTextFilename = `${path}/coding-scheme.asText.json`;
+                if (fs.existsSync(codingToTextFilename)) {
+                    const fileContent = fs.readFileSync(codingToTextFilename, 'utf8');
+                    const fileContentAsJson = JSON.parse(fileContent);
+                    test('valid as text', () => {
+                        expect(codingToTextStringified).toBe(JSON.stringify(fileContentAsJson));
+                    });
+                } else {
+                    console.log(codingToTextFilename, '######################################################')
+                    console.log(codingToTextStringified);
                 }
             }
         }
