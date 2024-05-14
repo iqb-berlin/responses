@@ -1,0 +1,158 @@
+[
+  {
+    "id": "b1",
+    "label": "",
+    "source": "Basisvariable 'b1'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 1,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '111'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 2,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '222'"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b2",
+    "label": "",
+    "source": "Basisvariable 'b2'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 100,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '333'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 5,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '444'"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b3",
+    "label": "",
+    "source": "Basisvariable 'b3'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 7,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '555'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 2,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '666'"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "d1",
+    "label": "",
+    "source": "Prüft, ob die Werte der Variablen 'b1, d2' unique/einzigartig sind",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": []
+  },
+  {
+    "id": "d2",
+    "label": "",
+    "source": "Prüft, ob die Werte der Variablen 'b1, b2' unique/einzigartig sind",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": []
+  },
+  {
+    "id": "d3",
+    "label": "",
+    "source": "Prüft, ob die Werte der Variablen 'b1, b2, b3' unique/einzigartig sind",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 7,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit 'true'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 2,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit 'false'"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "d4",
+    "label": "",
+    "source": "Prüft, ob die Werte der Variablen 'b1, b2, b3' unique/einzigartig sind (alle Leerzeichen werden entfernt)",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": []
+  },
+  {
+    "id": "d5",
+    "label": "",
+    "source": "Prüft, ob die Werte der Variablen 'b1, b2, b3' unique/einzigartig sind (alle Leerzeichen vorn und hinten sowie die doppelten werden entfernt)",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": []
+  },
+  {
+    "id": "d6",
+    "label": "",
+    "source": "Prüft, ob die Werte der Variablen 'b1, b2, b3' unique/einzigartig sind (Umwandlung vorher in numerischen Wert)",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": []
+  },
+  {
+    "id": "d7",
+    "label": "",
+    "source": "Prüft, ob die Werte der Variablen 'b1, b2, b3' unique/einzigartig sind (alle Leerzeichen vorn und hinten sowie die doppelten werden entfernt; Umwandlung vorher in Kleinbuchstaben)",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": []
+  }
+]

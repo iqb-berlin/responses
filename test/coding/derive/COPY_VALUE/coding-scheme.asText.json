@@ -1,0 +1,107 @@
+[
+  {
+    "id": "b1",
+    "label": "",
+    "source": "Basisvariable 'b1'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 1,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '111'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 2,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '222'"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b2",
+    "label": "",
+    "source": "Basisvariable 'b2'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 100,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '333'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 5,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '444'"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b3",
+    "label": "",
+    "source": "Basisvariable 'b3'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 7,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '555'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 2,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '666'"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "d1",
+    "label": "",
+    "source": "Kopie von Variable 'd2'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": []
+  },
+  {
+    "id": "d2",
+    "label": "",
+    "source": "Scores von Variablen 'b1, b3' summiert",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": []
+  },
+  {
+    "id": "d3",
+    "label": "",
+    "source": "Kopie von Variable 'b2'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": []
+  }
+]

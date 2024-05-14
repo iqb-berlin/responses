@@ -1,0 +1,17 @@
+[
+  {
+    "id": "b1",
+    "state": "VALUE_CHANGED",
+    "value": "111"
+  },
+  {
+    "id": "b2",
+    "state": "VALUE_CHANGED",
+    "value": "444"
+  },
+  {
+    "id": "b3",
+    "state": "VALUE_CHANGED",
+    "value": "1"
+  }
+]

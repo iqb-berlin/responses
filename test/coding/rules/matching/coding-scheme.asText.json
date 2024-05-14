@@ -1,0 +1,83 @@
+[
+  {
+    "id": "b1",
+    "label": "",
+    "source": "Basisvariable 'b1'",
+    "processing": "Entfernen aller Leerzeichen vor Kodierung",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 1,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '111'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 2,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '22 2 '"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b2",
+    "label": "",
+    "source": "Basisvariable 'b2' (stets als geändert gesehen)",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 100,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (numerisch) mit '333555777'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 5,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '444'"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "b3",
+    "label": "",
+    "source": "Basisvariable 'b3'",
+    "processing": "Groß-/Kleinschreibung wird ignoriert",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "code": "1",
+        "score": 7,
+        "scoreLabel": "RICHTIG",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit 'Counterpart', 'Frickelbude\r\nWackel Schwanz'"
+        ]
+      },
+      {
+        "code": "2",
+        "score": 2,
+        "scoreLabel": "FALSCH",
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (reg. Ausdruck) mit 'KO+B\r', 'FZ*M'"
+        ]
+      }
+    ]
+  }
+]

@@ -1,21 +1,19 @@
 import {
   ResponseValueType,
   VariableCodingData,
-  VariableInfo,
   Response,
   ProcessingParameterType,
-  DeriveConcatDelimiter,
   CodingRule,
   ResponseValueSingleType,
   TransformedResponseValueType,
   RuleSet,
-  SourceProcessingType
+  SourceProcessingType, numericRules, booleanRules
 } from './coding-interfaces';
 
 export abstract class CodingFactory {
-  static createCodingVariableFromVarInfo(varInfo: VariableInfo): VariableCodingData {
+  static createCodingVariable(varId: string): VariableCodingData {
     return <VariableCodingData>{
-      id: varInfo.id,
+      id: varId,
       label: '',
       sourceType: 'BASE',
       sourceParameters: {
@@ -24,93 +22,82 @@ export abstract class CodingFactory {
       },
       deriveSources: [],
       processing: [],
+      fragmenting: '',
       manualInstruction: '',
       codeModel: 'NONE',
-      codeModelParameters: [],
-      codes: [],
-      page: ''
+      codes: []
     };
-  }
-
-  static deriveValue(coding: VariableCodingData, allResponses: Response[]): ResponseValueType {
-    // raises exceptions if deriving fails
-    // ensure before, that sourceType is not 'BASE' and there are enough valid sources
-    // eslint-disable-next-line default-case
-    switch (coding.sourceType) {
-      case 'CONCAT_CODE':
-        return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
-          .map(r => (r.code ? r.code.toString() : ''))
-          .join(DeriveConcatDelimiter);
-      case 'SUM_CODE':
-        return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
-          .map(r => (r.code ? r.code : 0))
-          .reduce((sum, current) => sum + current, 0);
-      case 'SUM_SCORE':
-        return allResponses.filter(r => coding.deriveSources.indexOf(r.id) >= 0)
-          .map(r => (r.score ? r.score : 0))
-          .reduce((sum, current) => sum + current, 0);
-    }
-    throw new TypeError('deriving failed');
   }
 
   private static transformString(
     value: string,
-    removeAllWhiteSpaces: boolean,
-    removeDispensableWhiteSpaces: boolean,
+    processing: (ProcessingParameterType | SourceProcessingType)[],
     fragmentExp?: RegExp
   ): string | string[] {
-    let newString = removeAllWhiteSpaces ? value.replace(/\s+/g, '') : value;
-    if (removeDispensableWhiteSpaces) newString = newString.trim().replace(/\s+/g, ' ');
     if (fragmentExp) {
-      const regExExecReturn = fragmentExp.exec(newString);
-      if (regExExecReturn) {
-        const newStringArray: string[] = [];
-        for (let i = 1; i < regExExecReturn.length; i++) {
-          newStringArray.push(regExExecReturn[i]);
-        }
-        return newStringArray;
-      }
-      throw new TypeError('fragmenting failed');
+      const newValueArray= [...value.matchAll(fragmentExp)]
+      return newValueArray[0].filter((v, i) => i > 0);
     } else {
+      const removeAllWhiteSpaces = processing.includes('REMOVE_ALL_SPACES') || processing.includes('IGNORE_ALL_SPACES');
+      const removeDispensableWhiteSpaces = processing.includes('REMOVE_DISPENSABLE_SPACES') || processing.includes('IGNORE_DISPENSABLE_SPACES');
+      const toLowerCase = processing.includes('IGNORE_CASE') || processing.includes('TO_LOWER_CASE');
+      let newString = value && removeAllWhiteSpaces ? value.replace(/\s+/g, '') : value;
+      if (newString && removeDispensableWhiteSpaces) newString = newString.trim().replace(/\s+/g, ' ');
+      if (newString && toLowerCase) newString = newString.toLowerCase();
       return newString;
     }
   }
 
   private static transformValue(
     value: ResponseValueType,
-    processing: (ProcessingParameterType | SourceProcessingType)[],
-    fragmenting?: string
+    fragmenting: string,
+    sortArray : boolean
   ): TransformedResponseValueType {
     // raises exceptions if transformation fails
-    const fragmentRegEx = fragmenting ? new RegExp(fragmenting) : undefined;
-    const removeAllWhiteSpaces = processing && processing.length > 0 &&
-        (processing.indexOf('REMOVE_ALL_SPACES') || processing.indexOf('IGNORE_ALL_SPACES'))>= 0;
-    const removeDispensableWhiteSpaces = processing && processing.length > 0 &&
-        (processing.indexOf('REMOVE_DISPENSABLE_SPACES') || processing.indexOf('IGNORE_DISPENSABLE_SPACES'))>= 0;
+    const fragmentRegEx = fragmenting ? new RegExp(fragmenting, 'g') : undefined;
     if (Array.isArray(value)) {
-      return value.map(v => {
-        if (v && typeof v === 'string') return this.transformString(v, removeAllWhiteSpaces, removeDispensableWhiteSpaces, fragmentRegEx);
-        return v;
-      }) as TransformedResponseValueType;
+      if (sortArray) {
+        return value.sort((a, b) => {
+          const aAsString = this.getValueAsString(a) || '';
+          const bAsString = this.getValueAsString(b) || '';
+          if (aAsString < bAsString) return -1;
+          if (aAsString > bAsString) return 1;
+          return 0
+        }).map(v => {
+          if (v && typeof v === 'string') return this.transformString(v, [], fragmentRegEx);
+          return v;
+        }) as TransformedResponseValueType;
+      } else {
+        return value.map(v => {
+          if (v && typeof v === 'string') return this.transformString(v, [], fragmentRegEx);
+          return v;
+        }) as TransformedResponseValueType;
+      }
     }
-    if (value && typeof value === 'string') return this.transformString(value, removeAllWhiteSpaces, removeDispensableWhiteSpaces, fragmentRegEx);
+    if (value && typeof value === 'string') return this.transformString(value, [], fragmentRegEx);
     return value;
   }
 
-  private static findString(value: string, ignoreCase: boolean, parameters: string[] = []): boolean {
-    const allStrings: string[] = [];
+  private static findString(value: string, codingProcessing: ProcessingParameterType[], parameters: string[] = []): boolean {
+    let allStrings: string[] = [];
     parameters.forEach(p => {
-      allStrings.push(...p.split('\n'));
+      allStrings.push(...p.split(/\r?\n/));
     });
-    const stringToCompare = ignoreCase ? (value as string).toUpperCase() : (value as string);
-    const inList = allStrings.find(s => stringToCompare === (ignoreCase ? s.toUpperCase() : s));
+    allStrings = allStrings.map(s => {
+      const newValue = this.transformString(s, codingProcessing);
+      if (Array.isArray(newValue)) return newValue[0] || '';
+      return newValue;
+    });
+    let stringToCompare = this.transformString(value, codingProcessing);
+    if (Array.isArray(stringToCompare)) stringToCompare = stringToCompare[0] || '';
+    const inList = allStrings.find(s => stringToCompare === s);
     return !!inList;
   }
 
   private static findStringRegEx(value: string, parameters: string[] = []): boolean {
     const allStrings: string[] = [];
     parameters.forEach(p => {
-      allStrings.push(...p.split('\n'));
+      allStrings.push(...p.split(/\r?\n/));
     });
     const trueCases = allStrings.map((s: string): boolean => {
       const regEx = new RegExp(s);
@@ -119,14 +106,48 @@ export abstract class CodingFactory {
     return trueCases.length > 0;
   }
 
-  static getValueAsNumber(value: ResponseValueType): number | null {
+  private static findNumericValue(value: ResponseValueSingleType, parameters: string[] = []): boolean {
+    const allStrings: string[] = [];
+    parameters.forEach(p => {
+      allStrings.push(...p.split(/\r?\n/));
+    });
+    const allCompareValues = allStrings.map(s => this.getValueAsNumber(s));
+    const valueAsNumber = this.getValueAsNumber(value);
+    if (valueAsNumber !== null) {
+      const firstMatch = allCompareValues.find(v => v === valueAsNumber);
+      return !!firstMatch;
+    }
+    return false;
+  }
+
+  static getValueAsNumber(value: ResponseValueSingleType): number | null {
     if (typeof value === 'number') return value;
     if (typeof value === 'boolean') return (value as boolean) ? 1 : 0;
     if (typeof value === 'string') {
-      const normalizedString = (value as string).replace(',', '.').trim();
+      let normalizedString = (value as string).replace('.', '');
+      normalizedString = normalizedString.replace(/\s/g, '');
+      normalizedString = normalizedString.replace(',', '.');
       const valueAsString = Number.parseFloat(normalizedString);
       if (Number.isNaN(valueAsString)) return null;
       return valueAsString;
+    }
+    return null;
+  }
+
+  static getValueAsString(
+      value: ResponseValueSingleType,
+      processing: (ProcessingParameterType | SourceProcessingType)[] = []): string | null {
+    if (typeof value === 'number') return value.toString(10);
+    if (typeof value === 'boolean') return (value as boolean) ? 'true' : 'false';
+    if (typeof value === 'string') {
+      let newString = value as string;
+      if (processing.includes('REMOVE_ALL_SPACES') || processing.includes('IGNORE_ALL_SPACES')) {
+        newString = newString.replace(/\s/g, '');
+      } else if (processing.includes('REMOVE_DISPENSABLE_SPACES') || processing.includes('IGNORE_DISPENSABLE_SPACES')) {
+        newString = newString.trim().replace(/\s+/g, ' ');
+      }
+      if (processing.includes('TO_LOWER_CASE')) newString = newString.toLowerCase();
+      return newString;
     }
     return null;
   }
@@ -141,7 +162,7 @@ export abstract class CodingFactory {
       return typeof valueAsNumber === 'number';
     }
     if (valueMustBeBoolean) {
-      return valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true' ||
+      return valueToCheck === 0 || valueToCheck === 1 || valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true' ||
           valueToCheck === '0' || valueToCheck === false ||
           valueToCheck === 'false' || valueToCheck === null;
     }
@@ -154,9 +175,8 @@ export abstract class CodingFactory {
     isValueArray: boolean
   ): boolean {
     let returnValue = true;
-    const valueMustBeNumeric = ['NUMERIC_MATCH', 'NUMERIC_LESS_THAN', 'NUMERIC_MAX', 'NUMERIC_MORE_THAN',
-      'NUMERIC_MIN', 'NUMERIC_RANGE'].indexOf(rule.method) >= 0;
-    const valueMustBeBoolean = ['IS_TRUE', 'IS_FALSE'].indexOf(rule.method) >= 0;
+    const valueMustBeNumeric = numericRules.includes(rule.method);
+    const valueMustBeBoolean = booleanRules.includes(rule.method);
     if (valueMustBeNumeric || valueMustBeBoolean) {
       if (isValueArray && Array.isArray(valueToCheck)) {
         valueToCheck.forEach(v => {
@@ -185,7 +205,7 @@ export abstract class CodingFactory {
     return returnValue;
   }
 
-  static checkOneValue(valueToCheck: ResponseValueSingleType, rule: CodingRule, ignoreCase: boolean): boolean {
+  static checkOneValue(valueToCheck: ResponseValueSingleType, rule: CodingRule, codingProcessing: ProcessingParameterType[]): boolean {
     let returnValue = false;
     let valueAsNumber: number | null = null;
     // eslint-disable-next-line default-case
@@ -197,7 +217,7 @@ export abstract class CodingFactory {
         if (valueToCheck === '') returnValue = true;
         break;
       case 'MATCH':
-        if (valueToCheck) {
+        if (valueToCheck !== null && valueToCheck !== '') {
           if (typeof valueToCheck === 'number') {
             // eslint-disable-next-line no-param-reassign
             valueToCheck = valueToCheck.toString(10);
@@ -205,11 +225,11 @@ export abstract class CodingFactory {
             // eslint-disable-next-line no-param-reassign
             valueToCheck = valueToCheck.toString();
           }
-          returnValue = this.findString(valueToCheck, ignoreCase, rule.parameters);
+          returnValue = this.findString(valueToCheck, codingProcessing, rule.parameters);
         }
         break;
       case 'MATCH_REGEX':
-        if (valueToCheck) {
+        if (valueToCheck !== null && valueToCheck !== '') {
           if (typeof valueToCheck === 'number') {
             // eslint-disable-next-line no-param-reassign
             valueToCheck = valueToCheck.toString(10);
@@ -221,61 +241,67 @@ export abstract class CodingFactory {
         }
         break;
       case 'NUMERIC_MATCH':
-        valueAsNumber = this.getValueAsNumber(valueToCheck);
-        if (typeof valueAsNumber === 'number' && rule.parameters) {
-          const compareValue = Number.parseFloat(rule.parameters[0]);
-          returnValue = !Number.isNaN(compareValue) && valueAsNumber === compareValue;
-        }
+        if (valueToCheck !== null && valueToCheck !== '') returnValue = this.findNumericValue(valueToCheck, rule.parameters);
         break;
       case 'NUMERIC_LESS_THAN':
-        valueAsNumber = this.getValueAsNumber(valueToCheck);
-        if (typeof valueAsNumber === 'number' && rule.parameters) {
-          const compareValue = Number.parseFloat(rule.parameters[0]);
-          returnValue = !Number.isNaN(compareValue) && valueAsNumber < compareValue;
+        if (valueToCheck !== null && valueToCheck !== '') {
+          valueAsNumber = this.getValueAsNumber(valueToCheck);
+          if (typeof valueAsNumber === 'number' && rule.parameters) {
+            const compareValue = Number.parseFloat(rule.parameters[0]);
+            returnValue = !Number.isNaN(compareValue) && valueAsNumber < compareValue;
+          }
         }
         break;
       case 'NUMERIC_MAX':
-        valueAsNumber = this.getValueAsNumber(valueToCheck);
-        if (typeof valueAsNumber === 'number' && rule.parameters) {
-          const compareValue = Number.parseFloat(rule.parameters[0]);
-          returnValue = !Number.isNaN(compareValue) && valueAsNumber <= compareValue;
+        if (valueToCheck !== null && valueToCheck !== '') {
+          valueAsNumber = this.getValueAsNumber(valueToCheck);
+          if (typeof valueAsNumber === 'number' && rule.parameters) {
+            const compareValue = Number.parseFloat(rule.parameters[0]);
+            returnValue = !Number.isNaN(compareValue) && valueAsNumber <= compareValue;
+          }
         }
         break;
       case 'NUMERIC_MORE_THAN':
-        valueAsNumber = this.getValueAsNumber(valueToCheck);
-        if (typeof valueAsNumber === 'number' && rule.parameters) {
-          const compareValue = Number.parseFloat(rule.parameters[0]);
-          returnValue = !Number.isNaN(compareValue) && valueAsNumber > compareValue;
+        if (valueToCheck !== null && valueToCheck !== '') {
+          valueAsNumber = this.getValueAsNumber(valueToCheck);
+          if (typeof valueAsNumber === 'number' && rule.parameters) {
+            const compareValue = Number.parseFloat(rule.parameters[0]);
+            returnValue = !Number.isNaN(compareValue) && valueAsNumber > compareValue;
+          }
         }
         break;
       case 'NUMERIC_MIN':
-        valueAsNumber = this.getValueAsNumber(valueToCheck);
-        if (typeof valueAsNumber === 'number' && rule.parameters) {
-          const compareValue = Number.parseFloat(rule.parameters[0]);
-          returnValue = !Number.isNaN(compareValue) && valueAsNumber >= compareValue;
+        if (valueToCheck !== null && valueToCheck !== '') {
+          valueAsNumber = this.getValueAsNumber(valueToCheck);
+          if (typeof valueAsNumber === 'number' && rule.parameters) {
+            const compareValue = Number.parseFloat(rule.parameters[0]);
+            returnValue = !Number.isNaN(compareValue) && valueAsNumber >= compareValue;
+          }
         }
         break;
       case 'NUMERIC_RANGE':
-        valueAsNumber = this.getValueAsNumber(valueToCheck);
-        if (typeof valueAsNumber === 'number' && rule.parameters) {
-          const compareValueLL = Number.parseFloat(rule.parameters[0]);
-          const compareValueUL = Number.parseFloat(rule.parameters[1]);
-          returnValue = !Number.isNaN(compareValueUL) && Number.isNaN(compareValueLL) &&
-              valueAsNumber > compareValueLL && valueAsNumber <= compareValueUL;
+        if (valueToCheck !== null && valueToCheck !== '') {
+          valueAsNumber = this.getValueAsNumber(valueToCheck);
+          if (typeof valueAsNumber === 'number' && rule.parameters) {
+            const compareValueLL = this.getValueAsNumber(rule.parameters[0]);
+            const compareValueUL = this.getValueAsNumber(rule.parameters[1]);
+            if (typeof compareValueLL === 'number' && typeof compareValueUL === 'number')
+              returnValue = valueAsNumber > compareValueLL && valueAsNumber <= compareValueUL;
+          }
         }
         break;
       case 'IS_TRUE':
-        returnValue = valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true';
+        returnValue = valueToCheck === 1 || valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true';
         break;
       case 'IS_FALSE':
-        returnValue = valueToCheck === '0' || valueToCheck === false || valueToCheck === 'false';
+        returnValue = valueToCheck === 0 || valueToCheck === '0' || valueToCheck === false || valueToCheck === 'false';
         break;
     }
     return returnValue;
   }
 
   private static isMatchRule(valueToCheck: TransformedResponseValueType, rule: CodingRule,
-                             isValueArray: boolean, ignoreCase: boolean): boolean {
+                             isValueArray: boolean, codingProcessing: ProcessingParameterType[]): boolean {
     if (Array.isArray(valueToCheck) && isValueArray) {
       let valueIndex = 0;
       let oneMatch = false;
@@ -285,11 +311,11 @@ export abstract class CodingFactory {
           if (typeof rule.fragment === 'undefined' || rule.fragment < 0) {
             let fragmentIndex = 0;
             while (!oneMatch && fragmentIndex < valueMemberToCheck.length) {
-              if (CodingFactory.checkOneValue(valueMemberToCheck[fragmentIndex], rule, ignoreCase)) oneMatch = true;
+              if (CodingFactory.checkOneValue(valueMemberToCheck[fragmentIndex], rule, codingProcessing)) oneMatch = true;
               fragmentIndex += 1;
             }
-          } else if (CodingFactory.checkOneValue(valueMemberToCheck[rule.fragment], rule, ignoreCase)) oneMatch = true;
-        } else if (CodingFactory.checkOneValue(valueMemberToCheck, rule, ignoreCase)) oneMatch = true;
+          } else if (CodingFactory.checkOneValue(valueMemberToCheck[rule.fragment], rule, codingProcessing)) oneMatch = true;
+        } else if (CodingFactory.checkOneValue(valueMemberToCheck, rule, codingProcessing)) oneMatch = true;
         valueIndex += 1;
       }
       return oneMatch;
@@ -299,26 +325,32 @@ export abstract class CodingFactory {
         let fragmentIndex = 0;
         let oneMatch = false;
         while (!oneMatch && fragmentIndex < valueToCheck.length) {
-          if (CodingFactory.checkOneValue(valueToCheck[fragmentIndex] as string, rule, ignoreCase)) oneMatch = true;
+          if (CodingFactory.checkOneValue(valueToCheck[fragmentIndex] as string, rule, codingProcessing)) oneMatch = true;
           fragmentIndex += 1;
         }
         return oneMatch;
       }
-      return CodingFactory.checkOneValue(valueToCheck[rule.fragment] as string, rule, ignoreCase);
+      return CodingFactory.checkOneValue(valueToCheck[rule.fragment] as string, rule, codingProcessing);
     }
-    return CodingFactory.checkOneValue(valueToCheck as ResponseValueSingleType, rule, ignoreCase);
+    return CodingFactory.checkOneValue(valueToCheck as ResponseValueSingleType, rule, codingProcessing);
   }
 
   private static isMatchRuleSet(valueToCheck: TransformedResponseValueType, ruleSet: RuleSet,
-                                isValueArray: boolean, ignoreCase: boolean): boolean {
+                                isValueArray: boolean, codingProcessing: ProcessingParameterType[]): boolean {
     let valueMemberToCheck;
     if (ruleSet.valueArrayPos && isValueArray && Array.isArray(valueToCheck)) {
       if (typeof ruleSet.valueArrayPos === 'number') {
-        if (ruleSet.valueArrayPos >= 0 &&
-            valueToCheck.length < ruleSet.valueArrayPos) valueMemberToCheck = valueToCheck[ruleSet.valueArrayPos];
+        if (ruleSet.valueArrayPos >= 0 && ruleSet.valueArrayPos < valueToCheck.length) {
+          valueMemberToCheck = valueToCheck[ruleSet.valueArrayPos];
+        }
       } else if (ruleSet.valueArrayPos === 'SUM') {
-        valueMemberToCheck = valueToCheck.map(v => this.getValueAsNumber(v) || 0)
-          .reduce((pv, cv) => pv + cv, 0);
+        valueMemberToCheck = valueToCheck.map(v => {
+          if (Array.isArray(v)) {
+            return v.map(s => this.getValueAsNumber(s) || 0).reduce((a, b) => a + b, 0)
+          } else {
+            return this.getValueAsNumber(v) || 0
+          }
+        }).reduce((pv, cv) => pv + cv, 0);
       }
     }
     let oneMatch = false;
@@ -327,9 +359,9 @@ export abstract class CodingFactory {
     while ((!ruleSet.ruleOperatorAnd && !oneMatch) && ruleIndex < ruleSet.rules.length) {
       let isMatch;
       if (typeof valueMemberToCheck !== 'undefined') {
-        isMatch = this.isMatchRule(valueMemberToCheck, ruleSet.rules[ruleIndex], false, ignoreCase);
+        isMatch = this.isMatchRule(valueMemberToCheck, ruleSet.rules[ruleIndex], false, codingProcessing);
       } else {
-        isMatch = this.isMatchRule(valueToCheck, ruleSet.rules[ruleIndex], isValueArray, ignoreCase);
+        isMatch = this.isMatchRule(valueToCheck, ruleSet.rules[ruleIndex], isValueArray, codingProcessing);
       }
       if (isMatch) {
         oneMatch = true;
@@ -344,10 +376,12 @@ export abstract class CodingFactory {
   static code(response: Response, coding: VariableCodingData): Response {
     const stringifiedResponse = JSON.stringify(response);
     const newResponse: Response = JSON.parse(stringifiedResponse);
-    if (coding && coding.codes.length > 0 && !Array.isArray(newResponse.value)) {
+    if (coding && coding.codes.length > 0) {
       let valueToCheck: TransformedResponseValueType;
       try {
-        valueToCheck = this.transformValue(newResponse.value, coding.processing, coding.fragmenting);
+        valueToCheck = this.transformValue(
+            newResponse.value, coding.fragmenting || '', coding.processing && coding.processing.includes('SORT_ARRAY')
+        );
       } catch (e) {
         newResponse.state = 'CODING_ERROR';
         valueToCheck = null;
@@ -382,7 +416,7 @@ export abstract class CodingFactory {
                 let ruleSetIndex = 0;
                 while ((!c.ruleSetOperatorAnd && !oneMatch) && ruleSetIndex < c.ruleSets.length) {
                   // eslint-disable-next-line max-len
-                  if (CodingFactory.isMatchRuleSet(valueToCheck, c.ruleSets[ruleSetIndex], Array.isArray(newResponse.value), coding.processing.indexOf('IGNORE_CASE') >= 0)) {
+                  if (CodingFactory.isMatchRuleSet(valueToCheck, c.ruleSets[ruleSetIndex], Array.isArray(newResponse.value), coding.processing || [])) {
                     oneMatch = true;
                   } else {
                     oneMisMatch = true;
@@ -394,7 +428,7 @@ export abstract class CodingFactory {
                     newResponse.state = 'INVALID';
                   } else {
                     newResponse.code = c.id;
-                    newResponse.score = c.score;
+                    newResponse.score = c.score || 0;
                     newResponse.state = 'CODING_COMPLETE';
                   }
                   changed = true;
@@ -413,8 +447,6 @@ export abstract class CodingFactory {
               newResponse.state = 'CODING_COMPLETE';
             }
           } else {
-            newResponse.code = 0;
-            newResponse.score = 0;
             newResponse.state = 'CODING_INCOMPLETE';
           }
           changed = true;

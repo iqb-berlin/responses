@@ -1,0 +1,58 @@
+[
+  {
+    "id": "b1",
+    "state": "CODING_COMPLETE",
+    "value": "111",
+    "code": 1,
+    "score": 1
+  },
+  {
+    "id": "b2",
+    "state": "CODING_INCOMPLETE",
+    "value": "111"
+  },
+  {
+    "id": "b3",
+    "state": "CODING_COMPLETE",
+    "value": "555",
+    "code": 1,
+    "score": 7
+  },
+  {
+    "id": "d1",
+    "value": true,
+    "state": "NO_CODING"
+  },
+  {
+    "id": "d2",
+    "value": false,
+    "state": "NO_CODING"
+  },
+  {
+    "id": "d3",
+    "value": false,
+    "state": "CODING_COMPLETE",
+    "code": 2,
+    "score": 2
+  },
+  {
+    "id": "d4",
+    "value": false,
+    "state": "NO_CODING"
+  },
+  {
+    "id": "d5",
+    "value": false,
+    "state": "NO_CODING"
+  },
+  {
+    "id": "d6",
+    "value": false,
+    "state": "NO_CODING"
+  },
+  {
+    "id": "d7",
+    "value": false,
+    "state": "NO_CODING"
+  }
+]

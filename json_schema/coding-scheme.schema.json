@@ -1,0 +1,207 @@
+{
+  "$id": "coding-scheme@iqb-standard@2.0",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Response Scheme",
+  "description": "Data structure to specify all processing steps of response data in order to get coded and scored data for analyses.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Identifier for the variable. In case of a scheme for a base variable, this id is identical with the source variable's id. In case of derivation, the processing data create a new derived variable. All ids of a response scheme should be unique.",
+        "pattern": "^[0-9a-zA-Z_]+$"
+      },
+      "label": {
+        "type": "string",
+        "description": "Some additional info for UI"
+      },
+      "sourceType": {
+        "type": "string",
+        "description": "CONCAT means concatenate all source codes as string with delimiter '_', SUM calculates a sum from all source codes or scores.",
+        "enum": [
+          "BASE", "COPY_VALUE", "CONCAT_CODE", "SUM_CODE", "SUM_SCORE", "UNIQUE_VALUES", "SOLVER"
+        ]
+      },
+      "sourceParameters": {
+        "type": "object",
+        "description": "Parameters to specify the derive method",
+        "properties": {
+          "solverExpression": {
+            "type": "string",
+            "description": "If sourceType 'solver', this expression is evaluated when deriving. Placeholder for variables are in curly brakes.",
+            "examples": ["${01}*${03}-100"]
+          },
+          "processing": {
+            "type": "array",
+            "description": "Some options to change value or status",
+            "items": {
+              "type": "string",
+              "enum": [
+                "TO_LOWER_CASE",
+                "TO_NUMBER",
+                "REMOVE_ALL_SPACES",
+                "REMOVE_DISPENSABLE_SPACES",
+                "TAKE_DISPLAYED_AS_VALUE_CHANGED",
+                "TAKE_EMPTY_AS_VALID",
+                "SORT"
+              ]
+            }
+          }
+        }
+      },
+      "deriveSources": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^[0-9a-zA-Z_]+$"
+        }
+      },
+      "processing": {
+        "type": "array",
+        "description": "This parameter defines what (pre)processing should be done.",
+        "items": {
+          "type": "string",
+          "enum": [
+            "IGNORE_CASE",
+            "IGNORE_ALL_SPACES",
+            "IGNORE_DISPENSABLE_SPACES",
+            "SORT_ARRAY",
+            "REPLAY_REQUIRED",
+            "ATTACHMENT"
+          ]
+        }
+      },
+      "fragmenting": {
+        "type": "string",
+        "description": "Regular expression to get fragments out of the value if of type string"
+      },
+      "manualInstruction": {
+        "type": "string",
+        "description": "Instructions for manual coding."
+      },
+      "codeModel": {
+        "type": "string",
+        "enum": [
+          "NONE",
+          "CHOICE",
+          "VALUE_LIST",
+          "NUMBER",
+          "MANUAL"
+        ],
+        "description": "Info for applications to simplify UI"
+      },
+      "page": {
+        "type": "string",
+        "description": "If the unit supports paging, this property defines the page to be presented to the coder if manually coded."
+      },
+      "codes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "oneOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "If this code's rules/instructions match, the code and score is taken for the response. If the code id is of value 'null', no code or score is taken. Instead, the state 'INVALID' will be set."
+            },
+            "label": {
+              "type": "string"
+            },
+            "score": {
+              "type": "integer"
+            },
+            "manualInstruction": {
+              "type": "string",
+              "description": "Instructions for manual coding."
+            },
+            "ruleSetOperatorAnd": {
+              "type": "boolean",
+              "description": "If true, all rule sets must match to take that code. Otherwise (default: false), one matching rule set will satisfy."
+            },
+            "ruleSets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "valueArrayPos": {
+                    "anyOf": [
+                      {
+                        "type": "integer",
+                        "description": "Refers to a specific position in the value array [0..n-1]."
+                      },
+                      {
+                        "type": "string",
+                        "description": "Refers to any position in the value array or to the sum of all array values.",
+                        "enum": [
+                          "ANY",
+                          "SUM"
+                        ]
+                      }
+                    ]
+                  },
+                  "ruleOperatorAnd": {
+                    "type": "boolean",
+                    "description": "If true, all rules must match to take that code. Otherwise (default: false), one matching rule will satisfy."
+                  },
+                  "rules": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "fragment": {
+                          "type": "integer",
+                          "description": "Refers to a specific fragment of the value [0..n-1] or to any -1."
+                        },
+                        "method": {
+                          "type": "string",
+                          "description": "See separate documentation",
+                          "enum": [
+                            "MATCH",
+                            "MATCH_REGEX",
+                            "NUMERIC_MATCH",
+                            "NUMERIC_RANGE",
+                            "NUMERIC_LESS_THAN",
+                            "NUMERIC_MORE_THAN",
+                            "NUMERIC_MAX",
+                            "NUMERIC_MIN",
+                            "IS_EMPTY",
+                            "ELSE",
+                            "IS_NULL",
+                            "IS_TRUE",
+                            "IS_FALSE"
+                          ]
+                        },
+                        "parameters": {
+                          "type": "array",
+                          "description": "Depending on the method, additional parameter(s) is needed. See separate documentation",
+                          "items": {
+                            "type": "string"
+                          }
+                        }
+                      },
+                      "required": ["method"]
+                    }
+                  }
+                },
+                "required": ["rules"]
+              }
+            }
+          },
+          "required": [
+            "id"
+          ]
+        }
+      }
+    },
+    "required": [
+      "id", "sourceType"
+    ]
+  }
+}

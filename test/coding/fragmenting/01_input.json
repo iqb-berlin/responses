@@ -1,0 +1,17 @@
+[
+  {
+    "id": "b1",
+    "state": "VALUE_CHANGED",
+    "value": "2 kg"
+  },
+  {
+    "id": "b2",
+    "state": "VALUE_CHANGED",
+    "value": "2 kg"
+  },
+  {
+    "id": "b3",
+    "state": "VALUE_CHANGED",
+    "value": "2 kg"
+  }
+]

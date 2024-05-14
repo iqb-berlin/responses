@@ -1,5 +1,13 @@
 export type ResponseStatusType = 'UNSET' | 'NOT_REACHED' | 'DISPLAYED' | 'VALUE_CHANGED' |
     'DERIVE_ERROR' | 'CODING_COMPLETE' | 'NO_CODING' | 'INVALID' | 'CODING_INCOMPLETE' | 'CODING_ERROR';
+export const responseStatesInOrder = ['UNSET', 'NOT_REACHED', 'DISPLAYED', 'VALUE_CHANGED', 'INVALID',
+  'DERIVE_ERROR', 'CODING_COMPLETE', 'NO_CODING', 'CODING_INCOMPLETE', 'CODING_ERROR'];
+export const validStatesForDerivingValue = ['VALUE_CHANGED', 'NO_CODING', 'CODING_INCOMPLETE',
+  'CODING_ERROR', 'CODING_COMPLETE'];
+export const validStatesForDerivingCode = ['CODING_COMPLETE'];
+export const validStatesToStartDeriving = ['UNSET', 'CODING_ERROR', 'CODING_INCOMPLETE'];
+export const statesToReplaceByDeriveError = ['NO_CODING', 'CODING_INCOMPLETE', 'CODING_ERROR'];
+export const deriveMethodsFromValue = ['SOLVER', 'COPY_VALUE', 'UNIQUE_VALUES'];
 
 export type ResponseValueSingleType = null | string | number | boolean;
 export type ResponseValueType = ResponseValueSingleType | ResponseValueSingleType[];
@@ -16,7 +24,7 @@ export interface Response {
 
 // eslint-disable-next-line max-len
 export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THAN' |
-'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE' | 'IS_UNIQUE_IN_ARRAY';
+'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
 export const RuleMethodParameterCount = {
   MATCH: -1,
   MATCH_REGEX: -1,
@@ -26,13 +34,15 @@ export const RuleMethodParameterCount = {
   NUMERIC_MORE_THAN: 1,
   NUMERIC_MAX: 1,
   NUMERIC_MIN: 1,
-  IS_UNIQUE_IN_ARRAY: 0,
   IS_EMPTY: 0,
   ELSE: 0,
   IS_NULL: 0,
   IS_TRUE: 0,
   IS_FALSE: 0
 };
+export const numericRules = ['NUMERIC_MATCH', 'NUMERIC_LESS_THAN', 'NUMERIC_MAX', 'NUMERIC_MORE_THAN',
+  'NUMERIC_MIN', 'NUMERIC_RANGE'];
+export const booleanRules = ['IS_TRUE', 'IS_FALSE'];
 export type ProcessingParameterType = 'IGNORE_CASE' | 'IGNORE_ALL_SPACES' | 'IGNORE_DISPENSABLE_SPACES' | 'SORT_ARRAY' |
     'REPLAY_REQUIRED' | 'ATTACHMENT';
 export type CodeModelType = 'NONE' | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL';
@@ -79,9 +89,8 @@ export interface VariableCodingData {
   fragmenting?: string,
   manualInstruction: string,
   codeModel?: CodeModelType,
-  codeModelParameters?: string[],
-  codes: CodeData[],
-  page: string
+  page?: string,
+  codes: CodeData[]
 }
 
 export interface CodingSchemeProblem {
@@ -108,7 +117,7 @@ export interface VariableInfo {
   values: VariableValue[];
   valuePositionLabels: string[];
   valuesComplete?: boolean;
-  page: string;
+  page?: string;
 }
 
 export interface CodeAsText {
