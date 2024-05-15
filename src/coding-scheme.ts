@@ -1,3 +1,4 @@
+import { evaluate } from 'mathjs';
 import {
   VariableCodingData,
   Response,
@@ -16,7 +17,6 @@ import {
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';
-import { evaluate } from 'mathjs';
 
 export interface VariableGraphNode {
   id: string,

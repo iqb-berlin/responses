@@ -4,6 +4,9 @@
   "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
   "license": "CC0 1.0",
   "description": "Data interfaces for processing assessment data.",
+  "dependencies": {
+    "mathjs": "^12.4.2"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/iqb-berlin/responses.git"
