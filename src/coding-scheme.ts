@@ -36,7 +36,7 @@ export class CodingScheme {
       let valueProcessing: string[] = c.processing || c.preProcessing || c.valueTransformations || [];
       if (valueProcessing && valueProcessing.includes('REMOVE_WHITE_SPACES')) {
         valueProcessing = valueProcessing.filter(vp => vp !== 'REMOVE_WHITE_SPACES');
-        valueProcessing.push('IGNORE_ALL_SPACES')
+        valueProcessing.push('IGNORE_ALL_SPACES');
       }
       const newCoding: VariableCodingData = {
         id: c.id,
@@ -44,7 +44,7 @@ export class CodingScheme {
         sourceType: 'BASE',
         sourceParameters: {
           solverExpression: c.sourceParameters ? c.sourceParameters.solverExpression || '' : '',
-          processing: c.sourceParameters ? c.sourceParameters.processing || [] : [],
+          processing: c.sourceParameters ? c.sourceParameters.processing || [] : []
         },
         deriveSources: c.deriveSources || [],
         processing: valueProcessing as ProcessingParameterType[],
@@ -100,17 +100,15 @@ export class CodingScheme {
   }
 
   getVariableDependencyTree(): VariableGraphNode[] {
-    const graph: VariableGraphNode[] = this.variableCodings.filter(c => c.sourceType === 'BASE').map(c => {
-      return {
-        id: c.id,
-        level: 0,
-        sources: [],
-        page: c.page || ''
-      }
-    });
-    let found = true;
-    while (found && this.variableCodings.length > graph.length) {
-      found = false;
+    const graph: VariableGraphNode[] = this.variableCodings.filter(c => c.sourceType === 'BASE').map(c => ({
+      id: c.id,
+      level: 0,
+      sources: [],
+      page: c.page || ''
+    }));
+    let foundInWhile = true;
+    while (foundInWhile && this.variableCodings.length > graph.length) {
+      let found = false;
       this.variableCodings.forEach(vc => {
         const existingNode = graph.find(n => n.id === vc.id);
         if (!existingNode) {
@@ -120,9 +118,10 @@ export class CodingScheme {
             const node = graph.find(n => n.id === s);
             if (node) {
               maxLevel = Math.max(maxLevel, node.level);
+              // eslint-disable-next-line no-nested-ternary
               newPage = newPage === null ? node.page : (newPage === node.page ? node.page : '');
             } else {
-              maxLevel = Number.MAX_VALUE
+              maxLevel = Number.MAX_VALUE;
             }
           });
           if (maxLevel < Number.MAX_VALUE) {
@@ -132,24 +131,27 @@ export class CodingScheme {
               level: maxLevel + 1,
               sources: [...vc.deriveSources],
               page: newPage || ''
-            })
+            });
           }
         }
-      })
+      });
+      foundInWhile = found;
     }
-    if (found) return graph;
+    if (foundInWhile) return graph;
     throw new Error('circular dependency in coding scheme');
-  };
+  }
 
   static deriveValue(coding: VariableCodingData, sourceResponses: Response[]): Response {
     const validResponseStatuses =
         deriveMethodsFromValue.includes(coding.sourceType) ?
-            validStatesForDerivingValue : validStatesForDerivingCode;
+          validStatesForDerivingValue : validStatesForDerivingCode;
     const errorStatuses: string[] = [];
     sourceResponses.forEach(r => {
-      if (!validResponseStatuses.includes(r.state)) errorStatuses.push(r.state)
-    })
-    if (errorStatuses.length > 0 && (coding.sourceType !== 'UNIQUE_VALUES' || errorStatuses.length === sourceResponses.length)) {
+      if (!validResponseStatuses.includes(r.state)) errorStatuses.push(r.state);
+    });
+    if (errorStatuses.length > 0 &&
+        (coding.sourceType !== 'UNIQUE_VALUES' ||
+            errorStatuses.length === sourceResponses.length)) {
       const minStatusIndex = Math.min(...errorStatuses.map(s => responseStatesInOrder.indexOf(s)));
       let newState = responseStatesInOrder[minStatusIndex];
       if (statesToReplaceByDeriveError.includes(newState)) newState = 'DERIVE_ERROR';
@@ -157,30 +159,32 @@ export class CodingScheme {
         id: coding.id,
         value: null,
         state: newState
-      }
+      };
     }
     // eslint-disable-next-line default-case
     switch (coding.sourceType) {
-      case 'COPY_VALUE':
+      case 'COPY_VALUE': {
         const stringfiedValue = JSON.stringify(sourceResponses[0].value);
         return <Response>{
           id: coding.id,
           value: JSON.parse(stringfiedValue),
           state: 'VALUE_CHANGED'
-        }
-      case 'CONCAT_CODE':
+        }; }
+      case 'CONCAT_CODE': {
         let codes = coding.deriveSources.map(s => {
           const myResponse = sourceResponses.find(r => r.id === s);
           return myResponse && myResponse.code ? myResponse.code.toString(10) : '?';
         });
-        if (coding.sourceParameters && coding.sourceParameters.processing && coding.sourceParameters.processing.includes('SORT')) {
+        if (coding.sourceParameters &&
+            coding.sourceParameters.processing &&
+            coding.sourceParameters.processing.includes('SORT')) {
           codes = codes.sort();
         }
         return <Response>{
           id: coding.id,
           value: codes.join(DeriveConcatDelimiter),
           state: 'VALUE_CHANGED'
-        }
+        }; }
       case 'SUM_CODE':
         return <Response>{
           id: coding.id,
@@ -190,7 +194,7 @@ export class CodingScheme {
             throw new Error('response not found in derive');
           }).reduce((sum, current) => sum + current, 0),
           state: 'VALUE_CHANGED'
-        }
+        };
       case 'SUM_SCORE':
         return <Response>{
           id: coding.id,
@@ -200,11 +204,13 @@ export class CodingScheme {
             throw new Error('response not found in derive');
           }).reduce((sum, current) => sum + current, 0),
           state: 'VALUE_CHANGED'
-        }
-      case 'UNIQUE_VALUES':
+        };
+      case 'UNIQUE_VALUES': {
         const valuesToCompare: string[] = [];
         sourceResponses.filter(r => validStatesForDerivingValue.includes(r.state)).forEach(r => {
-          if (coding.sourceParameters && coding.sourceParameters.processing && coding.sourceParameters.processing.includes('TO_NUMBER')) {
+          if (coding.sourceParameters &&
+              coding.sourceParameters.processing &&
+              coding.sourceParameters.processing.includes('TO_NUMBER')) {
             if (Array.isArray(r.value)) {
               valuesToCompare.push(r.value.map(v => (CodingFactory.getValueAsNumber(v) || 0).toString(10)).join('##'));
             } else {
@@ -213,9 +219,10 @@ export class CodingScheme {
           } else {
             let newValue;
             if (Array.isArray(r.value)) {
-              newValue = r.value.map(v => (CodingFactory.getValueAsString(v, coding.sourceParameters?.processing) || '')).join('##')
+              newValue = r.value
+                .map(v => (CodingFactory.getValueAsString(v, coding.sourceParameters?.processing) || '')).join('##');
             } else {
-              newValue = CodingFactory.getValueAsString(r.value, coding.sourceParameters?.processing) || ''
+              newValue = CodingFactory.getValueAsString(r.value, coding.sourceParameters?.processing) || '';
             }
             valuesToCompare.push(newValue);
           }
@@ -225,13 +232,14 @@ export class CodingScheme {
           id: coding.id,
           value: duplicates.length === 0,
           state: 'VALUE_CHANGED'
-        }
+        }; }
       case 'SOLVER':
         if (coding.sourceParameters && coding.sourceParameters.processing && coding.sourceParameters.solverExpression) {
-          const varSearchPattern = new RegExp(/\$\{(\s*\w+\s*)}/, 'g');
+          const varSearchPattern = /\$\{(\s*\w+\s*)}/g;
           const sourceIds: string[] = [];
           const replacements = new Map();
           const regExExecReturn = coding.sourceParameters.solverExpression.matchAll(varSearchPattern);
+          // eslint-disable-next-line no-restricted-syntax
           for (const match of regExExecReturn) {
             if (!sourceIds.includes(match[1].trim())) sourceIds.push(match[1].trim());
             if (!replacements.has(match[1])) replacements.set(match[1], match[1].trim());
@@ -243,26 +251,28 @@ export class CodingScheme {
               replacements.forEach((varId: string, toReplace: string) => {
                 const responseToReplace = sourceResponses.find(r => r.id === varId);
                 if (responseToReplace && !Array.isArray(responseToReplace.value)) {
-                  const valueToReplace = CodingFactory.getValueAsNumber(responseToReplace.value)
+                  const valueToReplace = CodingFactory.getValueAsNumber(responseToReplace.value);
                   if (valueToReplace === null) {
-                    throw new Error('response value not numeric')
+                    throw new Error('response value not numeric');
                   } else {
-                    const replacePattern = new RegExp(`\\\$\\\{${toReplace}}`, 'g');
+                    const replacePattern = new RegExp(`\\$\\{${toReplace}}`, 'g');
                     newExpression = newExpression.replace(replacePattern, valueToReplace.toString(10));
                   }
                 } else {
-                  throw new Error('response missing or value is array in solver')
+                  throw new Error('response missing or value is array in solver');
                 }
-              })
+              });
               let newValue = evaluate(newExpression);
-              if (isNaN(newValue) || newValue === Number.POSITIVE_INFINITY || newValue === Number.NEGATIVE_INFINITY) {
+              if (Number.isNaN(newValue) ||
+                  newValue === Number.POSITIVE_INFINITY ||
+                  newValue === Number.NEGATIVE_INFINITY) {
                 newValue = null;
               }
               return <Response>{
                 id: coding.id,
                 value: newValue,
                 state: newValue === null ? 'DERIVE_ERROR' : 'VALUE_CHANGED'
-              }
+              };
             }
           }
         }
@@ -306,24 +316,28 @@ export class CodingScheme {
     // add derived variables when error and missing responses
     this.variableCodings.forEach(c => {
       if (c.sourceType === 'BASE') {
-        if (globalDeriveError) varDependencies.push({
-          id: c.id,
-          level: 0,
-          sources: [],
-          page: c.page || ''
-        });
+        if (globalDeriveError) {
+          varDependencies.push({
+            id: c.id,
+            level: 0,
+            sources: [],
+            page: c.page || ''
+          });
+        }
       }
       const existingResponse = newResponses.find(r => r.id === c.id);
-      if (!existingResponse) newResponses.push({
-        id: c.id,
-        value: null,
-        state: globalDeriveError && c.sourceType !== 'BASE' ? 'DERIVE_ERROR' : 'UNSET'
-      })
-    })
+      if (!existingResponse) {
+        newResponses.push({
+          id: c.id,
+          value: null,
+          state: globalDeriveError && c.sourceType !== 'BASE' ? 'DERIVE_ERROR' : 'UNSET'
+        });
+      }
+    });
 
-    const maxVarLevel = Math.max(...varDependencies.map(n => n.level))
+    const maxVarLevel = Math.max(...varDependencies.map(n => n.level));
 
-    for (var level = 0; level <= maxVarLevel; level++) {
+    for (let level = 0; level <= maxVarLevel; level++) {
       varDependencies.filter(n => n.level === level).forEach(varNode => {
         const targetResponse = newResponses.find(r => r.id === varNode.id);
         const varCoding = this.variableCodings.find(vc => vc.id === varNode.id);
@@ -332,7 +346,7 @@ export class CodingScheme {
             // derive
             try {
               const derivedResponse = CodingScheme.deriveValue(
-                  varCoding, newResponses.filter(r => varNode.sources.includes(r.id)));
+                varCoding, newResponses.filter(r => varNode.sources.includes(r.id)));
               targetResponse.state = derivedResponse.state;
               if (derivedResponse.state === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
             } catch (e) {
@@ -353,7 +367,7 @@ export class CodingScheme {
             }
           }
         }
-      })
+      });
     }
 
     return newResponses;
