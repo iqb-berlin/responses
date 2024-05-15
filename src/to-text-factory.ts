@@ -46,20 +46,24 @@ const CODE_RULE_TEXT = {
 };
 
 export abstract class ToTextFactory {
-  static sourceAsText(variableId: string, sourceType: SourceType, sources: string[], parameters?: VariableSourceParameters): string {
+  static sourceAsText(variableId: string,
+                      sourceType: SourceType,
+                      sources: string[],
+                      parameters?: VariableSourceParameters): string {
     let returnText;
     switch (sourceType) {
-      case 'BASE':
+      case 'BASE': {
         const parameterTextsBase: string[] = [];
         if (parameters && parameters.processing && parameters.processing.includes('TAKE_DISPLAYED_AS_VALUE_CHANGED')) {
-          parameterTextsBase.push('stets als geändert gesehen')
+          parameterTextsBase.push('stets als geändert gesehen');
         }
         if (parameters && parameters.processing && parameters.processing.includes('TAKE_EMPTY_AS_VALID')) {
-          parameterTextsBase.push('leerer Wert ist gültig')
+          parameterTextsBase.push('leerer Wert ist gültig');
         }
         const parameterTextBase = parameterTextsBase.length > 0 ? ` (${parameterTextsBase.join('; ')})` : '';
         returnText = `Basisvariable '${variableId}'${parameterTextBase}`;
         break;
+      }
       case 'COPY_VALUE':
         if (sources && sources.length > 0) {
           returnText = `Kopie von Variable '${sources[0]}'`;
@@ -67,36 +71,44 @@ export abstract class ToTextFactory {
           returnText = 'Kopie, aber keine Quelle angegeben';
         }
         break;
-      case 'CONCAT_CODE':
-        const parameterTextConcatCodeSolver = parameters && parameters.processing
-          && parameters.processing.includes('SORT') ? ' (sortiert)' : '';
+      case 'CONCAT_CODE': {
+        const parameterTextConcatCodeSolver = parameters && parameters.processing &&
+        parameters.processing.includes('SORT') ? ' (sortiert)' : '';
         returnText = `Codes von Variablen '${
+          // eslint-disable-next-line max-len
           sources.join(', ')}' aneinandergehängt mit Trennzeichen '${DeriveConcatDelimiter}'${parameterTextConcatCodeSolver}`;
         break;
+      }
       case 'SUM_CODE':
         returnText = `Codes von Variablen '${sources.join(', ')}' summiert`;
         break;
-      case 'UNIQUE_VALUES':
+      case 'UNIQUE_VALUES': {
         const parameterTextsUniqueValues: string[] = [];
         if (parameters && parameters.processing && parameters.processing.includes('REMOVE_ALL_SPACES')) {
-          parameterTextsUniqueValues.push('alle Leerzeichen werden entfernt')
+          parameterTextsUniqueValues.push('alle Leerzeichen werden entfernt');
         }
         if (parameters && parameters.processing && parameters.processing.includes('REMOVE_DISPENSABLE_SPACES')) {
-          parameterTextsUniqueValues.push('alle Leerzeichen vorn und hinten sowie die doppelten werden entfernt')
+          parameterTextsUniqueValues.push('alle Leerzeichen vorn und hinten sowie die doppelten werden entfernt');
         }
         if (parameters && parameters.processing && parameters.processing.includes('TO_NUMBER')) {
-          parameterTextsUniqueValues.push('Umwandlung vorher in numerischen Wert')
+          parameterTextsUniqueValues.push('Umwandlung vorher in numerischen Wert');
         }
         if (parameters && parameters.processing && parameters.processing.includes('TO_LOWER_CASE')) {
-          parameterTextsUniqueValues.push('Umwandlung vorher in Kleinbuchstaben')
+          parameterTextsUniqueValues.push('Umwandlung vorher in Kleinbuchstaben');
         }
-        const parameterTextUniqueValues = parameterTextsUniqueValues.length > 0 ? ` (${parameterTextsUniqueValues.join('; ')})` : '';
+        const parameterTextUniqueValues = parameterTextsUniqueValues.length > 0 ?
+          ` (${parameterTextsUniqueValues.join('; ')})` : '';
+        // eslint-disable-next-line max-len
         returnText = `Prüft, ob die Werte der Variablen '${sources.join(', ')}' unique/einzigartig sind${parameterTextUniqueValues}`;
         break;
-      case 'SOLVER':
-        const parameterTextSolver = parameters && parameters.solverExpression ? `"${parameters.solverExpression}"` : 'FEHLT';
+      }
+      case 'SOLVER': {
+        const parameterTextSolver = parameters && parameters.solverExpression ?
+          `"${parameters.solverExpression}"` : 'FEHLT';
+        // eslint-disable-next-line max-len
         returnText = `Werte von Variablen '${sources.join(', ')}' werden über einen mathematischen Ausdruck verknüpft (Ausdruck: ${parameterTextSolver})`;
         break;
+      }
       case 'SUM_SCORE':
         returnText = `Scores von Variablen '${sources.join(', ')}' summiert`;
         break;
