@@ -147,7 +147,7 @@ export class CodingScheme {
           validStatesForDerivingValue : validStatesForDerivingCode;
     const errorStatuses: string[] = [];
     sourceResponses.forEach(r => {
-      if (!validResponseStatuses.includes(r.state)) errorStatuses.push(r.state);
+      if (!validResponseStatuses.includes(r.status)) errorStatuses.push(r.status);
     });
     if (errorStatuses.length > 0 &&
         (coding.sourceType !== 'UNIQUE_VALUES' ||
@@ -158,7 +158,7 @@ export class CodingScheme {
       return <Response>{
         id: coding.id,
         value: null,
-        state: newState
+        status: newState
       };
     }
     // eslint-disable-next-line default-case
@@ -168,7 +168,7 @@ export class CodingScheme {
         return <Response>{
           id: coding.id,
           value: JSON.parse(stringfiedValue),
-          state: 'VALUE_CHANGED'
+          status: 'VALUE_CHANGED'
         }; }
       case 'CONCAT_CODE': {
         let codes = coding.deriveSources.map(s => {
@@ -183,7 +183,7 @@ export class CodingScheme {
         return <Response>{
           id: coding.id,
           value: codes.join(DeriveConcatDelimiter),
-          state: 'VALUE_CHANGED'
+          status: 'VALUE_CHANGED'
         }; }
       case 'SUM_CODE':
         return <Response>{
@@ -193,7 +193,7 @@ export class CodingScheme {
             if (myResponse) return myResponse.code || 0;
             throw new Error('response not found in derive');
           }).reduce((sum, current) => sum + current, 0),
-          state: 'VALUE_CHANGED'
+          status: 'VALUE_CHANGED'
         };
       case 'SUM_SCORE':
         return <Response>{
@@ -203,11 +203,11 @@ export class CodingScheme {
             if (myResponse) return myResponse.score || 0;
             throw new Error('response not found in derive');
           }).reduce((sum, current) => sum + current, 0),
-          state: 'VALUE_CHANGED'
+          status: 'VALUE_CHANGED'
         };
       case 'UNIQUE_VALUES': {
         const valuesToCompare: string[] = [];
-        sourceResponses.filter(r => validStatesForDerivingValue.includes(r.state)).forEach(r => {
+        sourceResponses.filter(r => validStatesForDerivingValue.includes(r.status)).forEach(r => {
           if (coding.sourceParameters &&
               coding.sourceParameters.processing &&
               coding.sourceParameters.processing.includes('TO_NUMBER')) {
@@ -231,7 +231,7 @@ export class CodingScheme {
         return <Response>{
           id: coding.id,
           value: duplicates.length === 0,
-          state: 'VALUE_CHANGED'
+          status: 'VALUE_CHANGED'
         }; }
       case 'SOLVER':
         if (coding.sourceParameters && coding.sourceParameters.processing && coding.sourceParameters.solverExpression) {
@@ -271,7 +271,7 @@ export class CodingScheme {
               return <Response>{
                 id: coding.id,
                 value: newValue,
-                state: newValue === null ? 'DERIVE_ERROR' : 'VALUE_CHANGED'
+                status: newValue === null ? 'DERIVE_ERROR' : 'VALUE_CHANGED'
               };
             }
           }
@@ -286,20 +286,20 @@ export class CodingScheme {
     const newResponses: Response[] = JSON.parse(stringifiedResponses);
 
     // change DISPLAYED to VALUE_CHANGED if requested
-    newResponses.filter(r => r.state === 'DISPLAYED').forEach(r => {
+    newResponses.filter(r => r.status === 'DISPLAYED').forEach(r => {
       const myCoding = this.variableCodings.find(c => c.id === r.id);
       if (myCoding && myCoding.sourceType === 'BASE' && myCoding.sourceParameters.processing &&
           myCoding.sourceParameters.processing.includes('TAKE_DISPLAYED_AS_VALUE_CHANGED')) {
-        r.state = 'VALUE_CHANGED';
+        r.status = 'VALUE_CHANGED';
       }
     });
 
     // set invalid if value is empty
-    newResponses.filter(r => r.state === 'VALUE_CHANGED' && r.value === '').forEach(r => {
+    newResponses.filter(r => r.status === 'VALUE_CHANGED' && r.value === '').forEach(r => {
       const myCoding = this.variableCodings.find(c => c.id === r.id);
       if (myCoding && myCoding.sourceType === 'BASE' && !(myCoding.sourceParameters.processing &&
           myCoding.sourceParameters.processing.includes('TAKE_EMPTY_AS_VALID'))) {
-        r.state = 'INVALID';
+        r.status = 'INVALID';
       }
     });
 
@@ -330,7 +330,7 @@ export class CodingScheme {
         newResponses.push({
           id: c.id,
           value: null,
-          state: globalDeriveError && c.sourceType !== 'BASE' ? 'DERIVE_ERROR' : 'UNSET'
+          status: globalDeriveError && c.sourceType !== 'BASE' ? 'DERIVE_ERROR' : 'UNSET'
         });
       }
     });
@@ -342,28 +342,28 @@ export class CodingScheme {
         const targetResponse = newResponses.find(r => r.id === varNode.id);
         const varCoding = this.variableCodings.find(vc => vc.id === varNode.id);
         if (targetResponse && varCoding) {
-          if (varNode.sources.length > 0 && validStatesToStartDeriving.includes(targetResponse.state)) {
+          if (varNode.sources.length > 0 && validStatesToStartDeriving.includes(targetResponse.status)) {
             // derive
             try {
               const derivedResponse = CodingScheme.deriveValue(
                 varCoding, newResponses.filter(r => varNode.sources.includes(r.id)));
-              targetResponse.state = derivedResponse.state;
-              if (derivedResponse.state === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
+              targetResponse.status = derivedResponse.status;
+              if (derivedResponse.status === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
             } catch (e) {
-              targetResponse.state = 'DERIVE_ERROR';
+              targetResponse.status = 'DERIVE_ERROR';
               targetResponse.value = null;
             }
           }
-          if (targetResponse.state === 'VALUE_CHANGED') {
+          if (targetResponse.status === 'VALUE_CHANGED') {
             if (varCoding.codes.length > 0) {
               const codedResponse = CodingFactory.code(targetResponse, varCoding);
-              if (codedResponse.state !== targetResponse.state) {
-                targetResponse.state = codedResponse.state;
+              if (codedResponse.status !== targetResponse.status) {
+                targetResponse.status = codedResponse.status;
                 targetResponse.code = codedResponse.code;
                 targetResponse.score = codedResponse.score;
               }
             } else {
-              targetResponse.state = 'NO_CODING';
+              targetResponse.status = 'NO_CODING';
             }
           }
         }

@@ -15,7 +15,7 @@ export type TransformedResponseValueType = ResponseValueType | string[][];
 
 export interface Response {
   id: string,
-  state: ResponseStatusType;
+  status: ResponseStatusType;
   value: ResponseValueType;
   subform?: string,
   code?: number;
