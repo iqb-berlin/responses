@@ -153,12 +153,12 @@ export class CodingScheme {
         (coding.sourceType !== 'UNIQUE_VALUES' ||
             errorStatuses.length === sourceResponses.length)) {
       const minStatusIndex = Math.min(...errorStatuses.map(s => responseStatesInOrder.indexOf(s)));
-      let newState = responseStatesInOrder[minStatusIndex];
-      if (statesToReplaceByDeriveError.includes(newState)) newState = 'DERIVE_ERROR';
+      let newStatus = responseStatesInOrder[minStatusIndex];
+      if (statesToReplaceByDeriveError.includes(newStatus)) newStatus = 'DERIVE_ERROR';
       return <Response>{
         id: coding.id,
         value: null,
-        status: newState
+        status: newStatus
       };
     }
     // eslint-disable-next-line default-case

@@ -1,17 +1,17 @@
 [
   {
     "id": "Otto",
-    "state": "VALUE_CHANGED",
+    "status": "VALUE_CHANGED",
     "value": "-0,1"
   },
   {
     "id": "Paul",
-    "state": "VALUE_CHANGED",
+    "status": "VALUE_CHANGED",
     "value": "jaja 4 no"
   },
   {
     "id": "Kalle",
-    "state": "VALUE_CHANGED",
+    "status": "VALUE_CHANGED",
     "value": "xx"
   }
 ]

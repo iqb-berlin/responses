@@ -1,17 +1,17 @@
 [
   {
     "id": "b1",
-    "state": "CODING_INCOMPLETE",
+    "status": "CODING_INCOMPLETE",
     "value": "feine  Sache"
   },
   {
     "id": "b2",
-    "state": "CODING_INCOMPLETE",
+    "status": "CODING_INCOMPLETE",
     "value": "feine SAche"
   },
   {
     "id": "b3",
-    "state": "CODING_COMPLETE",
+    "status": "CODING_COMPLETE",
     "value": "666",
     "code": 2,
     "score": 2
@@ -19,38 +19,38 @@
   {
     "id": "d1",
     "value": true,
-    "state": "NO_CODING"
+    "status": "NO_CODING"
   },
   {
     "id": "d2",
     "value": true,
-    "state": "NO_CODING"
+    "status": "NO_CODING"
   },
   {
     "id": "d3",
     "value": true,
-    "state": "CODING_COMPLETE",
+    "status": "CODING_COMPLETE",
     "code": 1,
     "score": 7
   },
   {
     "id": "d4",
     "value": true,
-    "state": "NO_CODING"
+    "status": "NO_CODING"
   },
   {
     "id": "d5",
     "value": true,
-    "state": "NO_CODING"
+    "status": "NO_CODING"
   },
   {
     "id": "d6",
     "value": false,
-    "state": "NO_CODING"
+    "status": "NO_CODING"
   },
   {
     "id": "d7",
     "value": false,
-    "state": "NO_CODING"
+    "status": "NO_CODING"
   }
 ]

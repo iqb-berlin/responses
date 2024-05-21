@@ -1,42 +1,42 @@
 [
   {
     "id": "b1",
-    "state": "CODING_INCOMPLETE",
+    "status": "CODING_INCOMPLETE",
     "value": "5"
   },
   {
     "id": "b2",
-    "state": "CODING_INCOMPLETE",
+    "status": "CODING_INCOMPLETE",
     "value": "10"
   },
   {
     "id": "b3",
-    "state": "CODING_INCOMPLETE",
+    "status": "CODING_INCOMPLETE",
     "value": "0"
   },
   {
     "id": "d1",
     "value": 64,
-    "state": "NO_CODING"
+    "status": "NO_CODING"
   },
   {
     "id": "d2",
     "value": -50,
-    "state": "NO_CODING"
+    "status": "NO_CODING"
   },
   {
     "id": "d3",
     "value": null,
-    "state": "DERIVE_ERROR"
+    "status": "DERIVE_ERROR"
   },
   {
     "id": "d4",
     "value": null,
-    "state": "DERIVE_ERROR"
+    "status": "DERIVE_ERROR"
   },
   {
     "id": "d5",
     "value": null,
-    "state": "DERIVE_ERROR"
+    "status": "DERIVE_ERROR"
   }
 ]

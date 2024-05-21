@@ -5,7 +5,7 @@
   "description": "Data structure to specify recoding based on response state.",
   "type": "object",
   "properties": {
-    "state": {
+    "status": {
       "type": "string",
       "enum": ["UNSET", "NOT_REACHED", "DISPLAYED", "INVALID",
         "DERIVE_ERROR", "NO_CODING", "CODING_INCOMPLETE", "CODING_ERROR"],
@@ -22,5 +22,5 @@
       "description": "If true, the value is recoded to the first score 0 code found in the code list of coding scheme."
     }
   },
-  "required": ["state"]
+  "required": ["status"]
 }

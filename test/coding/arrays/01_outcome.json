@@ -1,7 +1,7 @@
 [
   {
     "id": "b1",
-    "state": "CODING_COMPLETE",
+    "status": "CODING_COMPLETE",
     "value": [
       "3",
       "9",
@@ -13,7 +13,7 @@
   },
   {
     "id": "b2",
-    "state": "CODING_COMPLETE",
+    "status": "CODING_COMPLETE",
     "value": [
       "3",
       "2",
@@ -25,7 +25,7 @@
   },
   {
     "id": "b3",
-    "state": "CODING_COMPLETE",
+    "status": "CODING_COMPLETE",
     "value": [
       "3",
       "2",

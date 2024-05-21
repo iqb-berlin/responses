@@ -1,14 +1,14 @@
 [
   {
     "id": "b1",
-    "state": "CODING_COMPLETE",
+    "status": "CODING_COMPLETE",
     "value": "111",
     "code": 1,
     "score": 1
   },
   {
     "id": "b2",
-    "state": "CODING_INCOMPLETE",
+    "status": "CODING_INCOMPLETE",
     "value": [
       true,
       false,
@@ -18,7 +18,7 @@
   },
   {
     "id": "b3",
-    "state": "CODING_COMPLETE",
+    "status": "CODING_COMPLETE",
     "value": "555",
     "code": 1,
     "score": 7
@@ -26,12 +26,12 @@
   {
     "id": "d1",
     "value": 8,
-    "state": "NO_CODING"
+    "status": "NO_CODING"
   },
   {
     "id": "d2",
     "value": 8,
-    "state": "NO_CODING"
+    "status": "NO_CODING"
   },
   {
     "id": "d3",
@@ -41,6 +41,6 @@
       true,
       true
     ],
-    "state": "NO_CODING"
+    "status": "NO_CODING"
   }
 ]

@@ -1,17 +1,17 @@
 [
   {
     "id": "b1",
-    "state": "VALUE_CHANGED",
+    "status": "VALUE_CHANGED",
     "value": true
   },
   {
     "id": "b2",
-    "state": "VALUE_CHANGED",
+    "status": "VALUE_CHANGED",
     "value": "true"
   },
   {
     "id": "b3",
-    "state": "VALUE_CHANGED",
+    "status": "VALUE_CHANGED",
     "value": 1
   }
 ]

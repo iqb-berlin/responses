@@ -1,5 +1,5 @@
 {
   "id": "M",
-  "state": "UNSET",
+  "status": "UNSET",
   "value": [3, 4, 7, 0, null, -7, 12]
 }
