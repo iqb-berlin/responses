@@ -519,7 +519,11 @@ export class CodingScheme {
         const derivedVar: VariableCodingData | undefined = this.variableCodings
           .find(variableCoding => variableCoding.id === derivedVarId);
         if (derivedVar) {
-          baseVariablesIds.push(...baseVariablesIds, ...this.derivedVarToBaseVars(derivedVar, allBaseVariables));
+          if (derivedVar.sourceType === 'BASE') {
+            baseVariablesIds.push(derivedVar.id);
+          } else {
+            baseVariablesIds.push(...this.derivedVarToBaseVars(derivedVar, allBaseVariables));
+          }
         }
       });
       return [...new Set(baseVariablesIds)];
