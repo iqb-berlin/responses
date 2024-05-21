@@ -9,6 +9,10 @@ This package contains of type definitions for processing assessment data. Additi
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 2.1
+
+* Neue Funktion `getVariableDependencyTree()` im Kodierschema, um den Graph der Ableitungen abzubilden
+
 ### 2.0
 
 * Umsetzung der Änderungen Datenstruktur coding-scheme v2.0: 
