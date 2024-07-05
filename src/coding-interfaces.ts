@@ -45,7 +45,8 @@ export const numericRules = ['NUMERIC_MATCH', 'NUMERIC_LESS_THAN', 'NUMERIC_MAX'
 export const booleanRules = ['IS_TRUE', 'IS_FALSE'];
 export type ProcessingParameterType = 'IGNORE_CASE' | 'IGNORE_ALL_SPACES' | 'IGNORE_DISPENSABLE_SPACES' | 'SORT_ARRAY' |
 'REPLAY_REQUIRED' | 'ATTACHMENT';
-export type CodeModelType = 'NONE' | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL';
+export type CodeModelType = 'NONE' | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL' | 'RULES_ONLY';
+export type CodeType = 'UNSET' | 'FULL_CREDIT' | 'PARTIAL_CREDIT' | 'NO_CREDIT';
 export type SourceType = 'BASE' | 'COPY_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE' | 'UNIQUE_VALUES' | 'SOLVER';
 export type SourceProcessingType = 'TO_LOWER_CASE' | 'TO_NUMBER' | 'REMOVE_ALL_SPACES' | 'REMOVE_DISPENSABLE_SPACES' |
 'TAKE_DISPLAYED_AS_VALUE_CHANGED' | 'TAKE_EMPTY_AS_VALID' | 'SORT';
@@ -67,6 +68,7 @@ export interface RuleSet {
 
 export interface CodeData {
   id: number | null,
+  type: CodeType,
   label: string,
   score: number,
   ruleSetOperatorAnd: boolean,
@@ -81,6 +83,7 @@ export interface VariableSourceParameters {
 
 export interface VariableCodingData {
   id: string,
+  alias: string,
   label: string,
   sourceType: SourceType,
   sourceParameters: VariableSourceParameters,

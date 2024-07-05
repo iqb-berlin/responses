@@ -14,6 +14,7 @@ export abstract class CodingFactory {
   static createCodingVariable(varId: string): VariableCodingData {
     return <VariableCodingData>{
       id: varId,
+      alias: varId,
       label: '',
       sourceType: 'BASE',
       sourceParameters: {

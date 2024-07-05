@@ -40,6 +40,7 @@ export class CodingScheme {
       }
       const newCoding: VariableCodingData = {
         id: c.id,
+        alias: c.alias || c.id,
         label: c.label || '',
         sourceType: 'BASE',
         sourceParameters: {
@@ -79,10 +80,12 @@ export class CodingScheme {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         c.codes.forEach((code:any) => {
           if (code.ruleSets) {
+            if (!code.type) code.type = 'UNSET';
             newCoding.codes.push(code);
           } else if (code.rules && Array.isArray(code.rules)) {
             newCoding.codes.push(<CodeData>{
               id: code.id,
+              type: 'UNSET',
               label: code.label || '',
               score: code.score || 0,
               ruleSetOperatorAnd: false,

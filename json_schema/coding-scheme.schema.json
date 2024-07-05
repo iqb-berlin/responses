@@ -1,5 +1,5 @@
 {
-  "$id": "coding-scheme@iqb-standard@2.0",
+  "$id": "coding-scheme@iqb-standard@2.2",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Response Scheme",
   "description": "Data structure to specify all processing steps of response data in order to get coded and scored data for analyses.",
@@ -9,7 +9,12 @@
     "properties": {
       "id": {
         "type": "string",
-        "description": "Identifier for the variable. In case of a scheme for a base variable, this id is identical with the source variable's id. In case of derivation, the processing data create a new derived variable. All ids of a response scheme should be unique.",
+        "description": "Identifier for the variable. In case of a scheme for a base variable, this id is identical with the source variable's id. All ids of a response scheme should be unique.",
+        "pattern": "^[0-9a-zA-Z_]+$"
+      },
+      "alias": {
+        "type": "string",
+        "description": "Alternative identifier for the variable. In case of a scheme for a base variable, this id is identical with the source variable's alternative id. All alternative ids of a response scheme should be unique.",
         "pattern": "^[0-9a-zA-Z_]+$"
       },
       "label": {
@@ -87,6 +92,7 @@
           "CHOICE",
           "VALUE_LIST",
           "NUMBER",
+          "RULES_ONLY",
           "MANUAL"
         ],
         "description": "Info for applications to simplify UI"
@@ -110,6 +116,16 @@
                 }
               ],
               "description": "If this code's rules/instructions match, the code and score is taken for the response. If the code id is of value 'null', no code or score is taken. Instead, the status 'INVALID' will be set."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "UNSET",
+                "FULL_CREDIT",
+                "PARTIAL_CREDIT",
+                "NO_CREDIT"
+              ],
+              "description": "To ease some processing and documentation"
             },
             "label": {
               "type": "string"

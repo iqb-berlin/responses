@@ -1,6 +1,12 @@
 # `coding-scheme`
 ## Versionsänderungen der Datenstruktur
 
+### 2.2
+
+* Neuer Wert für `codeModel`: `RULES_ONLY` - Ausblenden der Controls für die manuelle Kodierung
+* Variable erhält neben der ID einen `alias`
+* Code erhält einen `type`, um die Dokumentation zu erleichtern und die UI zu vereinfachen. Werte `UNSET`, `FULL_CREDIT`, `PARTIAL_CREDIT`, `NO_CREDIT` - `label` wurde hierfür immer missbraucht
+
 ### 2.1
 
 * Neue Funktion `getVariableDependencyTree()`, um Zirkularbezüge festzustellen und die Reihenfolge der Ableitung bzw. Kodierung zu ermitteln. Außerdem werden hier Orte (page) abgeleiteter Variablen gesetzt. 

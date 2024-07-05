@@ -39,8 +39,9 @@
   },
   "devDependencies": {
     "@asyncapi/cli": "^1.9.2",
+    "@asyncapi/html-template": "^2.3.5",
     "@babel/preset-typescript": "^7.24.1",
-    "@iqb/eslint-config": "^2.1.1",
+    "@iqb/eslint-config": "^2.2.0",
     "@jest/globals": "^29.7.0",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.4.4",
