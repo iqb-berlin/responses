@@ -411,9 +411,8 @@ export abstract class CodingFactory {
         let changed = false;
         coding.codes.forEach(c => {
           if (!changed) {
-            const elseRule = c.ruleSets.find(rs => !!rs.rules.find(r => r.method === 'ELSE'));
             // ignore other rules if ELSE-rule found
-            if (elseRule) {
+            if (c.type === 'RESIDUAL_AUTO') {
               hasElse = true;
               elseCode = c.id;
               elseScore = c.score;
@@ -432,7 +431,8 @@ export abstract class CodingFactory {
                 let oneMatch = false;
                 let oneMisMatch = false;
                 let ruleSetIndex = 0;
-                while ((!c.ruleSetOperatorAnd || c.ruleSets.length < 2) && !oneMatch && ruleSetIndex < c.ruleSets.length) {
+                while ((!c.ruleSetOperatorAnd || c.ruleSets.length < 2) &&
+                        !oneMatch && ruleSetIndex < c.ruleSets.length) {
                   // eslint-disable-next-line max-len
                   if (CodingFactory.isMatchRuleSet(valueToCheck, c.ruleSets[ruleSetIndex], Array.isArray(newResponse.value), coding.processing || [])) {
                     oneMatch = true;

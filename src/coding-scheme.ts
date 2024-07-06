@@ -24,81 +24,145 @@ export interface VariableGraphNode {
   sources: string[],
   page: string
 }
+export const CodingSchemeVersionMajor = 3;
+export const CodingSchemeVersionMinor = 0;
 
 export class CodingScheme {
   variableCodings: VariableCodingData[] = [];
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(codings: any[]) {
-    this.variableCodings = [];
-    // transforming old versions
-    codings.forEach(c => {
-      let valueProcessing: string[] = c.processing || c.preProcessing || c.valueTransformations || [];
-      if (valueProcessing && valueProcessing.includes('REMOVE_WHITE_SPACES')) {
-        valueProcessing = valueProcessing.filter(vp => vp !== 'REMOVE_WHITE_SPACES');
-        valueProcessing.push('IGNORE_ALL_SPACES');
+  constructor(givenScheme: any) {
+    const transformedScheme = typeof givenScheme === 'string' ? JSON.parse(givenScheme) : givenScheme;
+    let codingSchemeMajorVersion = 0;
+    // let codingSchemeMinorVersion = 0;
+    if (!Array.isArray(transformedScheme) && transformedScheme.version) {
+      const versionMatches = /^(\d+).(\d+)$/.exec(transformedScheme.version);
+      if (versionMatches && versionMatches.length > 2) {
+        codingSchemeMajorVersion = Number.parseInt(versionMatches[1], 10);
+        // codingSchemeMinorVersion = Number.parseInt(versionMatches[2], 10);
       }
-      const newCoding: VariableCodingData = {
-        id: c.id,
-        alias: c.alias || c.id,
-        label: c.label || '',
-        sourceType: 'BASE',
-        sourceParameters: {
-          solverExpression: c.sourceParameters ? c.sourceParameters.solverExpression || '' : '',
-          processing: c.sourceParameters ? c.sourceParameters.processing || [] : []
-        },
-        deriveSources: c.deriveSources || [],
-        processing: valueProcessing as ProcessingParameterType[],
-        fragmenting: c.fragmenting || '',
-        manualInstruction: c.manualInstruction || '',
-        codeModel: c.codeModel || 'NONE',
-        page: c.page || '0',
-        codes: []
-      };
-      if (c.sourceType === 'DERIVE_CONCAT') {
-        if (c.deriveSourceType === 'VALUE') {
-          newCoding.sourceType = 'COPY_VALUE';
-        } else {
-          // concat score will be changed to concat code
-          newCoding.sourceType = 'CONCAT_CODE';
-        }
-      } else if (c.sourceType === 'DERIVE_SUM') {
-        if (c.deriveSourceType === 'VALUE') {
-          // sum of values is invalid
-          newCoding.sourceType = 'COPY_VALUE';
-        } else if (c.deriveSourceType === 'CODE') {
-          newCoding.sourceType = 'SUM_CODE';
-        } else {
-          newCoding.sourceType = 'SUM_SCORE';
-        }
-      } else if (c.sourceType === 'COPY_FIRST_VALUE') {
+    }
+    const givenCodings = codingSchemeMajorVersion < 3 ? transformedScheme : transformedScheme.variables;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    givenCodings.forEach((c: any) => {
+      if (codingSchemeMajorVersion < 3) {
+        this.variableCodings.push(CodingScheme.getCodeVersionLessThan3(c));
+      } else {
+        this.variableCodings.push(c);
+      }
+    });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private static getCodeVersionLessThan3(givenCoding: any): VariableCodingData {
+    let valueProcessing: string[] = givenCoding.processing ||
+        givenCoding.preProcessing || givenCoding.valueTransformations || [];
+    if (valueProcessing && valueProcessing.includes('REMOVE_WHITE_SPACES')) {
+      valueProcessing = valueProcessing.filter(vp => vp !== 'REMOVE_WHITE_SPACES');
+      valueProcessing.push('IGNORE_ALL_SPACES');
+    }
+    const newCoding: VariableCodingData = {
+      id: givenCoding.id,
+      alias: givenCoding.alias || givenCoding.id,
+      label: givenCoding.label || '',
+      sourceType: 'BASE',
+      sourceParameters: {
+        solverExpression: givenCoding.sourceParameters ? givenCoding.sourceParameters.solverExpression || '' : '',
+        processing: givenCoding.sourceParameters ? givenCoding.sourceParameters.processing || [] : []
+      },
+      deriveSources: givenCoding.deriveSources || [],
+      processing: valueProcessing as ProcessingParameterType[],
+      fragmenting: givenCoding.fragmenting || '',
+      manualInstruction: givenCoding.manualInstruction || '',
+      codeModel: givenCoding.codeModel || 'NONE',
+      page: givenCoding.page || '0',
+      codes: []
+    };
+    if (givenCoding.sourceType === 'DERIVE_CONCAT') {
+      if (givenCoding.deriveSourceType === 'VALUE') {
         newCoding.sourceType = 'COPY_VALUE';
       } else {
-        newCoding.sourceType = c.sourceType;
+        // concat score will be changed to concat code
+        newCoding.sourceType = 'CONCAT_CODE';
       }
-      if (c.codes && Array.isArray(c.codes)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        c.codes.forEach((code:any) => {
-          if (code.ruleSets) {
-            if (!code.type) code.type = 'UNSET';
-            newCoding.codes.push(code);
-          } else if (code.rules && Array.isArray(code.rules)) {
+    } else if (givenCoding.sourceType === 'DERIVE_SUM') {
+      if (givenCoding.deriveSourceType === 'VALUE') {
+        // sum of values is invalid
+        newCoding.sourceType = 'COPY_VALUE';
+      } else if (givenCoding.deriveSourceType === 'CODE') {
+        newCoding.sourceType = 'SUM_CODE';
+      } else {
+        newCoding.sourceType = 'SUM_SCORE';
+      }
+    } else if (givenCoding.sourceType === 'COPY_FIRST_VALUE') {
+      newCoding.sourceType = 'COPY_VALUE';
+    } else {
+      newCoding.sourceType = givenCoding.sourceType;
+    }
+    if (givenCoding.codeModel !== 'NONE') {
+      newCoding.codeModel = givenCoding.codeModel === 'MANUAL' ? 'MANUAL_ONLY' : 'NONE';
+    }
+    if (givenCoding.codes && Array.isArray(givenCoding.codes)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      givenCoding.codes.forEach((code: any) => {
+        if (code.ruleSets) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const elseRule = code.ruleSets.find((rs: any) => !!rs.rules.find((r: any) => r.method === 'ELSE'));
+          if (elseRule) {
             newCoding.codes.push(<CodeData>{
               id: code.id,
-              type: 'UNSET',
-              label: code.label || '',
-              score: code.score || 0,
+              type: 'RESIDUAL_AUTO',
+              label: code.label,
+              score: 0,
               ruleSetOperatorAnd: false,
-              ruleSets: [<RuleSet>{
-                ruleOperatorAnd: code.ruleOperatorAnd || false,
-                rules: code.rules
-              }],
-              manualInstruction: code.manualInstruction || ''
+              ruleSets: [],
+              manualInstruction: code.manualInstruction
             });
+          } else {
+            if (!code.type) code.type = 'UNSET';
+            newCoding.codes.push(code);
           }
-        });
+        } else if (code.rules && Array.isArray(code.rules)) {
+          newCoding.codes.push(<CodeData>{
+            id: code.id,
+            type: 'UNSET',
+            label: code.label || '',
+            score: code.score || 0,
+            ruleSetOperatorAnd: false,
+            ruleSets: [<RuleSet>{
+              ruleOperatorAnd: code.ruleOperatorAnd || false,
+              rules: code.rules
+            }],
+            manualInstruction: code.manualInstruction || ''
+          });
+        }
+      });
+    }
+    return newCoding;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static checkVersion(givenScheme: any): 'OK' | 'MAJOR_LESS' | 'MAJOR_GREATER' | 'MINOR_GREATER' {
+    const transformedScheme = typeof givenScheme === 'string' ? JSON.parse(givenScheme) : givenScheme;
+    let localCodingSchemeVersionMajor = 0;
+    let localCodingSchemeVersionMinor = 0;
+    if (!Array.isArray(transformedScheme) && transformedScheme.version) {
+      const versionMatches = /^(\d+).(\d+)$/.exec(transformedScheme.version);
+      if (versionMatches && versionMatches.length > 2) {
+        localCodingSchemeVersionMajor = Number.parseInt(versionMatches[1], 10);
+        localCodingSchemeVersionMinor = Number.parseInt(versionMatches[2], 10);
       }
-      this.variableCodings.push(newCoding);
+    }
+    if (CodingSchemeVersionMajor < localCodingSchemeVersionMajor) return 'MAJOR_GREATER';
+    if (CodingSchemeVersionMajor > localCodingSchemeVersionMajor) return 'MAJOR_LESS';
+    if (CodingSchemeVersionMinor > localCodingSchemeVersionMinor) return 'MINOR_GREATER';
+    return 'OK';
+  }
+
+  toString(): string {
+    return JSON.stringify({
+      version: `${CodingSchemeVersionMajor}.${CodingSchemeVersionMinor}`,
+      variables: this.variableCodings
     });
   }
 

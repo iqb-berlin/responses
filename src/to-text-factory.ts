@@ -167,8 +167,7 @@ export abstract class ToTextFactory {
       ruleSetDescriptions: code.ruleSets.map((rs, i) => {
         let description = code.ruleSets.length > 1 ? `Regelset ${i + 1}: ` : '';
         if (!rs.rules || rs.rules.length === 0) return `${description}Keine Regeln definiert.`;
-        const elseRule = rs.rules.find(r => r.method === 'ELSE');
-        if (elseRule) return `${description}Alle anderen Antworten`;
+        if (['RESIDUAL_AUTO', 'RESIDUAL'].indexOf(code.type) >= 0) return `${description}Alle anderen Antworten`;
 
         rs.rules.forEach((r, j) => {
           if (rs.rules.length > 1) description += `${j > 0 ? '; ' : ''}(R${j + 1}) `;

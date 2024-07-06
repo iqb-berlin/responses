@@ -24,7 +24,7 @@ export interface Response {
 
 // eslint-disable-next-line max-len
 export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THAN' |
-'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'ELSE' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
+'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
 export const RuleMethodParameterCount = {
   MATCH: -1,
   MATCH_REGEX: -1,
@@ -35,7 +35,6 @@ export const RuleMethodParameterCount = {
   NUMERIC_MAX: 1,
   NUMERIC_MIN: 1,
   IS_EMPTY: 0,
-  ELSE: 0,
   IS_NULL: 0,
   IS_TRUE: 0,
   IS_FALSE: 0
@@ -44,9 +43,9 @@ export const numericRules = ['NUMERIC_MATCH', 'NUMERIC_LESS_THAN', 'NUMERIC_MAX'
   'NUMERIC_MIN', 'NUMERIC_RANGE'];
 export const booleanRules = ['IS_TRUE', 'IS_FALSE'];
 export type ProcessingParameterType = 'IGNORE_CASE' | 'IGNORE_ALL_SPACES' | 'IGNORE_DISPENSABLE_SPACES' | 'SORT_ARRAY' |
-'REPLAY_REQUIRED' | 'ATTACHMENT';
-export type CodeModelType = 'NONE' | 'CHOICE' | 'VALUE_LIST' | 'NUMBER' | 'MANUAL' | 'RULES_ONLY';
-export type CodeType = 'UNSET' | 'FULL_CREDIT' | 'PARTIAL_CREDIT' | 'NO_CREDIT';
+'REPLAY_REQUIRED' | 'TRANSFORM_DECIMAL_1000' | 'ATTACHMENT';
+export type CodeModelType = 'NONE' | 'RULES_ONLY' | 'MANUAL_ONLY';
+export type CodeType = 'UNSET' | 'FULL_CREDIT' | 'PARTIAL_CREDIT' | 'NO_CREDIT' | 'RESIDUAL' | 'RESIDUAL_AUTO';
 export type SourceType = 'BASE' | 'COPY_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE' | 'UNIQUE_VALUES' | 'SOLVER';
 export type SourceProcessingType = 'TO_LOWER_CASE' | 'TO_NUMBER' | 'REMOVE_ALL_SPACES' | 'REMOVE_DISPENSABLE_SPACES' |
 'TAKE_DISPLAYED_AS_VALUE_CHANGED' | 'TAKE_EMPTY_AS_VALID' | 'SORT';
