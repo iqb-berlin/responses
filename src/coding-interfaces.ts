@@ -43,7 +43,7 @@ export const numericRules = ['NUMERIC_MATCH', 'NUMERIC_LESS_THAN', 'NUMERIC_MAX'
   'NUMERIC_MIN', 'NUMERIC_RANGE'];
 export const booleanRules = ['IS_TRUE', 'IS_FALSE'];
 export type ProcessingParameterType = 'IGNORE_CASE' | 'IGNORE_ALL_SPACES' | 'IGNORE_DISPENSABLE_SPACES' | 'SORT_ARRAY' |
-'REPLAY_REQUIRED' | 'TRANSFORM_DECIMAL_1000' | 'ATTACHMENT';
+'REPLAY_REQUIRED' | 'ATTACHMENT';
 export type CodeModelType = 'NONE' | 'RULES_ONLY' | 'MANUAL_ONLY';
 export type CodeType = 'UNSET' | 'FULL_CREDIT' | 'PARTIAL_CREDIT' | 'NO_CREDIT' | 'RESIDUAL' | 'RESIDUAL_AUTO';
 export type SourceType = 'BASE' | 'COPY_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE' | 'UNIQUE_VALUES' | 'SOLVER';

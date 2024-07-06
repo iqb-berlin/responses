@@ -6,7 +6,6 @@
 * neue Property `version`; daher ist das gesamte Coding Scheme nicht mehr ein Array, sondern ein Objekt!
 * neue Werte für code `type`: `RESIDUAL`, `RESIDUAL_AUTO`; ersetzt `ELSE`-Regel
 * `ELSE`-Regel entfernt
-* neuer `processing` value `TRANSFORM_DECIMAL_1000` (Umformung Dezimalpunkt)
 * codingModel ist jetzt beschränkt auf `NONE`, `RULES_ONLY` und `MANUAL_ONLY`
 
 ### 2.2
