@@ -557,20 +557,6 @@ export class CodingScheme {
         hasManualInstruction: !!c.manualInstruction,
         codes: c.codes.map(code => ToTextFactory.codeAsText(code))
       };
-      const allScores = newCodingText.codes.map(ct => ct.score);
-      const maxScore = Math.max(...allScores);
-      const minScore = Math.min(...allScores);
-      if (minScore < maxScore) {
-        newCodingText.codes.forEach(code => {
-          if (code.score === maxScore) {
-            code.scoreLabel = 'RICHTIG';
-          } else if (code.score === minScore) {
-            code.scoreLabel = 'FALSCH';
-          } else {
-            code.scoreLabel = 'teilw. RICHTIG';
-          }
-        });
-      }
       returnTexts.push(newCodingText);
     });
     return returnTexts;

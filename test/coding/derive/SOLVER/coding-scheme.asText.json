@@ -7,18 +7,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 1,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '111'"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 2,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '222'"
@@ -34,18 +32,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 100,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '333'"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 5,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '444'"
@@ -61,18 +57,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 7,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '555'"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 2,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '666'"
@@ -104,18 +98,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 7,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit 'true'"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 2,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit 'false'"

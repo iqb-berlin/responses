@@ -7,18 +7,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 1,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '2' - F1"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 2,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '3' - F1"
@@ -34,18 +32,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 1,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit 'kg' - F2"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 2,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '322' - F2"
@@ -61,18 +57,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 7,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit 'KG' - F2"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 2,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '20' - F2"

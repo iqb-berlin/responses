@@ -39,10 +39,19 @@ const CODE_RULE_TEXT = {
   NUMERIC_MAX: 'Wert ist maximal als',
   NUMERIC_MIN: 'Wert ist mindestens',
   IS_EMPTY: 'Leerer Wert',
-  ELSE: 'Alle anderen Antworten',
   IS_NULL: 'Wert ist NULL',
   IS_TRUE: 'Wert ist WAHR',
   IS_FALSE: 'Wert ist FALSCH'
+};
+
+const CODE_LABEL_BY_TYPE = {
+  UNSET: '-',
+  FULL_CREDIT: 'richtig',
+  PARTIAL_CREDIT: 'teilweise richtig',
+  NO_CREDIT: 'falsch',
+  TO_CHECK: 'zu prüfen',
+  RESIDUAL: 'falsch',
+  RESIDUAL_AUTO: 'falsch'
 };
 
 export abstract class ToTextFactory {
@@ -158,10 +167,9 @@ export abstract class ToTextFactory {
 
   static codeAsText(code: CodeData): CodeAsText {
     return <CodeAsText>{
-      code: code.id === null ? 'null' : code.id.toString(10),
+      id: code.id === null ? 'null' : code.id.toString(10),
       score: code.score,
-      scoreLabel: '',
-      label: code.label,
+      label: code.type === 'UNSET' ? code.label : CODE_LABEL_BY_TYPE[code.type],
       ruleSetOperatorAnd: code.ruleSetOperatorAnd,
       hasManualInstruction: !!code.manualInstruction,
       ruleSetDescriptions: code.ruleSets.map((rs, i) => {

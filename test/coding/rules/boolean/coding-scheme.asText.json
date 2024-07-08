@@ -7,18 +7,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 1,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Wert ist WAHR"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 2,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Wert ist FALSCH"
@@ -34,18 +32,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 100,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Wert ist FALSCH"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 5,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Wert ist WAHR"
@@ -61,18 +57,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 7,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Wert ist FALSCH"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 2,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Wert ist WAHR"

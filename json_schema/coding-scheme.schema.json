@@ -137,6 +137,7 @@
                     "UNSET",
                     "FULL_CREDIT",
                     "PARTIAL_CREDIT",
+                    "TO_CHECK",
                     "NO_CREDIT",
                     "RESIDUAL",
                     "RESIDUAL_AUTO"

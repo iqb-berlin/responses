@@ -7,18 +7,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 1,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '2' (A2)"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 2,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '3' (A2)"
@@ -34,18 +32,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 1,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '2' (A2)"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 2,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '3' (A2)"
@@ -61,18 +57,16 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
+        "id": "1",
         "score": 7,
-        "scoreLabel": "RICHTIG",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '10' (A S)"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 2,
-        "scoreLabel": "FALSCH",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '20' (A S)"

@@ -7,17 +7,15 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
-        "scoreLabel": "",
+        "id": "1",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '111'"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 0,
-        "scoreLabel": "",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '222'"
@@ -33,16 +31,14 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
-        "scoreLabel": "",
+        "id": "1",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '333'"
         ]
       },
       {
-        "code": "2",
-        "scoreLabel": "",
+        "id": "2",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '444'"
@@ -58,17 +54,15 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
-        "scoreLabel": "",
+        "id": "1",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '555'"
         ]
       },
       {
-        "code": "2",
+        "id": "2",
         "score": 1,
-        "scoreLabel": "",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '666'"
@@ -84,16 +78,14 @@
     "hasManualInstruction": false,
     "codes": [
       {
-        "code": "1",
-        "scoreLabel": "",
+        "id": "1",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '1'"
         ]
       },
       {
-        "code": "2",
-        "scoreLabel": "",
+        "id": "2",
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
           "Übereinstimmung (Zahl/Text) mit '2'"
