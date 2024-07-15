@@ -186,7 +186,7 @@ export abstract class ToTextFactory {
             case 'MATCH_REGEX':
               if (r.parameters && r.parameters[0] && typeof r.parameters[0] === 'string') {
                 if (mode === 'SIMPLE') {
-                  if (r.method === 'MATCH') description += r.parameters[0].replace(/\\n/g, '\nODER\n');
+                  if (r.method === 'MATCH') description += r.parameters[0].replace(/[\r\n]/g, '\nODER\n');
                   // MATCH_REGEX will be ignored!
                 } else {
                   description += `${CODE_RULE_TEXT[r.method]} '${r.parameters[0].replace('\n', '\', \'')}'`;
