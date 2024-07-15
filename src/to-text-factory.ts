@@ -1,6 +1,6 @@
 import {
   CodeAsText,
-  CodeData,
+  CodeData, CodingToTextMode,
   DeriveConcatDelimiter,
   ProcessingParameterType,
   SourceType,
@@ -42,6 +42,16 @@ const CODE_RULE_TEXT = {
   IS_NULL: 'Wert ist NULL',
   IS_TRUE: 'Wert ist WAHR',
   IS_FALSE: 'Wert ist FALSCH'
+};
+
+const CODE_TYPE_LABEL = {
+  UNSET: '',
+  FULL_CREDIT: 'richtig',
+  PARTIAL_CREDIT: 'teilweise richtig',
+  NO_CREDIT: 'falsch',
+  TO_CHECK: 'zu prüfen',
+  RESIDUAL: 'falsch',
+  RESIDUAL_AUTO: 'falsch'
 };
 
 const CODE_LABEL_BY_TYPE = {
@@ -127,11 +137,11 @@ export abstract class ToTextFactory {
     return returnText;
   }
 
-  static processingAsText(processings: ProcessingParameterType[], fragmenting?: string): string {
+  static processingAsText(processing: ProcessingParameterType[], fragmenting?: string): string {
     let returnText = '';
-    if (processings && processings.length > 0) {
+    if (processing && processing.length > 0) {
       returnText = '';
-      processings.forEach((t, i) => {
+      processing.forEach((t, i) => {
         switch (t) {
           case 'REPLAY_REQUIRED':
             returnText += `${i > 0 ? ', ' : ''
@@ -160,12 +170,13 @@ export abstract class ToTextFactory {
     if (fragmenting) {
       if (returnText.length > 0) returnText += '; ';
       // eslint-disable-next-line max-len
-      returnText += `Es wurde ein Ausdruck festgelegt, mit dem Teile der Antwort vor der Kodierung extrahiert werden (Fragmentierung): '${fragmenting}'`;
+      returnText += `Es wurde ein Ausdruck festgelegt, mit dem Teile der Antwort
+        vor der Kodierung extrahiert werden (Fragmentierung): '${fragmenting}'`;
     }
     return returnText;
   }
 
-  static codeAsText(code: CodeData): CodeAsText {
+  static codeAsText(code: CodeData, mode: CodingToTextMode = 'EXTENDED'): CodeAsText {
     return <CodeAsText>{
       id: code.id === null ? 'null' : code.id.toString(10),
       score: code.score,
@@ -173,17 +184,22 @@ export abstract class ToTextFactory {
       ruleSetOperatorAnd: code.ruleSetOperatorAnd,
       hasManualInstruction: !!code.manualInstruction,
       ruleSetDescriptions: code.ruleSets.map((rs, i) => {
-        let description = code.ruleSets.length > 1 ? `Regelset ${i + 1}: ` : '';
-        if (!rs.rules || rs.rules.length === 0) return `${description}Keine Regeln definiert.`;
+        let description = (code.ruleSets.length > 1) && mode === 'EXTENDED' ? `Regelset ${i + 1}: ` : '';
+        if ((!rs.rules || rs.rules.length === 0) && mode === 'EXTENDED') return `${description}Keine Regeln definiert.`;
         if (['RESIDUAL_AUTO', 'RESIDUAL'].indexOf(code.type) >= 0) return `${description}Alle anderen Antworten`;
 
         rs.rules.forEach((r, j) => {
-          if (rs.rules.length > 1) description += `${j > 0 ? '; ' : ''}(R${j + 1}) `;
+          if (rs.rules.length > 1) description += mode === 'EXTENDED' ? `${j > 0 ? '; ' : ''}(R${j + 1}) ` : '';
           switch (r.method) {
             case 'MATCH':
             case 'MATCH_REGEX':
               if (r.parameters && r.parameters[0] && typeof r.parameters[0] === 'string') {
-                description += `${CODE_RULE_TEXT[r.method]} '${r.parameters[0].replace('\n', '\', \'')}'`;
+                if (mode === 'SIMPLE') {
+                  if (r.method === 'MATCH') description += r.parameters[0].replace('\n', '\nODER\n');
+                  // MATCH_REGEX will be ignored!
+                } else {
+                  description += `${CODE_RULE_TEXT[r.method]} '${r.parameters[0].replace('\n', '\', \'')}'`;
+                }
               } else {
                 description += 'FALSCHE PARAMETERZAHL/TYPFEHLER';
               }
@@ -229,8 +245,10 @@ export abstract class ToTextFactory {
               }Problem: unbekannte Regel '${r.method}'`;
           }
           if (typeof r.fragment === 'number' && r.fragment >= 0) description += ` - F${r.fragment + 1}`;
+          if (mode === 'SIMPLE' && rs.rules.length > 1) description += `\n\n${rs.ruleOperatorAnd ? 'UND' : 'ODER'}\n\n`;
         });
-        const connectText = rs.rules.length > 1 ? `${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung` : '';
+        const connectText = (rs.rules.length > 1) && mode === 'EXTENDED' ?
+          `${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung` : '';
         let arrayPosText = '';
         if (typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >= 0) {
           arrayPosText = `A${rs.valueArrayPos + 1}`;

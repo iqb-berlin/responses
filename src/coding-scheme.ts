@@ -13,7 +13,7 @@ import {
   responseStatesInOrder,
   validStatesForDerivingValue,
   validStatesForDerivingCode,
-  validStatesToStartDeriving, deriveMethodsFromValue, statesToReplaceByDeriveError
+  validStatesToStartDeriving, deriveMethodsFromValue, statesToReplaceByDeriveError, CodingToTextMode
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';
@@ -546,16 +546,17 @@ export class CodingScheme {
     return problems;
   }
 
-  asText(): CodingAsText[] {
+  asText(mode: CodingToTextMode = 'EXTENDED'): CodingAsText[] {
     const returnTexts: CodingAsText[] = [];
     this.variableCodings.forEach(c => {
+
       const newCodingText: CodingAsText = {
-        id: c.id,
+        id: c.alias || c.id,
         label: c.label,
         source: ToTextFactory.sourceAsText(c.id, c.sourceType, c.deriveSources, c.sourceParameters),
         processing: ToTextFactory.processingAsText(c.processing, c.fragmenting),
         hasManualInstruction: !!c.manualInstruction,
-        codes: c.codes.map(code => ToTextFactory.codeAsText(code))
+        codes: c.codes.map(code => ToTextFactory.codeAsText(code, mode))
       };
       returnTexts.push(newCodingText);
     });

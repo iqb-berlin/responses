@@ -45,7 +45,8 @@ export const booleanRules = ['IS_TRUE', 'IS_FALSE'];
 export type ProcessingParameterType = 'IGNORE_CASE' | 'IGNORE_ALL_SPACES' | 'IGNORE_DISPENSABLE_SPACES' | 'SORT_ARRAY' |
 'REPLAY_REQUIRED' | 'ATTACHMENT';
 export type CodeModelType = 'NONE' | 'RULES_ONLY' | 'MANUAL_ONLY';
-export type CodeType = 'UNSET' | 'FULL_CREDIT' | 'PARTIAL_CREDIT' | 'NO_CREDIT' | 'TO_CHECK' | 'RESIDUAL' | 'RESIDUAL_AUTO';
+export type CodeType = 'UNSET' | 'FULL_CREDIT' | 'PARTIAL_CREDIT' |
+'NO_CREDIT' | 'TO_CHECK' | 'RESIDUAL' | 'RESIDUAL_AUTO';
 export type SourceType = 'BASE' | 'COPY_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE' | 'UNIQUE_VALUES' | 'SOLVER';
 export type SourceProcessingType = 'TO_LOWER_CASE' | 'TO_NUMBER' | 'REMOVE_ALL_SPACES' | 'REMOVE_DISPENSABLE_SPACES' |
 'TAKE_DISPLAYED_AS_VALUE_CHANGED' | 'TAKE_EMPTY_AS_VALID' | 'SORT';
@@ -143,6 +144,9 @@ export interface CodingAsText {
 
 export interface VariableInfoShort {
   id: string,
+  alias: string,
   label: string,
   page: string
 }
+
+export type CodingToTextMode = 'SIMPLE' | 'EXTENDED';
