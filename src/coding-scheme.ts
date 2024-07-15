@@ -42,7 +42,7 @@ export class CodingScheme {
         // codingSchemeMinorVersion = Number.parseInt(versionMatches[2], 10);
       }
     }
-    const givenCodings = codingSchemeMajorVersion < 3 ? transformedScheme : transformedScheme.variables;
+    const givenCodings = Array.isArray(transformedScheme) ? transformedScheme : transformedScheme.variableCodings || [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     givenCodings.forEach((c: any) => {
       if (codingSchemeMajorVersion < 3) {
