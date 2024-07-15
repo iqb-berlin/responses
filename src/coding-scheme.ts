@@ -549,7 +549,6 @@ export class CodingScheme {
   asText(mode: CodingToTextMode = 'EXTENDED'): CodingAsText[] {
     const returnTexts: CodingAsText[] = [];
     this.variableCodings.forEach(c => {
-
       const newCodingText: CodingAsText = {
         id: c.alias || c.id,
         label: c.label,

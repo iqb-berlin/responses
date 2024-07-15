@@ -44,16 +44,6 @@ const CODE_RULE_TEXT = {
   IS_FALSE: 'Wert ist FALSCH'
 };
 
-const CODE_TYPE_LABEL = {
-  UNSET: '',
-  FULL_CREDIT: 'richtig',
-  PARTIAL_CREDIT: 'teilweise richtig',
-  NO_CREDIT: 'falsch',
-  TO_CHECK: 'zu prüfen',
-  RESIDUAL: 'falsch',
-  RESIDUAL_AUTO: 'falsch'
-};
-
 const CODE_LABEL_BY_TYPE = {
   UNSET: '-',
   FULL_CREDIT: 'richtig',
