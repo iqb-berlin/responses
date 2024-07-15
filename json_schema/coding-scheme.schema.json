@@ -11,7 +11,7 @@
       "pattern": "^\\d+\\.\\d+$",
       "examples": ["3.5", "4.10"]
     },
-    "variables": {
+    "variableCodings": {
       "type": "array",
       "items": {
         "type": "object",
