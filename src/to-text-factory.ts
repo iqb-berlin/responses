@@ -167,10 +167,11 @@ export abstract class ToTextFactory {
   }
 
   static codeAsText(code: CodeData, mode: CodingToTextMode = 'EXTENDED'): CodeAsText {
+    const codeLabel = code.type === 'UNSET' ? code.label : CODE_LABEL_BY_TYPE[code.type];
     return <CodeAsText>{
       id: code.id === null ? 'null' : code.id.toString(10),
       score: code.score,
-      label: code.type === 'UNSET' ? code.label : CODE_LABEL_BY_TYPE[code.type],
+      label: mode === 'SIMPLE' && code.type !== 'UNSET' ? codeLabel.toUpperCase() : codeLabel,
       ruleSetOperatorAnd: code.ruleSetOperatorAnd,
       hasManualInstruction: !!code.manualInstruction,
       ruleSetDescriptions: code.ruleSets.map((rs, i) => {
@@ -185,7 +186,7 @@ export abstract class ToTextFactory {
             case 'MATCH_REGEX':
               if (r.parameters && r.parameters[0] && typeof r.parameters[0] === 'string') {
                 if (mode === 'SIMPLE') {
-                  if (r.method === 'MATCH') description += r.parameters[0].replace('\n', '\nODER\n');
+                  if (r.method === 'MATCH') description += r.parameters[0].replace(/\\n/g, '\nODER\n');
                   // MATCH_REGEX will be ignored!
                 } else {
                   description += `${CODE_RULE_TEXT[r.method]} '${r.parameters[0].replace('\n', '\', \'')}'`;
@@ -235,7 +236,9 @@ export abstract class ToTextFactory {
               }Problem: unbekannte Regel '${r.method}'`;
           }
           if (typeof r.fragment === 'number' && r.fragment >= 0) description += ` - F${r.fragment + 1}`;
-          if (mode === 'SIMPLE' && rs.rules.length > 1) description += `\n\n${rs.ruleOperatorAnd ? 'UND' : 'ODER'}\n\n`;
+          if (mode === 'SIMPLE' && rs.rules.length > 1 && rs.rules.length > j + 1) {
+            description += `\n\n${rs.ruleOperatorAnd ? 'UND' : 'ODER'}\n\n`;
+          }
         });
         const connectText = (rs.rules.length > 1) && mode === 'EXTENDED' ?
           `${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung` : '';
