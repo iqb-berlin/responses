@@ -237,7 +237,8 @@ export abstract class ToTextFactory {
           }
           if (typeof r.fragment === 'number' && r.fragment >= 0) description += ` - F${r.fragment + 1}`;
           if (mode === 'SIMPLE' && rs.rules.length > 1 && rs.rules.length > j + 1) {
-            description += `\n\n${rs.ruleOperatorAnd ? 'UND' : 'ODER'}\n\n`;
+            const nextRule = rs.rules[j + 1];
+            if (nextRule.method !== 'MATCH_REGEX') description += `\n\n${rs.ruleOperatorAnd ? 'UND' : 'ODER'}\n\n`;
           }
         });
         const connectText = (rs.rules.length > 1) && mode === 'EXTENDED' ?
