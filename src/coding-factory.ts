@@ -357,7 +357,7 @@ export abstract class CodingFactory {
   private static isMatchRuleSet(valueToCheck: TransformedResponseValueType, ruleSet: RuleSet,
                                 isValueArray: boolean, codingProcessing: ProcessingParameterType[]): boolean {
     let valueMemberToCheck;
-    if (ruleSet.valueArrayPos && isValueArray && Array.isArray(valueToCheck)) {
+    if (isValueArray && Array.isArray(valueToCheck)) {
       if (typeof ruleSet.valueArrayPos === 'number') {
         if (ruleSet.valueArrayPos >= 0 && ruleSet.valueArrayPos < valueToCheck.length) {
           valueMemberToCheck = valueToCheck[ruleSet.valueArrayPos];
