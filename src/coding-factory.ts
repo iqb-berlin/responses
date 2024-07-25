@@ -140,7 +140,7 @@ export abstract class CodingFactory {
     value: ResponseValueSingleType,
     processing: (ProcessingParameterType | SourceProcessingType)[] = []): string | null {
     if (typeof value === 'number') return value.toString(10);
-    if (typeof value === 'boolean') return (value as boolean) ? 'true' : 'false';
+    if (typeof value === 'boolean') return value ? 'true' : 'false';
     if (typeof value === 'string') {
       let newString = value as string;
       if (processing.includes('REMOVE_ALL_SPACES') || processing.includes('IGNORE_ALL_SPACES')) {
