@@ -96,13 +96,13 @@ export abstract class CodingFactory {
     return !!inList;
   }
 
-  private static findStringRegEx(value: string, parameters: string[] = []): boolean {
+  private static findStringRegEx(value: string, parameters: string[], addCaseIgnoreFlag: boolean): boolean {
     const allStrings: string[] = [];
     parameters.forEach(p => {
       allStrings.push(...p.split(/\r?\n/));
     });
     const trueCases = allStrings.map((s: string): boolean => {
-      const regEx = new RegExp(s);
+      const regEx = addCaseIgnoreFlag ? new RegExp(s, 'i') : new RegExp(s);
       return !!regEx.exec(value);
     }).filter(found => found);
     return trueCases.length > 0;
@@ -215,8 +215,7 @@ export abstract class CodingFactory {
 
   static isEmptyValue(value: ResponseValueType): boolean {
     if (value === '') return true;
-    if (Array.isArray(value) && value.length === 0) return true;
-    return false;
+    return Array.isArray(value) && value.length === 0;
   }
 
   static checkOneValue(valueToCheck: ResponseValueSingleType,
@@ -253,7 +252,8 @@ export abstract class CodingFactory {
             // eslint-disable-next-line no-param-reassign
             valueToCheck = valueToCheck.toString();
           }
-          returnValue = this.findStringRegEx(valueToCheck, rule.parameters);
+          returnValue = this.findStringRegEx(
+              valueToCheck, rule.parameters || [], codingProcessing.includes('IGNORE_CASE'));
         }
         break;
       case 'NUMERIC_MATCH':
