@@ -213,6 +213,12 @@ export abstract class CodingFactory {
     return returnValue;
   }
 
+  static isEmptyValue(value: ResponseValueType): boolean {
+    if (value === '') return true;
+    if (Array.isArray(value) && value.length === 0) return true;
+    return false;
+  }
+
   static checkOneValue(valueToCheck: ResponseValueSingleType,
                        rule: CodingRule, codingProcessing:
                        ProcessingParameterType[]): boolean {
@@ -224,7 +230,7 @@ export abstract class CodingFactory {
         if (valueToCheck === null) returnValue = true;
         break;
       case 'IS_EMPTY':
-        if (valueToCheck === '') returnValue = true;
+        if (this.isEmptyValue(valueToCheck)) returnValue = true;
         break;
       case 'MATCH':
         if (valueToCheck !== null && valueToCheck !== '') {

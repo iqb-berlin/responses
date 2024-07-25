@@ -362,7 +362,7 @@ export class CodingScheme {
     });
 
     // set invalid if value is empty
-    newResponses.filter(r => r.status === 'VALUE_CHANGED' && r.value === '').forEach(r => {
+    newResponses.filter(r => r.status === 'VALUE_CHANGED' && CodingFactory.isEmptyValue(r.value)).forEach(r => {
       const myCoding = this.variableCodings.find(c => c.id === r.id);
       if (myCoding && myCoding.sourceType === 'BASE' && !(myCoding.sourceParameters.processing &&
           myCoding.sourceParameters.processing.includes('TAKE_EMPTY_AS_VALID'))) {
