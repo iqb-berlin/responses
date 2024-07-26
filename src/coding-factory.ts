@@ -126,7 +126,7 @@ export abstract class CodingFactory {
     if (typeof value === 'number') return value;
     if (typeof value === 'boolean') return (value as boolean) ? 1 : 0;
     if (typeof value === 'string') {
-      let normalizedString = (value as string).replace('.', '');
+      let normalizedString = value.length < 6 ? (value as string).replace('.', ',') : value;
       normalizedString = normalizedString.replace(/\s/g, '');
       normalizedString = normalizedString.replace(',', '.');
       const valueAsString = Number.parseFloat(normalizedString);
