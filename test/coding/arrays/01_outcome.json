@@ -34,5 +34,10 @@
     ],
     "code": 1,
     "score": 7
+  },
+  {
+    "id": "b4",
+    "value": null,
+    "status": "UNSET"
   }
 ]
