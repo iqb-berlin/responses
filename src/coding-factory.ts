@@ -394,6 +394,18 @@ export abstract class CodingFactory {
       }
       ruleIndex += 1;
     }
+    if (oneMatch && isValueArray && Array.isArray(valueToCheck) && valueToCheck.length > 1 && ruleSet.valueArrayPos === 'ANY') {
+      // check whether ALL values in array match
+      let valueIndex = 0;
+      while (oneMatch && valueIndex < valueToCheck.length) {
+        let ruleIndex = 0;
+        while (oneMatch && ruleIndex < ruleSet.rules.length) {
+          oneMatch = this.isMatchRule(valueToCheck[valueIndex], ruleSet.rules[ruleIndex], false, codingProcessing);
+          ruleIndex += 1;
+        }
+        valueIndex += 1;
+      }
+    }
     return oneMatch && (!ruleSet.ruleOperatorAnd || !oneMisMatch);
   }
 

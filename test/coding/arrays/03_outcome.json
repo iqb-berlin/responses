@@ -1,13 +1,11 @@
 [
   {
     "id": "b4",
-    "status": "CODING_COMPLETE",
+    "status": "CODING_INCOMPLETE",
     "value": [
       "20",
       "9"
-    ],
-    "code": 2,
-    "score": 2
+    ]
   },
   {
     "id": "b1",
