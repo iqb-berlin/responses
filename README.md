@@ -9,6 +9,26 @@ This package contains of type definitions for processing assessment data. Additi
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 3.1
+
+* neuer Wert für Property `valueArrayPos`: `ANY_OPEN`; dann wird - im Gegensatz zu `ANY` - erlaubt, dass Werte im Array sind, für die der Regelsatz nicht zutrifft
+* Funktionalität für `valueArrayPos` - `ANY_OPEN` und `ANY` hinzugefügt bzw. korrigiert
+* `IGNORE_CASE` führt jetzt zum `i`-Flag bei RegEx
+* ein Werte-Array mit Länge 0 wird jetzt auch als 'leer' klassifiziert
+
+### 3.0
+
+* neue Property `version`; daher ist das gesamte Coding Scheme nicht mehr ein Array, sondern ein Objekt!
+* neue Werte für code `type`: `RESIDUAL`, `RESIDUAL_AUTO`; ersetzt `ELSE`-Regel
+* `ELSE`-Regel entfernt
+* codingModel ist jetzt beschränkt auf `NONE`, `RULES_ONLY` und `MANUAL_ONLY`
+
+### 2.2
+
+* Neuer Wert für `codeModel`: `RULES_ONLY` - Ausblenden der Controls für die manuelle Kodierung
+* Variable erhält neben der ID einen `alias`
+* Code erhält einen `type`, um die Dokumentation zu erleichtern und die UI zu vereinfachen. Werte `UNSET`, `FULL_CREDIT`, `PARTIAL_CREDIT`, `NO_CREDIT` - `label` wurde hierfür immer missbraucht
+
 ### 2.1
 
 * Neue Funktion `getVariableDependencyTree()` im Kodierschema, um den Graph der Ableitungen abzubilden
