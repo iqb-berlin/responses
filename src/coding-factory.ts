@@ -117,7 +117,9 @@ export abstract class CodingFactory {
     const valueAsNumber = this.getValueAsNumber(value);
     if (valueAsNumber !== null) {
       const firstMatch = allCompareValues.find(v => v === valueAsNumber);
-      return !!firstMatch;
+      if(firstMatch || firstMatch === 0){
+        return true;
+      }
     }
     return false;
   }
