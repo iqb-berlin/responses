@@ -380,7 +380,7 @@ export abstract class CodingFactory {
     let oneMatch = false;
     let oneMisMatch = false;
     let ruleIndex = 0;
-    while ((!ruleSet.ruleOperatorAnd || ruleSet.rules.length < 2) && !oneMatch && ruleIndex < ruleSet.rules.length) {
+    while ( !oneMatch && ruleIndex < ruleSet.rules.length) {
       let isMatch;
       if (typeof valueMemberToCheck !== 'undefined') {
         isMatch = this.isMatchRule(valueMemberToCheck, ruleSet.rules[ruleIndex], false, codingProcessing);
@@ -449,7 +449,7 @@ export abstract class CodingFactory {
                 let oneMatch = false;
                 let oneMisMatch = false;
                 let ruleSetIndex = 0;
-                while ((!c.ruleSetOperatorAnd || c.ruleSets.length < 2) &&
+                while (
                         !oneMatch && ruleSetIndex < c.ruleSets.length) {
                   // eslint-disable-next-line max-len
                   if (CodingFactory.isMatchRuleSet(valueToCheck, c.ruleSets[ruleSetIndex], Array.isArray(newResponse.value), coding.processing || [])) {
