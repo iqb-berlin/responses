@@ -217,7 +217,8 @@ export abstract class CodingFactory {
 
   static isEmptyValue(value: ResponseValueType): boolean {
     if (value === '') return true;
-    return Array.isArray(value) && value.length === 0;
+    const isArray = Array.isArray(value);
+    return isArray && value.length === 0;
   }
 
   static checkOneValue(valueToCheck: ResponseValueSingleType,
@@ -342,6 +343,11 @@ export abstract class CodingFactory {
             )) { oneMatch = true; }
         } else if (CodingFactory.checkOneValue(valueMemberToCheck, rule, codingProcessing)) oneMatch = true;
         valueIndex += 1;
+      }
+      if (valueToCheck.length === 0) {
+        if(CodingFactory.checkOneValue('', rule, codingProcessing)){
+          oneMatch = true;
+        }
       }
       return oneMatch;
     }
