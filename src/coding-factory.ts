@@ -117,7 +117,7 @@ export abstract class CodingFactory {
     const valueAsNumber = this.getValueAsNumber(value);
     if (valueAsNumber !== null) {
       const firstMatch = allCompareValues.find(v => v === valueAsNumber);
-      if(firstMatch || firstMatch === 0){
+      if (firstMatch || firstMatch === 0) {
         return true;
       }
     }
@@ -256,12 +256,12 @@ export abstract class CodingFactory {
             valueToCheck = valueToCheck.toString();
           }
           returnValue = this.findStringRegEx(
-              valueToCheck, rule.parameters || [], codingProcessing.includes('IGNORE_CASE'));
+            valueToCheck, rule.parameters || [], codingProcessing.includes('IGNORE_CASE'));
         }
         break;
       case 'NUMERIC_MATCH':
         // eslint-disable-next-line max-len
-        if (valueToCheck !== null && valueToCheck !== '') returnValue = this.findNumericValue(valueToCheck, rule.parameters);
+        if (valueToCheck !== null && valueToCheck !== '') { returnValue = this.findNumericValue(valueToCheck, rule.parameters); }
         break;
       case 'NUMERIC_LESS_THAN':
         if (valueToCheck !== null && valueToCheck !== '') {
@@ -345,7 +345,7 @@ export abstract class CodingFactory {
         valueIndex += 1;
       }
       if (valueToCheck.length === 0) {
-        if(CodingFactory.checkOneValue('', rule, codingProcessing)){
+        if (CodingFactory.checkOneValue('', rule, codingProcessing)) {
           oneMatch = true;
         }
       }
@@ -388,7 +388,8 @@ export abstract class CodingFactory {
     let oneMatch = false;
     let oneMisMatch = false;
     let ruleIndex = 0;
-    while ( !oneMatch && ruleIndex < ruleSet.rules.length) {
+    let matchAll = false;
+    while (!oneMatch && ruleIndex < ruleSet.rules.length) {
       let isMatch;
       if (typeof valueMemberToCheck !== 'undefined') {
         isMatch = this.isMatchRule(valueMemberToCheck, ruleSet.rules[ruleIndex], false, codingProcessing);
@@ -396,13 +397,20 @@ export abstract class CodingFactory {
         isMatch = this.isMatchRule(valueToCheck, ruleSet.rules[ruleIndex], isValueArray, codingProcessing);
       }
       if (isMatch) {
-        oneMatch = true;
+        if (!ruleSet.ruleOperatorAnd) {
+          oneMatch = true;
+        } else {
+          matchAll = true;
+        }
       } else {
         oneMisMatch = true;
       }
       ruleIndex += 1;
     }
-    if (oneMatch && isValueArray && Array.isArray(valueToCheck) && valueToCheck.length > 1 && ruleSet.valueArrayPos === 'ANY') {
+    if (oneMatch && isValueArray &&
+        Array.isArray(valueToCheck) &&
+        valueToCheck.length > 1 &&
+        ruleSet.valueArrayPos === 'ANY') {
       // check whether ALL values in array match
       let valueIndex = 0;
       while (oneMatch && valueIndex < valueToCheck.length) {
@@ -414,7 +422,7 @@ export abstract class CodingFactory {
         valueIndex += 1;
       }
     }
-    return oneMatch && (!ruleSet.ruleOperatorAnd || !oneMisMatch);
+    return ((oneMatch) || (matchAll && !oneMisMatch));
   }
 
   static code(response: Response, coding: VariableCodingData): Response {
@@ -457,17 +465,29 @@ export abstract class CodingFactory {
                 let oneMatch = false;
                 let oneMisMatch = false;
                 let ruleSetIndex = 0;
-                while (
-                        !oneMatch && ruleSetIndex < c.ruleSets.length) {
-                  // eslint-disable-next-line max-len
-                  if (CodingFactory.isMatchRuleSet(valueToCheck, c.ruleSets[ruleSetIndex], Array.isArray(newResponse.value), coding.processing || [])) {
-                    oneMatch = true;
+                let matchAll = false;
+                while (!oneMatch && ruleSetIndex < c.ruleSets.length) {
+                  if (!c.ruleSetOperatorAnd) {
+                    if (CodingFactory.isMatchRuleSet(valueToCheck,
+                      c.ruleSets[ruleSetIndex],
+                      Array.isArray(newResponse.value),
+                      coding.processing || [])) {
+                      oneMatch = true;
+                    } else {
+                      oneMisMatch = true;
+                    }
+                  } else if (CodingFactory.isMatchRuleSet(valueToCheck,
+                    c.ruleSets[ruleSetIndex],
+                    Array.isArray(newResponse.value),
+                    coding.processing || [])) {
+                    matchAll = true;
                   } else {
                     oneMisMatch = true;
                   }
+
                   ruleSetIndex += 1;
                 }
-                if (oneMatch && (!c.ruleSetOperatorAnd || !oneMisMatch)) {
+                if ((oneMatch || matchAll) && (!oneMisMatch)) {
                   if (c.id === null) {
                     newResponse.status = 'INVALID';
                   } else {
