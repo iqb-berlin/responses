@@ -1,8 +1,8 @@
 {
   "variableCodings": [
     {
-      "id": "b2",
-      "alias": "b2",
+      "id": "b1",
+      "alias": "b1",
       "label": "",
       "sourceType": "BASE",
       "sourceParameters": { "solverExpression": "", "processing": [] },
@@ -40,8 +40,8 @@
       ]
     },
     {
-      "id": "b1",
-      "alias": "b1",
+      "id": "b2",
+      "alias": "b2",
       "label": "",
       "sourceType": "BASE",
       "sourceParameters": { "solverExpression": "", "processing": [] },
@@ -61,8 +61,8 @@
             {
               "ruleOperatorAnd": true,
               "rules": [
-                { "method": "MATCH", "parameters": ["1"] },
-                { "method": "MATCH", "parameters": ["1"] }
+                { "method": "MATCH", "parameters": ["3"] },
+                { "method": "MATCH", "parameters": ["4"] }
               ]
             }
           ],
