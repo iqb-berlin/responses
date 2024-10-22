@@ -2,11 +2,11 @@
   {
     "id": "b1",
     "status": "VALUE_CHANGED",
-    "value": "1"
+    "value": "2"
   },
   {
     "id": "b2",
     "status": "VALUE_CHANGED",
-    "value": "2"
+    "value": "3"
   }
 ]
