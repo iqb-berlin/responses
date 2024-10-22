@@ -38,14 +38,14 @@
               "ruleOperatorAnd": true,
               "valueArrayPos": 2,
               "rules": [
-                { "method": "MATCH", "parameters": ["01_3"] }
+                { "method": "MATCH", "parameters": ["01_5"] }
               ]
             },
             {
               "ruleOperatorAnd": true,
               "valueArrayPos": 3,
               "rules": [
-                { "method": "MATCH", "parameters": ["01_5"] }
+                { "method": "MATCH", "parameters": ["01_3"] }
               ]
             },
             {
