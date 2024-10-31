@@ -125,6 +125,7 @@ export abstract class CodingFactory {
   }
 
   static getValueAsNumber(value: ResponseValueSingleType): number | null {
+    if (value === null || value === '') return 0;
     if (typeof value === 'number') return value;
     if (typeof value === 'boolean') return (value as boolean) ? 1 : 0;
     if (typeof value === 'string') {
@@ -258,8 +259,7 @@ export abstract class CodingFactory {
         }
         break;
       case 'NUMERIC_MATCH':
-        // eslint-disable-next-line max-len
-        if (valueToCheck !== null && valueToCheck !== '') { returnValue = this.findNumericValue(valueToCheck, rule.parameters); }
+        returnValue = this.findNumericValue(valueToCheck, rule.parameters);
         break;
       case 'NUMERIC_LESS_THAN':
         if (valueToCheck !== null && valueToCheck !== '') {
