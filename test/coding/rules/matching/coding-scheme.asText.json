@@ -47,6 +47,15 @@
           "Übereinstimmung (Zahl/Text) mit '444'"
         ]
       }
+    ,
+      {
+        "id": "0",
+        "score": 0,
+        "label": "falsch",
+        "ruleSetOperatorAnd": false,
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": []
+      }
     ]
   },
   {

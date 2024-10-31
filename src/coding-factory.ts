@@ -131,9 +131,7 @@ export abstract class CodingFactory {
       let normalizedString = value.length < 6 ? (value as string).replace('.', ',') : value;
       normalizedString = normalizedString.replace(/\s/g, '');
       normalizedString = normalizedString.replace(',', '.');
-      const valueAsString = Number.parseFloat(normalizedString);
-      if (Number.isNaN(valueAsString)) return null;
-      return valueAsString;
+      return Number.parseFloat(normalizedString);
     }
     return null;
   }

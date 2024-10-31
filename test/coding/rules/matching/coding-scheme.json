@@ -80,6 +80,15 @@
               ]
             }
           ]
+        },
+        {
+          "id": 0,
+          "type": "RESIDUAL_AUTO",
+          "label": "",
+          "score": 0,
+          "ruleSetOperatorAnd": false,
+          "ruleSets": [],
+          "manualInstruction": ""
         }
       ]
     },
@@ -121,6 +130,7 @@
             }
           ]
         }
+
       ]
     }
   ]
