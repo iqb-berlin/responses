@@ -63,7 +63,7 @@ export interface CodingRule {
 export interface RuleSet {
   ruleOperatorAnd: boolean,
   rules: CodingRule[],
-  valueArrayPos?: number | 'ANY' | 'ANY_OPEN' | 'SUM'
+  valueArrayPos?: number | 'ANY' | 'ANY_OPEN' | 'SUM' | 'LENGTH',
 }
 
 export interface CodeData {

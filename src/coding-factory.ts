@@ -381,6 +381,8 @@ export abstract class CodingFactory {
           }
           return this.getValueAsNumber(v) || 0;
         }).reduce((pv, cv) => pv + cv, 0);
+      } else if (ruleSet.valueArrayPos === 'LENGTH') {
+        valueMemberToCheck = valueToCheck.length;
       }
     }
     let oneMatch = false;
