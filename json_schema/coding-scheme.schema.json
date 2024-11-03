@@ -171,11 +171,12 @@
                           },
                           {
                             "type": "string",
-                            "description": "Refers to any position in the value array or to the sum of all array values.",
+                            "description": "Refers to any position in the value array, to the sum of all array values or the length of the value array.",
                             "enum": [
                               "ANY",
                               "ANY_OPEN",
-                              "SUM"
+                              "SUM",
+                              "LENGTH"
                             ]
                           }
                         ]

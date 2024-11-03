@@ -248,6 +248,8 @@ export abstract class ToTextFactory {
           arrayPosText = `A${rs.valueArrayPos + 1}`;
         } else if (rs.valueArrayPos === 'SUM') {
           arrayPosText = 'A S';
+        } else if (rs.valueArrayPos === 'LENGTH') {
+          arrayPosText = 'A L';
         } else if (rs.valueArrayPos === 'ANY_OPEN') {
           arrayPosText = 'A O';
         }

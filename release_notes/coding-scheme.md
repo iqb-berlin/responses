@@ -2,7 +2,7 @@
 ## Versionsänderungen der Datenstruktur
 
 ### 3.1
-
+* neuer Wert für Property `valueArrayPos`: `LENGTH`; Werte Array muss angebene Länge haben
 * neuer Wert für Property `valueArrayPos`: `ANY_OPEN`; dann wird - im Gegensatz zu `ANY` - erlaubt, dass Werte im Array sind, für die der Regelsatz nicht zutrifft
 * Funktionalität für `valueArrayPos` - `ANY_OPEN` und `ANY` hinzugefügt bzw. korrigiert
 * `IGNORE_CASE` führt jetzt zum `i`-Flag bei RegEx
