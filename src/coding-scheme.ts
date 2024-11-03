@@ -123,9 +123,7 @@ export class CodingScheme {
       givenCoding.codes.forEach((code: any) => {
         if (code.ruleSets) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const elseRule = code.ruleSets.find(
-            (rs: any) => !!rs.rules.find((r: any) => r.method === 'ELSE')
-          );
+          const elseRule = code.ruleSets.find((rs: any) => !!rs.rules.find((r: any) => r.method === 'ELSE'));
           if (elseRule) {
             newCoding.codes.push(<CodeData>{
               id: code.id,
@@ -162,9 +160,7 @@ export class CodingScheme {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  static checkVersion(
-    givenScheme: any
-  ): 'OK' | 'MAJOR_LESS' | 'MAJOR_GREATER' | 'MINOR_GREATER' {
+  static checkVersion(givenScheme: any): 'OK' | 'MAJOR_LESS' | 'MAJOR_GREATER' | 'MINOR_GREATER' {
     const transformedScheme =
       typeof givenScheme === 'string' ? JSON.parse(givenScheme) : givenScheme;
     let localCodingSchemeVersionMajor = 0;
@@ -490,7 +486,7 @@ export class CodingScheme {
       .filter(vc => vc.sourceType !== 'BASE')
       .forEach(c => {
         newResponses.forEach((r, index) => {
-          if (r.id === c.id) {
+          if (r.id === c.id && !r.code && !r.score) {
             newResponses.splice(index, 1);
           }
         });
