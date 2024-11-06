@@ -486,7 +486,7 @@ export class CodingScheme {
       .filter(vc => vc.sourceType !== 'BASE')
       .forEach(c => {
         newResponses.forEach((r, index) => {
-          if (r.id === (c.alias || c.id) && !r.code && !r.score) {
+          if (r.id === (c.alias || c.id) && (r.code === undefined) && (r.score === undefined)) {
             newResponses.splice(index, 1);
           }
         });

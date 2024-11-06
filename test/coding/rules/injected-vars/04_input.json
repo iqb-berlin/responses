@@ -5,8 +5,7 @@
   {
     "id": "d1",
     "value": "",
-    "status": "CODING_COMPLETE",
-    "code": 0,
-    "score": 0
+    "status": "CODING_ERROR",
+    "score": -97
   }
 ]
