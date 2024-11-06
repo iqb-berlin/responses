@@ -468,7 +468,7 @@ export class CodingScheme {
         r => r.status === 'VALUE_CHANGED' && CodingFactory.isEmptyValue(r.value)
       )
       .forEach(r => {
-        const myCoding = this.variableCodings.find(c => c.id === r.id);
+        const myCoding = this.variableCodings.find(c => (c.id) === r.id);
         if (
           myCoding &&
           myCoding.sourceType === 'BASE' &&
@@ -514,7 +514,7 @@ export class CodingScheme {
           });
         }
       }
-      const existingResponse = newResponses.find(r => r.id === c.id);
+      const existingResponse = newResponses.find(r => r.id === (c.alias || c.id));
       if (!existingResponse) {
         newResponses.push({
           id: c.id,
