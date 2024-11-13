@@ -24,8 +24,8 @@
       ]
     },
     {
-      "id": "b22",
-      "alias": "b2",
+      "id": "b2",
+      "alias": "b22",
       "label": "",
       "sourceType": "BASE",
       "sourceParameters": { "solverExpression": "", "processing": [] },

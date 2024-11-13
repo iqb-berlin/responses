@@ -581,7 +581,7 @@ export class CodingScheme {
     const problems: CodingSchemeProblem[] = [];
     const allDerivedVariableIds: string[] = this.variableCodings
       .filter(vc => vc.sourceType !== 'BASE')
-      .map(vc => vc.alias || vc.id);
+      .map(vc => vc.id);
     const allBaseVariableInfoIds = baseVariables.map(bv => bv.id);
     const allPossibleSourceIds = [
       ...allBaseVariableInfoIds,
@@ -595,11 +595,11 @@ export class CodingScheme {
       });
     this.variableCodings.forEach(c => {
       if (c.sourceType === 'BASE') {
-        if (allBaseVariableInfoIds.indexOf(c.alias || c.id) < 0) {
+        if (allBaseVariableInfoIds.indexOf(c.id) < 0) {
           problems.push({
             type: 'SOURCE_MISSING',
             breaking: true,
-            variableId: c.alias || c.id,
+            variableId: c.id,
             variableLabel: c.label
           });
         }
@@ -609,7 +609,7 @@ export class CodingScheme {
             problems.push({
               type: 'MORE_THAN_ONE_SOURCE',
               breaking: false,
-              variableId: c.alias || c.id,
+              variableId: c.id,
               variableLabel: c.label
             });
           }
@@ -620,7 +620,7 @@ export class CodingScheme {
             problems.push({
               type: 'VALUE_COPY_NOT_FROM_BASE',
               breaking: false,
-              variableId: c.alias || c.id,
+              variableId: c.id,
               variableLabel: c.label
             });
           }
@@ -628,7 +628,7 @@ export class CodingScheme {
           problems.push({
             type: 'ONLY_ONE_SOURCE',
             breaking: false,
-            variableId: c.alias || c.id,
+            variableId: c.id,
             variableLabel: c.label
           });
         }
@@ -637,7 +637,7 @@ export class CodingScheme {
             problems.push({
               type: 'SOURCE_MISSING',
               breaking: true,
-              variableId: c.alias || c.id,
+              variableId: c.id,
               variableLabel: c.label
             });
           }
@@ -646,7 +646,7 @@ export class CodingScheme {
         problems.push({
           type: 'SOURCE_MISSING',
           breaking: true,
-          variableId: c.alias || c.id,
+          variableId: c.id,
           variableLabel: c.label
         });
       }
@@ -660,7 +660,7 @@ export class CodingScheme {
                   problems.push({
                     type: 'RULE_PARAMETER_COUNT_MISMATCH',
                     breaking: true,
-                    variableId: c.alias || c.id,
+                    variableId: c.id,
                     code: code.id ? code.id.toString(10) : 'null',
                     variableLabel: c.label
                   });
@@ -672,7 +672,7 @@ export class CodingScheme {
                 problems.push({
                   type: 'RULE_PARAMETER_COUNT_MISMATCH',
                   breaking: true,
-                  variableId: c.alias || c.id,
+                  variableId: c.id,
                   code: code.id ? code.id.toString(10) : 'null',
                   variableLabel: c.label
                 });
@@ -680,11 +680,11 @@ export class CodingScheme {
             });
           });
         });
-      } else if (variableValuesCopied.indexOf(c.alias || c.id) < 0) {
+      } else if (variableValuesCopied.indexOf(c.id) < 0) {
         problems.push({
           type: 'VACANT',
           breaking: false,
-          variableId: c.alias || c.id,
+          variableId: c.id,
           variableLabel: c.label
         });
       }
@@ -699,7 +699,7 @@ export class CodingScheme {
         id: c.alias || c.id,
         label: c.label,
         source: ToTextFactory.sourceAsText(
-          c.alias || c.id,
+          c.id,
           c.sourceType,
           c.deriveSources,
           c.sourceParameters
@@ -716,7 +716,7 @@ export class CodingScheme {
   getBaseVarsList(derivedVarsIds: string[]): string[] {
     const allBaseVariables: string[] = this.variableCodings
       .filter(c => c.deriveSources.length === 0)
-      .map(c => c.alias || c.id);
+      .map(c => c.id);
     const baseVariablesIds: string[] = [];
     if (derivedVarsIds.length > 0) {
       derivedVarsIds.forEach(derivedVarId => {
@@ -749,7 +749,7 @@ export class CodingScheme {
         baseVariablesIds.push(derivedVar);
       } else {
         const variableCoding = this.variableCodings.find(
-          c => (c.alias || c.id) === derivedVar
+          c => c.id === derivedVar
         );
         if (variableCoding) {
           baseVariablesIds = [
