@@ -46,7 +46,7 @@
       "id": "d1",
       "alias": "d1",
       "label": "",
-      "sourceType": "SUM_SCORE",
+      "sourceType": "IGNORE",
       "sourceParameters": { "solverExpression": "", "processing": [] },
       "deriveSources": ["b1", "b2", "b3"],
       "processing": [],

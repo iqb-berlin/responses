@@ -6,6 +6,7 @@
     "id": "d1",
     "value": "",
     "status": "INVALID",
-    "score": -98
+    "code": -98,
+    "score": 0
   }
 ]

@@ -6,6 +6,7 @@
     "id": "d1",
     "value": "",
     "status": "CODING_ERROR",
-    "score": -97
+    "code": -97,
+    "score": 0
   }
 ]
