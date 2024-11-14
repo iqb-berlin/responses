@@ -189,7 +189,7 @@ export class CodingScheme {
     const graph: VariableGraphNode[] = this.variableCodings
       .filter(c => c.sourceType === 'BASE')
       .map(c => ({
-        id: c.alias || c.id,
+        id: c.id,
         level: 0,
         sources: [],
         page: c.page || ''
@@ -198,7 +198,7 @@ export class CodingScheme {
     while (foundInWhile && this.variableCodings.length > graph.length) {
       let found = false;
       this.variableCodings.forEach(vc => {
-        const existingNode = graph.find(n => n.id === (vc.alias || vc.id));
+        const existingNode = graph.find(n => n.id === vc.id);
         if (!existingNode) {
           let maxLevel = 0;
           let newPage: string | null = null;
@@ -207,12 +207,12 @@ export class CodingScheme {
             if (node) {
               maxLevel = Math.max(maxLevel, node.level);
               newPage =
-                  // eslint-disable-next-line no-nested-ternary
-                  newPage === null ?
+                // eslint-disable-next-line no-nested-ternary
+                newPage === null ?
+                  node.page :
+                  newPage === node.page ?
                     node.page :
-                    newPage === node.page ?
-                      node.page :
-                      '';
+                    '';
             } else {
               maxLevel = Number.MAX_VALUE;
             }
@@ -220,7 +220,7 @@ export class CodingScheme {
           if (maxLevel < Number.MAX_VALUE) {
             found = true;
             graph.push({
-              id: vc.alias || vc.id,
+              id: vc.id,
               level: maxLevel + 1,
               sources: [...vc.deriveSources],
               page: newPage || ''
@@ -443,13 +443,19 @@ export class CodingScheme {
   code(unitResponses: Response[]): Response[] {
     // decouple object from caller variable
     const stringifiedResponses = JSON.stringify(unitResponses);
-    const newResponses: Response[] = JSON.parse(stringifiedResponses);
+    let newResponses: Response[] = JSON.parse(stringifiedResponses);
 
+    // responses id to alias
+    newResponses = newResponses
+      .map(r => ({
+        ...r,
+        id: this.variableCodings.find(c => c.alias === r.id)?.id || r.id
+      }));
     // change DISPLAYED to VALUE_CHANGED if requested
     newResponses
       .filter(r => r.status === 'DISPLAYED')
       .forEach(r => {
-        const myCoding = this.variableCodings.find(c => (c.alias || c.id) === r.id);
+        const myCoding = this.variableCodings.find(c => c.id === r.id);
         if (
           myCoding &&
           myCoding.sourceType === 'BASE' &&
@@ -468,7 +474,7 @@ export class CodingScheme {
         r => r.status === 'VALUE_CHANGED' && CodingFactory.isEmptyValue(r.value)
       )
       .forEach(r => {
-        const myCoding = this.variableCodings.find(c => (c.alias || c.id) === r.id);
+        const myCoding = this.variableCodings.find(c => c.id === r.id);
         if (
           myCoding &&
           myCoding.sourceType === 'BASE' &&
@@ -486,7 +492,7 @@ export class CodingScheme {
       .filter(vc => vc.sourceType !== 'BASE')
       .forEach(c => {
         newResponses.forEach((r, index) => {
-          if (r.id === (c.alias || c.id) && !r.code && !r.score) {
+          if (r.id === c.id && !r.code && !r.score) {
             newResponses.splice(index, 1);
           }
         });
@@ -507,17 +513,17 @@ export class CodingScheme {
       if (c.sourceType === 'BASE') {
         if (globalDeriveError) {
           varDependencies.push({
-            id: c.alias || c.id,
+            id: c.id,
             level: 0,
             sources: [],
             page: c.page || ''
           });
         }
       }
-      const existingResponse = newResponses.find(r => r.id === (c.alias || c.id));
+      const existingResponse = newResponses.find(r => r.id === c.id);
       if (!existingResponse) {
         newResponses.push({
-          id: c.alias || c.id,
+          id: c.id,
           value: null,
           status:
             globalDeriveError && c.sourceType !== 'BASE' ?
@@ -535,7 +541,7 @@ export class CodingScheme {
         .forEach(varNode => {
           const targetResponse = newResponses.find(r => r.id === varNode.id);
           const varCoding = this.variableCodings.find(
-            vc => (vc.alias || vc.id) === varNode.id
+            vc => vc.id === varNode.id
           );
           if (targetResponse && varCoding) {
             if (
@@ -573,6 +579,12 @@ export class CodingScheme {
           }
         });
     }
+    // responses id to alias
+    newResponses = newResponses
+      .map(r => ({
+        ...r,
+        id: this.variableCodings.find(c => c.id === r.id)?.alias || r.id
+      }));
     return newResponses;
   }
 
