@@ -611,7 +611,7 @@ export class CodingScheme {
           problems.push({
             type: 'SOURCE_MISSING',
             breaking: true,
-            variableId: c.id,
+            variableId: c.alias || c.id,
             variableLabel: c.label
           });
         }
@@ -621,7 +621,7 @@ export class CodingScheme {
             problems.push({
               type: 'MORE_THAN_ONE_SOURCE',
               breaking: false,
-              variableId: c.id,
+              variableId: c.alias || c.id,
               variableLabel: c.label
             });
           }
@@ -632,7 +632,7 @@ export class CodingScheme {
             problems.push({
               type: 'VALUE_COPY_NOT_FROM_BASE',
               breaking: false,
-              variableId: c.id,
+              variableId: c.alias || c.id,
               variableLabel: c.label
             });
           }
@@ -640,7 +640,7 @@ export class CodingScheme {
           problems.push({
             type: 'ONLY_ONE_SOURCE',
             breaking: false,
-            variableId: c.id,
+            variableId: c.alias || c.id,
             variableLabel: c.label
           });
         }
@@ -649,7 +649,7 @@ export class CodingScheme {
             problems.push({
               type: 'SOURCE_MISSING',
               breaking: true,
-              variableId: c.id,
+              variableId: c.alias || c.id,
               variableLabel: c.label
             });
           }
@@ -658,7 +658,7 @@ export class CodingScheme {
         problems.push({
           type: 'SOURCE_MISSING',
           breaking: true,
-          variableId: c.id,
+          variableId: c.alias || c.id,
           variableLabel: c.label
         });
       }
@@ -672,7 +672,7 @@ export class CodingScheme {
                   problems.push({
                     type: 'RULE_PARAMETER_COUNT_MISMATCH',
                     breaking: true,
-                    variableId: c.id,
+                    variableId: c.alias || c.id,
                     code: code.id ? code.id.toString(10) : 'null',
                     variableLabel: c.label
                   });
@@ -684,7 +684,7 @@ export class CodingScheme {
                 problems.push({
                   type: 'RULE_PARAMETER_COUNT_MISMATCH',
                   breaking: true,
-                  variableId: c.id,
+                  variableId: c.alias || c.id,
                   code: code.id ? code.id.toString(10) : 'null',
                   variableLabel: c.label
                 });
@@ -696,7 +696,7 @@ export class CodingScheme {
         problems.push({
           type: 'VACANT',
           breaking: false,
-          variableId: c.id,
+          variableId: c.alias || c.id,
           variableLabel: c.label
         });
       }
@@ -707,13 +707,15 @@ export class CodingScheme {
   asText(mode: CodingToTextMode = 'EXTENDED'): CodingAsText[] {
     const returnTexts: CodingAsText[] = [];
     this.variableCodings.forEach(c => {
+      const mappedSources = c.deriveSources
+        .map(s => this.variableCodings.find(vc => vc.alias === s)?.alias || s);
       const newCodingText: CodingAsText = {
         id: c.alias || c.id,
         label: c.label,
         source: ToTextFactory.sourceAsText(
-          c.id,
+          c.alias || c.id,
           c.sourceType,
-          c.deriveSources,
+          mappedSources,
           c.sourceParameters
         ),
         processing: ToTextFactory.processingAsText(c.processing, c.fragmenting),
