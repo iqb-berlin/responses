@@ -294,6 +294,14 @@ export class CodingScheme {
     }
     // eslint-disable-next-line default-case
     switch (coding.sourceType) {
+      case 'IGNORE': {
+        const stringfiedValue = JSON.stringify(sourceResponses[0].value);
+        return <Response>{
+          id: coding.id,
+          value: JSON.parse(stringfiedValue),
+          status: 'CODING_COMPLETE'
+        };
+      }
       case 'COPY_VALUE': {
         const stringfiedValue = JSON.stringify(sourceResponses[0].value);
         return <Response>{
