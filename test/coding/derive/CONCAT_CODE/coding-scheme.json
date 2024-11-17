@@ -2,6 +2,7 @@
   "variableCodings": [
     {
       "id": "b1",
+      "alias": "b1alias",
       "sourceType": "BASE",
       "codes": [
         {

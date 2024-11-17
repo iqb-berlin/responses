@@ -166,14 +166,14 @@ export abstract class CodingFactory {
     }
     if (valueMustBeBoolean) {
       return valueToCheck === 0 ||
-          valueToCheck === 1 ||
-          valueToCheck === '1' ||
-          valueToCheck === true ||
-          valueToCheck === 'true' ||
-          valueToCheck === '0' ||
-          valueToCheck === false ||
-          valueToCheck === 'false' ||
-          valueToCheck === null;
+        valueToCheck === 1 ||
+        valueToCheck === '1' ||
+        valueToCheck === true ||
+        valueToCheck === 'true' ||
+        valueToCheck === '0' ||
+        valueToCheck === false ||
+        valueToCheck === 'false' ||
+        valueToCheck === null;
     }
     return true;
   }
@@ -408,9 +408,9 @@ export abstract class CodingFactory {
       ruleIndex += 1;
     }
     if (oneMatch && isValueArray &&
-        Array.isArray(valueToCheck) &&
-        valueToCheck.length > 1 &&
-        ruleSet.valueArrayPos === 'ANY') {
+      Array.isArray(valueToCheck) &&
+      valueToCheck.length > 1 &&
+      ruleSet.valueArrayPos === 'ANY') {
       // check whether ALL values in array match
       let valueIndex = 0;
       while (oneMatch && valueIndex < valueToCheck.length) {

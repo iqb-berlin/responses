@@ -1,6 +1,7 @@
 [
   {
     "id": "b1",
+    "alias": "b1alias",
     "label": "",
     "source": "Basisvariable 'b1'",
     "processing": "",
