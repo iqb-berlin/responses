@@ -1,8 +1,8 @@
 {
-  "name": "@iqb/responses",
+  "name": "@jurei733/responses",
   "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
   "license": "MIT",
-  "version": "3.1.8",
+  "version": "3.1.14",
   "description": "Data interfaces for processing assessment data.",
   "scripts": {
     "test_coding": "jest test/coding",

@@ -294,6 +294,13 @@ export class CodingScheme {
     }
     // eslint-disable-next-line default-case
     switch (coding.sourceType) {
+      case 'IGNORE': {
+        return <Response>{
+          id: coding.id,
+          value: null,
+          status: 'CODING_COMPLETE'
+        };
+      }
       case 'COPY_VALUE': {
         const stringfiedValue = JSON.stringify(sourceResponses[0].value);
         return <Response>{
@@ -522,7 +529,9 @@ export class CodingScheme {
       .forEach(c => {
         newResponses.forEach((r, index) => {
           if (r.id === c.id && !r.code && !r.score) {
-            newResponses.splice(index, 1);
+            if(r.status !== 'CODING_COMPLETE'){
+              newResponses.splice(index, 1);
+            }
           }
         });
       });
@@ -549,8 +558,8 @@ export class CodingScheme {
           });
         }
       }
-      const existingResponse = newResponses.find(r => r.id === c.id);
-      if (!existingResponse) {
+      let existingResponse = newResponses.find(r => r.id === c.id);
+      if (!existingResponse ) {
         newResponses.push({
           id: c.id,
           value: null,
@@ -578,17 +587,20 @@ export class CodingScheme {
               validStatesToStartDeriving.includes(targetResponse.status)
             ) {
               // derive
-              try {
-                const derivedResponse = CodingScheme.deriveValue(
-                  varCoding,
-                  newResponses.filter(r => varNode.sources.includes(r.id))
-                );
-                targetResponse.status = derivedResponse.status;
-                if (derivedResponse.status === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
-              } catch (e) {
-                targetResponse.status = 'DERIVE_ERROR';
-                targetResponse.value = null;
+              if(!varCoding.sourceParameters.processing?.includes('NO_CODING')){
+                try {
+                  const derivedResponse = CodingScheme.deriveValue(
+                    varCoding,
+                    newResponses.filter(r => varNode.sources.includes(r.id))
+                  );
+                  targetResponse.status = derivedResponse.status;
+                  if (derivedResponse.status === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
+                } catch (e) {
+                  targetResponse.status = 'DERIVE_ERROR';
+                  targetResponse.value = null;
+                }
               }
+
             }
             if (targetResponse.status === 'VALUE_CHANGED') {
               if (varCoding.codes.length > 0) {
