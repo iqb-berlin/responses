@@ -238,6 +238,35 @@ export class CodingScheme {
     coding: VariableCodingData,
     sourceResponses: Response[]
   ): Response {
+    const hasError = sourceResponses.some(r => r.status === 'CODING_ERROR');
+    if (hasError) {
+      return <Response>{
+        id: coding.id,
+        value: null,
+        status: 'CODING_ERROR'
+      };
+    }
+    const hasCodingComplete = sourceResponses.some(r => r.status === 'CODING_COMPLETE');
+    const hasInvalid = sourceResponses.some(r => r.status === 'INVALID');
+    if (hasInvalid && hasCodingComplete) {
+      return <Response>{
+        id: coding.id,
+        value: null,
+        status: 'INVALID'
+      };
+    }
+    const hasDisplayedOrPartlyDisplayed = sourceResponses
+      .some(r => r.status === 'DISPLAYED' || r.status === 'PARTLY_DISPLAYED');
+    const hasNotReachedOrUnset = sourceResponses
+      .some(r => r.status === 'NOT_REACHED' || r.status === 'UNSET');
+
+    if (hasDisplayedOrPartlyDisplayed && hasNotReachedOrUnset) {
+      return <Response>{
+        id: coding.id,
+        value: null,
+        status: 'PARTLY_DISPLAYED'
+      };
+    }
     const validResponseStatuses = deriveMethodsFromValue.includes(
       coding.sourceType
     ) ?
