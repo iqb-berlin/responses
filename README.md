@@ -9,6 +9,12 @@ This package contains of type definitions for processing assessment data. Additi
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 3.2
+
+* manuell kodierte abgeleitete und eingespielte Variablen werden nicht versucht abzuleiten
+* Missing Regeln werden bei der Ableitung beachtet
+* Aliase aus dem CodingScheme werden berücksichtigt
+
 ### 3.1
 
 * neuer Wert für Property `valueArrayPos`: `LENGTH`; Werte Array muss angebene Länge haben
