@@ -294,7 +294,8 @@ export class CodingScheme {
     }
     // eslint-disable-next-line default-case
     switch (coding.sourceType) {
-      case 'IGNORE': {
+      // todo: check purpose of changing status
+      case 'BASE_NO_VALUE': {
         return <Response>{
           id: coding.id,
           value: null,
@@ -527,9 +528,10 @@ export class CodingScheme {
     this.variableCodings
       .filter(vc => vc.sourceType !== 'BASE')
       .forEach(c => {
+        // todo: check delete array member while looping through array
         newResponses.forEach((r, index) => {
           if (r.id === c.id && !r.code && !r.score) {
-            if(r.status !== 'CODING_COMPLETE'){
+            if (r.status !== 'CODING_COMPLETE') {
               newResponses.splice(index, 1);
             }
           }
@@ -558,8 +560,8 @@ export class CodingScheme {
           });
         }
       }
-      let existingResponse = newResponses.find(r => r.id === c.id);
-      if (!existingResponse ) {
+      const existingResponse = newResponses.find(r => r.id === c.id);
+      if (!existingResponse) {
         newResponses.push({
           id: c.id,
           value: null,
@@ -587,7 +589,7 @@ export class CodingScheme {
               validStatesToStartDeriving.includes(targetResponse.status)
             ) {
               // derive
-              if(!varCoding.sourceParameters.processing?.includes('NO_CODING')){
+              if (!varCoding.sourceParameters.processing?.includes('NO_CODING')) {
                 try {
                   const derivedResponse = CodingScheme.deriveValue(
                     varCoding,
@@ -600,7 +602,6 @@ export class CodingScheme {
                   targetResponse.value = null;
                 }
               }
-
             }
             if (targetResponse.status === 'VALUE_CHANGED') {
               if (varCoding.codes.length > 0) {

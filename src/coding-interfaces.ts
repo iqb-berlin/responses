@@ -1,8 +1,9 @@
 export type ResponseStatusType = 'UNSET' | 'NOT_REACHED' | 'DISPLAYED' | 'VALUE_CHANGED' |
-'DERIVE_ERROR' | 'CODING_COMPLETE' | 'NO_CODING' | 'INVALID' | 'CODING_INCOMPLETE' | 'CODING_ERROR'
-| 'PARTLY_DISPLAYED';
+'DERIVE_ERROR' | 'CODING_COMPLETE' | 'NO_CODING' | 'INVALID' | 'CODING_INCOMPLETE' | 'CODING_ERROR' |
+'PARTLY_DISPLAYED' | 'DERIVE_PENDING';
 export const responseStatesInOrder = ['UNSET', 'NOT_REACHED', 'DISPLAYED', 'VALUE_CHANGED', 'INVALID',
-  'DERIVE_ERROR', 'CODING_COMPLETE', 'NO_CODING', 'CODING_INCOMPLETE', 'CODING_ERROR'];
+  'DERIVE_ERROR', 'CODING_COMPLETE', 'PARTLY_DISPLAYED', 'DERIVE_PENDING', 'NO_CODING',
+  'CODING_INCOMPLETE', 'CODING_ERROR'];
 export const validStatesForDerivingValue = ['VALUE_CHANGED', 'NO_CODING', 'CODING_INCOMPLETE',
   'CODING_ERROR', 'CODING_COMPLETE'];
 export const validStatesForDerivingCode = ['CODING_COMPLETE'];
@@ -23,7 +24,6 @@ export interface Response {
   score?: number
 }
 
-// eslint-disable-next-line max-len
 export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THAN' |
 'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
 export const RuleMethodParameterCount = {
@@ -48,8 +48,8 @@ export type ProcessingParameterType = 'IGNORE_CASE' | 'IGNORE_ALL_SPACES' | 'IGN
 export type CodeModelType = 'NONE' | 'RULES_ONLY' | 'MANUAL_ONLY';
 export type CodeType = 'UNSET' | 'FULL_CREDIT' | 'PARTIAL_CREDIT' |
 'NO_CREDIT' | 'TO_CHECK' | 'RESIDUAL' | 'RESIDUAL_AUTO';
-export type SourceType = 'BASE' | 'COPY_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' | 'SUM_SCORE' | 'UNIQUE_VALUES' | 'SOLVER'
-| 'IGNORE';
+export type SourceType = 'BASE' | 'BASE_NO_VALUE' | 'MANUAL' | 'COPY_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' |
+'SUM_SCORE' | 'UNIQUE_VALUES' | 'SOLVER';
 export type SourceProcessingType = 'TO_LOWER_CASE' | 'TO_NUMBER' | 'REMOVE_ALL_SPACES' | 'REMOVE_DISPENSABLE_SPACES' |
 'TAKE_DISPLAYED_AS_VALUE_CHANGED' | 'TAKE_EMPTY_AS_VALID' | 'SORT' | 'NO_CODING';
 export const DeriveConcatDelimiter = '_';
@@ -115,9 +115,9 @@ export interface VariableValue {
 export interface VariableInfo {
   id: string;
   alias?: string;
-  type: 'string' | 'integer' | 'number' | 'boolean' | 'attachment';
+  type: 'string' | 'integer' | 'number' | 'boolean' | 'attachment' | 'json' | 'no-value';
   format: 'text-selection' | 'image' | 'capture-image' | 'audio' | 'ggb-file' | 'non-negative' |
-  'latex' | 'math-ml' | 'math-table' | 'ggb-variable' | '';
+  'latex' | 'math-ml' | 'math-table' | 'math-text-mix' | 'ggb-variable' | '';
   multiple: boolean;
   nullable: boolean;
   values: VariableValue[];

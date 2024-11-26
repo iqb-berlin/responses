@@ -14,7 +14,9 @@ const VARINFO_TYPE_TEXT = {
   integer: 'Ganze Zahl',
   number: 'Zahl (Fließkoma)',
   boolean: 'Ja/Nein',
-  attachment: 'Datei'
+  attachment: 'Datei',
+  json: 'Daten im JSON-Format',
+  'no-value': 'Ohne Antwortwert'
 };
 const VARINFO_FORMAT_TEXT = {
   'text-selection': 'Textmarkierung',
@@ -26,7 +28,8 @@ const VARINFO_FORMAT_TEXT = {
   'non-negative': 'Nicht negativ',
   latex: 'Mathematische Formel im LaTeX-Format',
   'math-ml': 'Mathematische Formel im Html-Format, MathML eingebettet',
-  'math-table': 'Tabelle mit Zahlen für Rechenkästchen (JSON)'
+  'math-table': 'Tabelle mit Zahlen für Rechenkästchen (JSON)',
+  'math-text-mix': 'Text und mathematische Formeln gemischt'
 };
 
 const CODE_RULE_TEXT = {

@@ -1,5 +1,5 @@
 {
-  "$id": "coding-scheme@iqb-standard@3.1",
+  "$id": "coding-scheme@iqb-standard@3.2",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Coding Scheme",
   "description": "Data structure to specify all processing steps of response data in order to get coded and scored data for analyses.",
@@ -35,6 +35,8 @@
             "description": "Specifies how to derive (concatenate, check uniqueness, sum code etc.).",
             "enum": [
               "BASE",
+              "BASE_NO_VALUE",
+              "MANUAL",
               "COPY_VALUE",
               "CONCAT_CODE",
               "SUM_CODE",
