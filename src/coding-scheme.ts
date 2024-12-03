@@ -195,11 +195,14 @@ export class CodingScheme {
         page: c.page || ''
       }));
     let foundInWhile = true;
-    while (foundInWhile && this.variableCodings.length > graph.length) {
+    const baseNoValueCount: number = this.variableCodings
+      .filter(c => c.sourceType === 'BASE_NO_VALUE').length;
+    const maxGraphLength = this.variableCodings.length - baseNoValueCount;
+    while (foundInWhile && maxGraphLength > graph.length) {
       let found = false;
       this.variableCodings.forEach(vc => {
         const existingNode = graph.find(n => n.id === vc.id);
-        if (!existingNode) {
+        if (vc.sourceType !== 'BASE_NO_VALUE' && !existingNode) {
           let maxLevel = 0;
           let newPage: string | null = null;
           vc.deriveSources.forEach(s => {
