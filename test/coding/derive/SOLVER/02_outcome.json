@@ -27,16 +27,16 @@
   {
     "id": "d3",
     "value": null,
-    "status": "DISPLAYED"
+    "status": "INVALID"
   },
   {
     "id": "d4",
-    "value": null,
-    "status": "DISPLAYED"
+    "value": 5.015015015015015,
+    "status": "NO_CODING"
   },
   {
     "id": "d5",
     "value": null,
-    "status": "DISPLAYED"
+    "status": "DERIVE_ERROR"
   }
 ]
