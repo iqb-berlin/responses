@@ -9,6 +9,11 @@ This package contains of type definitions for processing assessment data. Additi
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 3.3
+
+* [Ableitungsregeln angepasst](https://iqb-berlin.github.io/coding-info/coding/derive.html)
+
+
 ### 3.2
 
 * manuell kodierte abgeleitete und eingespielte Variablen werden nicht versucht abzuleiten

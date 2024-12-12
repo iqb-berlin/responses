@@ -1,12 +1,6 @@
 # `coding-scheme`
 ## Versionsänderungen der Datenstruktur
 
-### 3.2
-
-* manuell kodierte abgeleitete und eingespielte Variablen werden nicht versucht abzuleiten
-* Missing Regeln werden bei der Ableitung beachtet
-* Aliase aus dem CodingScheme werden berücksichtigt
-
 ### 3.1
 * neuer Wert für Property `valueArrayPos`: `LENGTH`; Werte Array muss angebene Länge haben
 * neuer Wert für Property `valueArrayPos`: `ANY_OPEN`; dann wird - im Gegensatz zu `ANY` - erlaubt, dass Werte im Array sind, für die der Regelsatz nicht zutrifft
