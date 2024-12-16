@@ -234,59 +234,89 @@ export class CodingScheme {
     coding: VariableCodingData,
     sourceResponses: Response[]
   ): Response {
-    const amountFalseStates = this.amountFalseStates(coding, sourceResponses);
-    if (amountFalseStates) {
-      const hasUnset = sourceResponses.some(r => r.status === 'UNSET');
-      if (hasUnset) {
-        return <Response>{
-          id: coding.id,
-          value: null,
-          status: 'UNSET'
-        };
-      }
-      const hasDeriveError = sourceResponses.some(r => r.status === 'DERIVE_ERROR');
-      if (hasDeriveError) {
-        return <Response>{
-          id: coding.id,
-          value: null,
-          status: 'DERIVE_ERROR'
-        };
-      }
-      const hasNoCoding = sourceResponses.some(r => r.status === 'NO_CODING');
-      if (hasNoCoding) {
-        return <Response>{
-          id: coding.id,
-          value: null,
-          status: 'DERIVE_ERROR'
-        };
-      }
-      const hasCodingError = sourceResponses.some(r => r.status === 'CODING_ERROR');
-      if (hasCodingError) {
-        return <Response>{
-          id: coding.id,
-          value: null,
-          status: 'CODING_ERROR'
-        };
-      }
-      const hasInvalid = sourceResponses.some(r => r.status === 'INVALID');
-      if (hasInvalid) {
-        return <Response>{
-          id: coding.id,
-          value: null,
-          status: 'INVALID'
-        };
+    // Killer
+    const hasUnset = sourceResponses.some(r => r.status === 'UNSET');
+    if (hasUnset) {
+      return <Response>{
+        id: coding.id,
+        value: null,
+        status: 'UNSET'
+      };
+    }
+    const hasDeriveError = sourceResponses.some(r => r.status === 'DERIVE_ERROR');
+    if (hasDeriveError) {
+      return <Response>{
+        id: coding.id,
+        value: null,
+        status: 'DERIVE_ERROR'
+      };
+    }
+    const hasNoCoding = sourceResponses.some(r => r.status === 'NO_CODING');
+    if (hasNoCoding) {
+      return <Response>{
+        id: coding.id,
+        value: null,
+        status: 'DERIVE_ERROR'
+      };
+    }
+    const hasCodingError = sourceResponses.some(r => r.status === 'CODING_ERROR');
+    if (hasCodingError) {
+      return <Response>{
+        id: coding.id,
+        value: null,
+        status: 'CODING_ERROR'
+      };
+    }
+    const hasInvalid = sourceResponses.some(r => r.status === 'INVALID');
+    if (hasInvalid) {
+      return <Response>{
+        id: coding.id,
+        value: null,
+        status: 'INVALID'
+      };
+    }
+
+    const hasPending = sourceResponses.some(r => r.status === 'CODING_INCOMPLETE' || r.status === 'DERIVE_PENDING');
+    if (hasPending) {
+      if (sourceResponses
+        .every(r => r.status === 'CODING_INCOMPLETE' ||
+          r.status === 'CODING_COMPLETE' ||
+          r.status === 'DERIVE_PENDING')) {
+        if (!(coding.sourceType === 'MANUAL' ||
+          coding.sourceType === 'COPY_VALUE' ||
+          coding.sourceType === 'UNIQUE_VALUES' ||
+          coding.sourceType === 'SOLVER')) {
+          return <Response>{
+            id: coding.id,
+            value: null,
+            status: 'DERIVE_PENDING'
+          };
+        }
       }
     }
-    let sourceResponsesCompletlyCoded = true;
-    let isDerivePending = false;
-    sourceResponses.forEach(r => {
-      if (!(r.status === 'CODING_COMPLETE')) {
-        sourceResponsesCompletlyCoded = false;
+    const amountFalseStates = this.amountFalseStates(coding, sourceResponses);
+    if (sourceResponses.length >= amountFalseStates && amountFalseStates > 0) {
+      if (amountFalseStates && sourceResponses.every(r => r.status === sourceResponses[0].status)) {
+        return <Response>{
+          id: coding.id,
+          value: null,
+          status: sourceResponses[0].status
+        };
       }
-      if ((r.status === 'CODING_INCOMPLETE' || r.status === 'DERIVE_PENDING')) {
-        isDerivePending = true;
+      if (sourceResponses
+        .every(r => (r.status === 'NOT_REACHED' || r.status === 'DISPLAYED' || r.status === 'PARTLY_DISPLAYED'))) {
+        return <Response>{
+          id: coding.id,
+          value: null,
+          status: 'PARTLY_DISPLAYED'
+        };
       }
-    });
+      return <Response>{
+        id: coding.id,
+        value: null,
+        status: 'INVALID'
+      };
+    }
 
     // eslint-disable-next-line default-case
     switch (coding.sourceType) {
@@ -299,11 +329,11 @@ export class CodingScheme {
         };
       }
       case 'COPY_VALUE': {
-        if (sourceResponses.some(r => r.status === 'DISPLAYED')) {
+        if (sourceResponses.some(r => r.status === 'DERIVE_PENDING')) {
           return <Response>{
             id: coding.id,
             value: null,
-            status: 'DERIVE_ERROR'
+            status: 'DERIVE_PENDING'
           };
         }
         const stringfiedValue = JSON.stringify(sourceResponses[0].value);
@@ -314,20 +344,6 @@ export class CodingScheme {
         };
       }
       case 'CONCAT_CODE': {
-        if (!sourceResponsesCompletlyCoded && isDerivePending) {
-          return <Response>{
-            id: coding.id,
-            value: null,
-            status: 'DERIVE_PENDING'
-          };
-        }
-        if (!sourceResponsesCompletlyCoded) {
-          return <Response>{
-            id: coding.id,
-            value: null,
-            status: 'DERIVE_ERROR'
-          };
-        }
         let codes = coding.deriveSources.map(s => {
           const myResponse = sourceResponses.find(r => r.id === s);
           return myResponse && myResponse.code ?
@@ -349,20 +365,6 @@ export class CodingScheme {
         };
       }
       case 'SUM_CODE':
-        if (!sourceResponsesCompletlyCoded && isDerivePending) {
-          return <Response>{
-            id: coding.id,
-            value: null,
-            status: 'DERIVE_PENDING'
-          };
-        }
-        if (!sourceResponsesCompletlyCoded) {
-          return <Response>{
-            id: coding.id,
-            value: null,
-            status: 'DERIVE_ERROR'
-          };
-        }
         return <Response>{
           id: coding.id,
           value: coding.deriveSources
@@ -375,20 +377,6 @@ export class CodingScheme {
           status: 'VALUE_CHANGED'
         };
       case 'SUM_SCORE':
-        if (!sourceResponsesCompletlyCoded && isDerivePending) {
-          return <Response>{
-            id: coding.id,
-            value: null,
-            status: 'DERIVE_PENDING'
-          };
-        }
-        if (!sourceResponsesCompletlyCoded) {
-          return <Response>{
-            id: coding.id,
-            value: null,
-            status: 'DERIVE_ERROR'
-          };
-        }
         return <Response>{
           id: coding.id,
           value: coding.deriveSources
@@ -521,29 +509,6 @@ export class CodingScheme {
         }
     }
 
-    if (sourceResponses.length > amountFalseStates) {
-      return <Response>{
-        id: coding.id,
-        value: null,
-        status: 'INVALID'
-      };
-    }
-    if (sourceResponses.every(r => r.status === sourceResponses[0].status)) {
-      return <Response>{
-        id: coding.id,
-        value: null,
-        status: sourceResponses[0].status
-      };
-    }
-
-    if (sourceResponses
-      .every(r => (r.status === 'NOT_REACHED' || r.status === 'DISPLAYED' || r.status === 'PARTLY_DISPLAYED'))) {
-      return <Response>{
-        id: coding.id,
-        value: null,
-        status: 'PARTLY_DISPLAYED'
-      };
-    }
     throw new Error('deriving failed');
   }
 

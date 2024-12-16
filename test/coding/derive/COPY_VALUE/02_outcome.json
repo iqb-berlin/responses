@@ -20,8 +20,8 @@
   },
   {
     "id": "d1",
-    "value": 3,
-    "status": "NO_CODING"
+    "value": null,
+    "status": "DERIVE_ERROR"
   },
   {
     "id": "d2",
@@ -31,6 +31,6 @@
   {
     "id": "d3",
     "value": null,
-    "status": "DERIVE_ERROR"
+    "status": "DISPLAYED"
   }
 ]

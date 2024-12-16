@@ -21,7 +21,7 @@
   {
     "id": "d1",
     "value": null,
-    "status": "DERIVE_ERROR"
+    "status": "INVALID"
   },
   {
     "id": "d2",

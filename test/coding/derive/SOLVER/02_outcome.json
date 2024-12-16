@@ -21,8 +21,8 @@
   },
   {
     "id": "d2",
-    "value": -50,
-    "status": "NO_CODING"
+    "value": null,
+    "status": "DERIVE_ERROR"
   },
   {
     "id": "d3",
@@ -31,12 +31,12 @@
   },
   {
     "id": "d4",
-    "value": 5.015015015015015,
-    "status": "NO_CODING"
+    "value": null,
+    "status": "INVALID"
   },
   {
     "id": "d5",
     "value": null,
-    "status": "DERIVE_ERROR"
+    "status": "INVALID"
   }
 ]

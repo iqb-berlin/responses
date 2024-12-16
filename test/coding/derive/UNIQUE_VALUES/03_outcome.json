@@ -18,8 +18,8 @@
   },
   {
     "id": "d1",
-    "value": true,
-    "status": "NO_CODING"
+    "value": null,
+    "status": "DERIVE_ERROR"
   },
   {
     "id": "d2",

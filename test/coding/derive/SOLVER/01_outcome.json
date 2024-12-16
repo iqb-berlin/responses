@@ -25,13 +25,13 @@
   },
   {
     "id": "d2",
-    "value": 1010,
-    "status": "NO_CODING"
+    "value": null,
+    "status": "DERIVE_ERROR"
   },
   {
     "id": "d3",
     "value": null,
-    "status": "INVALID"
+    "status": "DERIVE_ERROR"
   },
   {
     "id": "d4",

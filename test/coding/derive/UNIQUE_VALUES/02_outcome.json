@@ -20,39 +20,37 @@
   },
   {
     "id": "d1",
-    "value": true,
-    "status": "NO_CODING"
+    "value": null,
+    "status": "INVALID"
   },
   {
     "id": "d2",
-    "value": true,
-    "status": "NO_CODING"
+    "value": null,
+    "status": "INVALID"
   },
   {
     "id": "d3",
-    "value": true,
-    "status": "CODING_COMPLETE",
-    "code": 1,
-    "score": 7
+    "value": null,
+    "status": "INVALID"
   },
   {
     "id": "d4",
-    "value": true,
-    "status": "NO_CODING"
+    "value": null,
+    "status": "INVALID"
   },
   {
     "id": "d5",
-    "value": true,
-    "status": "NO_CODING"
+    "value": null,
+    "status": "INVALID"
   },
   {
     "id": "d6",
-    "value": true,
-    "status": "NO_CODING"
+    "value": null,
+    "status": "INVALID"
   },
   {
     "id": "d7",
-    "value": true,
-    "status": "NO_CODING"
+    "value": null,
+    "status": "INVALID"
   }
 ]
