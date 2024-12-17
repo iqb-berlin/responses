@@ -2,7 +2,7 @@
   "name": "@iqb/responses",
   "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
   "license": "MIT",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "description": "Data interfaces for processing assessment data.",
   "scripts": {
     "test_coding": "jest test/coding",
