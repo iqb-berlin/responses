@@ -21,6 +21,13 @@
     "score": 7
   },
   {
+    "id": "b4",
+    "status": "CODING_COMPLETE",
+    "value": "333",
+    "code": 0,
+    "score": 2
+  },
+  {
     "id": "d1",
     "value": null,
     "status": "DERIVE_ERROR"
@@ -40,6 +47,11 @@
   {
     "id": "d4",
     "value": "1_1_2",
+    "status": "NO_CODING"
+  },
+  {
+    "id": "d5",
+    "value": "0_1",
     "status": "NO_CODING"
   }
 ]

@@ -118,6 +118,45 @@
       ]
     },
     {
+      "id": "b4",
+      "score": 1,
+      "sourceType": "BASE",
+      "codes": [
+        {
+          "id": 1,
+          "score": 7,
+          "ruleSets": [
+            {
+              "rules": [
+                {
+                  "method": "MATCH",
+                  "parameters": [
+                    "555"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 0,
+          "score": 2,
+          "ruleSets": [
+            {
+              "rules": [
+                {
+                  "method": "MATCH",
+                  "parameters": [
+                    "333"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       "id": "d1",
       "sourceType": "CONCAT_CODE",
       "deriveSources": [
@@ -179,6 +218,19 @@
       "deriveSources": [
         "b1",
         "b2",
+        "b3"
+      ],
+      "sourceParameters": {
+        "processing": [
+          "SORT"
+        ]
+      }
+    },
+    {
+      "id": "d5",
+      "sourceType": "CONCAT_CODE",
+      "deriveSources": [
+        "b4",
         "b3"
       ],
       "sourceParameters": {
