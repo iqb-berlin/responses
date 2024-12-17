@@ -75,6 +75,31 @@
     ]
   },
   {
+    "id": "b4",
+    "label": "",
+    "source": "Basisvariable 'b4'",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "id": "1",
+        "score": 7,
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '555'"
+        ]
+      },
+      {
+        "id": "0",
+        "score": 2,
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit '333'"
+        ]
+      }
+    ]
+  },
+  {
     "id": "d1",
     "label": "",
     "source": "Codes von Variablen 'b1, d2' aneinandergehängt mit Trennzeichen '_'",
@@ -119,6 +144,14 @@
     "id": "d4",
     "label": "",
     "source": "Codes von Variablen 'b1, b2, b3' aneinandergehängt mit Trennzeichen '_' (sortiert)",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": []
+  },
+  {
+    "id": "d5",
+    "label": "",
+    "source": "Codes von Variablen 'b4, b3' aneinandergehängt mit Trennzeichen '_' (sortiert)",
     "processing": "",
     "hasManualInstruction": false,
     "codes": []

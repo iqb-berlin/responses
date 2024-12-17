@@ -346,7 +346,7 @@ export class CodingScheme {
       case 'CONCAT_CODE': {
         let codes = coding.deriveSources.map(s => {
           const myResponse = sourceResponses.find(r => r.id === s);
-          return myResponse && myResponse.code ?
+          return (myResponse && (myResponse.code || myResponse.code === 0)) ?
             myResponse.code.toString(10) :
             '?';
         });
