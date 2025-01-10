@@ -128,13 +128,13 @@ export abstract class CodingFactory {
     if (value === null || value === '') return 0;
     if (typeof value === 'number') return value;
     if (typeof value === 'boolean') return (value as boolean) ? 1 : 0;
-    if (typeof value === 'string') {
-      let normalizedString = value.length < 6 ? (value as string).replace('.', ',') : value;
-      normalizedString = normalizedString.replace(/\s/g, '');
-      normalizedString = normalizedString.replace(',', '.');
-      return Number.parseFloat(normalizedString);
-    }
-    return null;
+    let normalizedString = value.length < 6 ? (value as string).replace('.', ',') : value;
+    normalizedString = normalizedString.replace(/\s/g, '');
+    normalizedString = normalizedString.replace(',', '.');
+    const isInvalidNumber = !/^[-+]?\d+\.?\d*$/.exec(normalizedString);
+    if (isInvalidNumber) return null;
+    const validValue = Number.parseFloat(normalizedString);
+    return Number.isNaN(validValue) ? null : validValue;
   }
 
   static getValueAsString(
@@ -451,6 +451,11 @@ export abstract class CodingFactory {
               elseCode = c.id;
               elseScore = c.score;
             } else {
+              // todo: this section is somehow unclear!
+              //  It will find a rule(set) which is invalid OR for which the value is invalid.
+              //  But for what? The rules should be validated elsewhere, and whether the value is valid for all
+              //  rules or not (numeric?) is not important.
+              /**
               const invalidRule = c.ruleSets.find(rs => !!rs.rules.find(r => {
                 if (typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >= 0) {
                   return Array.isArray(newResponse.value) && Array.isArray(valueToCheck) ?
@@ -458,6 +463,8 @@ export abstract class CodingFactory {
                 }
                 return !CodingFactory.isValidRule(valueToCheck, r, Array.isArray(newResponse.value));
               }));
+                  * */
+              const invalidRule = false;
               if (invalidRule) {
                 newResponse.status = 'CODING_ERROR';
                 changed = true;
