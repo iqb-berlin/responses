@@ -2,6 +2,7 @@
   "variableCodings": [
     {
       "id": "b1",
+      "alias": "b1_alias",
       "sourceType": "BASE",
       "codes": [
         {
@@ -40,6 +41,7 @@
     },
     {
       "id": "b2",
+      "alias": "b2_alias",
       "score": 1,
       "sourceType": "BASE",
       "codes": [
@@ -79,6 +81,7 @@
     },
     {
       "id": "b3",
+      "alias": "b3_alias",
       "score": 1,
       "sourceType": "BASE",
       "codes": [
@@ -120,7 +123,7 @@
       "id": "d1",
       "sourceType": "SOLVER",
       "sourceParameters": {
-        "solverExpression": "${b1} * ${ b2} + 4 + ${b2}"
+        "solverExpression": "${b1_alias} * ${b2_alias} + 4 + ${b2_alias}"
       },
       "deriveSources": [
         "b1","b2"
@@ -130,7 +133,7 @@
       "id": "d2",
       "sourceType": "SOLVER",
       "sourceParameters": {
-        "solverExpression": "${d1} - 124 + ${b2}"
+        "solverExpression": "${d1} - 124 + ${b2_alias}"
       },
       "deriveSources": [
         "d1",
@@ -182,7 +185,7 @@
       "id": "d4",
       "sourceType": "SOLVER",
       "sourceParameters": {
-        "solverExpression": "${b1} + ${b2} / ${b3}"
+        "solverExpression": "${b1_alias} + ${b2_alias} / ${b3_alias}"
       },
       "deriveSources": [
         "b1",
@@ -194,7 +197,7 @@
       "id": "d5",
       "sourceType": "SOLVER",
       "sourceParameters": {
-        "solverExpression": "${b1} oder irgendein anderer Quatsch + ${b2} / ${b3}"
+        "solverExpression": "${b1_alias} oder irgendein anderer Quatsch + ${b2_alias} / ${b3_alias}"
       },
       "deriveSources": [
         "b1",

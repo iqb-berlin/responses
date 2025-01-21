@@ -7,7 +7,7 @@
   "properties": {
     "id": {
       "type": "string",
-      "pattern": "^[0-9a-zA-Z_]+$",
+      "pattern": "^[0-9a-zA-Z_-]+$",
       "description": "Identifier for the data source (variable)"
     },
     "status": {

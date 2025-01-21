@@ -231,6 +231,7 @@ export class CodingScheme {
   }
 
   static deriveValue(
+    variableCodings: VariableCodingData[],
     coding: VariableCodingData,
     sourceResponses: Response[]
   ): Response {
@@ -446,18 +447,21 @@ export class CodingScheme {
           coding.sourceParameters.processing &&
           coding.sourceParameters.solverExpression
         ) {
-          const varSearchPattern = /\$\{(\s*\w+\s*)}/g;
-          const sourceIds: string[] = [];
+          const varSearchPattern = /\$\{(\s*[\w,-]+\s*)}/g;
+          const sources: string[] = [];
           const replacements = new Map();
           const regExExecReturn =
             coding.sourceParameters.solverExpression.matchAll(varSearchPattern);
           // eslint-disable-next-line no-restricted-syntax
           for (const match of regExExecReturn) {
-            if (!sourceIds.includes(match[1].trim())) sourceIds.push(match[1].trim());
-            if (!replacements.has(match[1])) replacements.set(match[1], match[1].trim());
+            const matchId = variableCodings.find(c => match[1].trim() === c.alias)?.id;
+            if (!sources
+              .includes(matchId || match[1].trim())) sources.push(matchId || match[1].trim());
+            if (!replacements
+              .has(matchId || match[1].trim())) replacements.set(match[1].trim(), matchId || match[1].trim());
           }
-          if (sourceIds.length > 0) {
-            const missingDeriveVars = sourceIds.filter(
+          if (sources.length > 0) {
+            const missingDeriveVars = sources.filter(
               s => !coding.deriveSources.includes(s)
             );
             if (missingDeriveVars.length === 0) {
@@ -666,6 +670,7 @@ export class CodingScheme {
               if (!varCoding.sourceParameters.processing?.includes('NO_CODING')) {
                 try {
                   const derivedResponse = CodingScheme.deriveValue(
+                    this.variableCodings,
                     varCoding,
                     newResponses.filter(r => varNode.sources.includes(r.id))
                   );
