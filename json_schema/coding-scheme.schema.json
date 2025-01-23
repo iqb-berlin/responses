@@ -128,10 +128,14 @@
                       "type": "integer"
                     },
                     {
-                      "type": "null"
+                      "type": "string",
+                      "enum": [
+                        "INVALID",
+                        "INTENDED_INCOMPLETE"
+                      ]
                     }
                   ],
-                  "description": "If this code's rules/instructions match, the code and score is taken for the response. If the code id is of value 'null', no code or score is taken. Instead, the status 'INVALID' will be set."
+                  "description": "If this code's rules/instructions match, the code and score is taken for the response. If the code id is of type 'string', the status 'INVALID' or 'INTENDED_INCOMPLETE' will be set."
                 },
                 "type": {
                   "type": "string",
@@ -142,7 +146,8 @@
                     "TO_CHECK",
                     "NO_CREDIT",
                     "RESIDUAL",
-                    "RESIDUAL_AUTO"
+                    "RESIDUAL_AUTO",
+                    "INTENDED_INCOMPLETE"
                   ],
                   "description": "To ease some processing and documentation"
                 },

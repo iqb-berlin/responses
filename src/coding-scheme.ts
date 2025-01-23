@@ -47,6 +47,10 @@ export class CodingScheme {
       transformedScheme.variableCodings || [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     givenCodings.forEach((c: any) => {
+      this.variableCodings.map(vc => vc.codes.map(code => {
+        if (code.id === null) code.id = 'INVALID';
+        return code;
+      }));
       if (codingSchemeMajorVersion < 3) {
         this.variableCodings.push(CodingScheme.getCodeVersionLessThan3(c));
       } else {
