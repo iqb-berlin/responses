@@ -1,6 +1,6 @@
 export type ResponseStatusType = 'UNSET' | 'NOT_REACHED' | 'DISPLAYED' | 'VALUE_CHANGED' |
 'DERIVE_ERROR' | 'CODING_COMPLETE' | 'NO_CODING' | 'INVALID' | 'CODING_INCOMPLETE' | 'CODING_ERROR' |
-'PARTLY_DISPLAYED' | 'DERIVE_PENDING';
+'PARTLY_DISPLAYED' | 'DERIVE_PENDING' | 'INTENDED_INCOMPLETE';
 export const responseStatesInOrder = ['UNSET', 'NOT_REACHED', 'DISPLAYED', 'VALUE_CHANGED', 'INVALID',
   'DERIVE_ERROR', 'CODING_COMPLETE', 'PARTLY_DISPLAYED', 'DERIVE_PENDING', 'NO_CODING',
   'CODING_INCOMPLETE', 'CODING_ERROR'];
@@ -20,7 +20,7 @@ export interface Response {
   status: ResponseStatusType;
   value: ResponseValueType;
   subform?: string,
-  code?: number;
+  code?: number
   score?: number
 }
 
@@ -47,7 +47,7 @@ export type ProcessingParameterType = 'IGNORE_CASE' | 'IGNORE_ALL_SPACES' | 'IGN
 'REPLAY_REQUIRED' | 'ATTACHMENT';
 export type CodeModelType = 'NONE' | 'RULES_ONLY' | 'MANUAL_ONLY';
 export type CodeType = 'UNSET' | 'FULL_CREDIT' | 'PARTIAL_CREDIT' |
-'NO_CREDIT' | 'TO_CHECK' | 'RESIDUAL' | 'RESIDUAL_AUTO';
+'NO_CREDIT' | 'TO_CHECK' | 'RESIDUAL' | 'RESIDUAL_AUTO' | 'INTENDED_INCOMPLETE';
 export type SourceType = 'BASE' | 'BASE_NO_VALUE' | 'MANUAL' | 'COPY_VALUE' | 'CONCAT_CODE' | 'SUM_CODE' |
 'SUM_SCORE' | 'UNIQUE_VALUES' | 'SOLVER';
 export type SourceProcessingType = 'TO_LOWER_CASE' | 'TO_NUMBER' | 'REMOVE_ALL_SPACES' | 'REMOVE_DISPENSABLE_SPACES' |
@@ -69,7 +69,7 @@ export interface RuleSet {
 }
 
 export interface CodeData {
-  id: number | null,
+  id: number | 'INVALID' | 'INTENDED_INCOMPLETE',
   type: CodeType,
   label: string,
   score: number,

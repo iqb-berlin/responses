@@ -460,13 +460,13 @@ export abstract class CodingFactory {
       }
       if (newResponse.status !== 'CODING_ERROR') {
         let hasElse = false;
-        let elseCode: number | null = 0;
+        let elseCode: 'INVALID' | 'INTENDED_INCOMPLETE' | number = 0;
         let elseScore = 0;
         let changed = false;
         coding.codes.forEach(c => {
           if (!changed) {
             // ignore other rules if ELSE-rule found
-            if (c.type === 'RESIDUAL_AUTO') {
+            if (c.type === 'RESIDUAL_AUTO' || c.type === 'INTENDED_INCOMPLETE') {
               hasElse = true;
               elseCode = c.id;
               elseScore = c.score;
@@ -515,8 +515,12 @@ export abstract class CodingFactory {
                   ruleSetIndex += 1;
                 }
                 if ((oneMatch || matchAll) && (!oneMisMatch)) {
-                  if (c.id === null) {
+                  if (c.id === 'INVALID') {
                     newResponse.status = 'INVALID';
+                    newResponse.code = 0;
+                  } else if (c.id === 'INTENDED_INCOMPLETE') {
+                    newResponse.status = 'INTENDED_INCOMPLETE';
+                    newResponse.code = 0;
                   } else {
                     newResponse.code = c.id;
                     newResponse.score = c.score || 0;
@@ -530,8 +534,16 @@ export abstract class CodingFactory {
         });
         if (!changed) {
           if (hasElse) {
-            if (elseCode === null) {
+            // @ts-expect-error elseCode is 'INVALID' | 'INTENDED_INCOMPLETE' | number
+            if (elseCode === 'INTENDED_INCOMPLETE') {
+              newResponse.status = 'INTENDED_INCOMPLETE';
+              newResponse.code = 0;
+              newResponse.score = 0;
+            // @ts-expect-error elseCode is 'INVALID' | 'INTENDED_INCOMPLETE' | number
+            } else if (elseCode === 'INVALID') {
               newResponse.status = 'INVALID';
+              newResponse.code = 0;
+              newResponse.score = 0;
             } else {
               newResponse.code = elseCode;
               newResponse.score = elseScore;

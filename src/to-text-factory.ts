@@ -53,6 +53,7 @@ const CODE_LABEL_BY_TYPE = {
   PARTIAL_CREDIT: 'teilweise richtig',
   NO_CREDIT: 'falsch',
   TO_CHECK: 'zu prüfen',
+  INTENDED_INCOMPLETE: 'absichtlich unvollständig',
   RESIDUAL: 'falsch',
   RESIDUAL_AUTO: 'falsch'
 };
@@ -180,7 +181,8 @@ export abstract class ToTextFactory {
       ruleSetDescriptions: code.ruleSets.map((rs, i) => {
         let description = (code.ruleSets.length > 1) && mode === 'EXTENDED' ? `Regelset ${i + 1}: ` : '';
         if ((!rs.rules || rs.rules.length === 0) && mode === 'EXTENDED') return `${description}Keine Regeln definiert.`;
-        if (['RESIDUAL_AUTO', 'RESIDUAL'].indexOf(code.type) >= 0) return `${description}Alle anderen Antworten`;
+        if (['RESIDUAL_AUTO', 'RESIDUAL'].indexOf(code.type) >= 0) return `${description}Alle anderen Antworten.`;
+        if (['INTENDED_INCOMPLETE'].indexOf(code.type) >= 0) return `${description}Kodierung soll unvollständig sein.`;
 
         rs.rules.forEach((r, j) => {
           if (rs.rules.length > 1) description += mode === 'EXTENDED' ? `${j > 0 ? '; ' : ''}(R${j + 1}) ` : '';
