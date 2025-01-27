@@ -30,6 +30,25 @@ export abstract class CodingFactory {
     };
   }
 
+  static createNoValueCodingVariable(varId: string): VariableCodingData {
+    return <VariableCodingData>{
+      id: varId,
+      alias: varId,
+      label: '',
+      sourceType: 'BASE_NO_VALUE',
+      sourceParameters: {
+        solverExpression: '',
+        processing: []
+      },
+      deriveSources: [],
+      processing: [],
+      fragmenting: '',
+      manualInstruction: '',
+      codeModel: 'NONE',
+      codes: []
+    };
+  }
+
   private static transformString(
     value: string,
     processing: (ProcessingParameterType | SourceProcessingType)[],
@@ -414,6 +433,7 @@ export abstract class CodingFactory {
       // check whether ALL values in array match
       let valueIndex = 0;
       while (oneMatch && valueIndex < valueToCheck.length) {
+        // eslint-disable-next-line @typescript-eslint/no-shadow
         let ruleIndex = 0;
         while (oneMatch && ruleIndex < ruleSet.rules.length) {
           oneMatch = this.isMatchRule(valueToCheck[valueIndex], ruleSet.rules[ruleIndex], false, codingProcessing);
