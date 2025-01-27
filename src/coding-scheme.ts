@@ -191,11 +191,14 @@ export class CodingScheme {
         page: c.page || ''
       }));
     let foundInWhile = true;
-    while (foundInWhile && this.variableCodings.length > graph.length) {
+    const baseNoValueCount: number = this.variableCodings
+      .filter(c => c.sourceType === 'BASE_NO_VALUE').length;
+    const maxGraphLength = this.variableCodings.length - baseNoValueCount;
+    while (foundInWhile && maxGraphLength > graph.length) {
       let found = false;
       this.variableCodings.forEach(vc => {
         const existingNode = graph.find(n => n.id === vc.id);
-        if (!existingNode) {
+        if (vc.sourceType !== 'BASE_NO_VALUE' && !existingNode) {
           let maxLevel = 0;
           let newPage: string | null = null;
           vc.deriveSources.forEach(s => {
@@ -640,14 +643,16 @@ export class CodingScheme {
       }
       const existingResponse = newResponses.find(r => r.id === c.id);
       if (!existingResponse) {
-        newResponses.push({
-          id: c.id,
-          value: null,
-          status:
-            globalDeriveError && c.sourceType !== 'BASE' ?
-              'DERIVE_ERROR' :
-              'UNSET'
-        });
+        if (c.sourceType !== 'BASE_NO_VALUE') {
+          newResponses.push({
+            id: c.id,
+            value: null,
+            status:
+              globalDeriveError && c.sourceType !== 'BASE' ?
+                'DERIVE_ERROR' :
+                'UNSET'
+          });
+        }
       }
     });
 
@@ -656,6 +661,7 @@ export class CodingScheme {
     for (let level = 0; level <= maxVarLevel; level++) {
       varDependencies
         .filter(n => n.level === level)
+        // eslint-disable-next-line @typescript-eslint/no-loop-func
         .forEach(varNode => {
           const targetResponse = newResponses.find(r => r.id === varNode.id);
           const varCoding = this.variableCodings.find(
@@ -713,7 +719,7 @@ export class CodingScheme {
     // todo: check against VarInfo
     const problems: CodingSchemeProblem[] = [];
     const allDerivedVariableIds: string[] = this.variableCodings
-      .filter(vc => vc.sourceType !== 'BASE')
+      .filter(vc => vc.sourceType !== 'BASE' && vc.sourceType !== 'BASE_NO_VALUE')
       .map(vc => vc.id);
     const allBaseVariableInfoIds = baseVariables.map(bv => bv.id);
     const allPossibleSourceIds = [
@@ -775,7 +781,7 @@ export class CodingScheme {
             });
           }
         });
-      } else {
+      } else if (c.sourceType !== 'BASE_NO_VALUE') {
         problems.push({
           type: 'SOURCE_MISSING',
           breaking: true,
@@ -814,12 +820,14 @@ export class CodingScheme {
           });
         });
       } else if (variableValuesCopied.indexOf(c.id) < 0) {
-        problems.push({
-          type: 'VACANT',
-          breaking: false,
-          variableId: c.alias || c.id,
-          variableLabel: c.label
-        });
+        if (c.sourceType !== 'BASE_NO_VALUE') {
+          problems.push({
+            type: 'VACANT',
+            breaking: false,
+            variableId: c.alias || c.id,
+            variableLabel: c.label
+          });
+        }
       }
     });
     return problems;
