@@ -9,6 +9,11 @@ This package contains of type definitions for processing assessment data. Additi
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 3.4
+
+* `BASE_NO_VALUE` source type wird nicht zu den Antworten hinzugefügt
+* Status `INTENDED_INCOMPLETE` und code type `INTENDED_INCOMPLETE` hinzugefügt
+
 ### 3.3
 
 * [Ableitungsregeln angepasst](https://iqb-berlin.github.io/coding-info/coding/derive.html)
