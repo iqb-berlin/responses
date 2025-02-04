@@ -566,157 +566,195 @@ export class CodingScheme {
     // decouple object from caller variable
     const stringifiedResponses = JSON.stringify(unitResponses);
     let newResponses: Response[] = JSON.parse(stringifiedResponses);
+    let allCodedResponses: Response[] = [];
+    const notSubformResponses: Response[] = [];
 
-    // responses id to alias
-    newResponses = newResponses
-      .map(r => ({
-        ...r,
-        id: this.variableCodings.find(c => c.alias === r.id)?.id || r.id
-      }));
-    // change DISPLAYED to VALUE_CHANGED if requested
-    newResponses
-      .filter(r => r.status === 'DISPLAYED')
-      .forEach(r => {
-        const myCoding = this.variableCodings.find(c => c.id === r.id);
-        if (
-          myCoding &&
-          myCoding.sourceType === 'BASE' &&
-          myCoding.sourceParameters.processing &&
-          myCoding.sourceParameters.processing.includes(
-            'TAKE_DISPLAYED_AS_VALUE_CHANGED'
-          )
-        ) {
-          r.status = 'VALUE_CHANGED';
+    // group responses into sub-forms
+    const subformGroups = newResponses.reduce((acc, item:Response) => {
+      if (item.subform !== undefined) {
+        if (!acc[item.subform]) {
+          acc[item.subform] = [];
         }
-      });
+        acc[item.subform].push(item);
+      } else {
+        notSubformResponses.push(item);
+      }
+      return acc;
+    }, {} as Record<string, Response[]>);
 
-    // set invalid if value is empty
-    newResponses
-      .filter(
-        r => r.status === 'VALUE_CHANGED' && CodingFactory.isEmptyValue(r.value)
-      )
-      .forEach(r => {
-        const myCoding = this.variableCodings.find(c => c.id === r.id);
-        if (
-          myCoding &&
-          myCoding.sourceType === 'BASE' &&
-          !(
+    // code responses for each sub-form
+    [...Object.values(subformGroups), notSubformResponses].forEach(subFormResponses => {
+      // responses id to alias
+      subFormResponses.every(r => r.subform !== undefined) ?
+        newResponses = [...subFormResponses, ...notSubformResponses]
+          .map(r => ({
+            ...r,
+            id: this.variableCodings.find(c => c.alias === r.id)?.id || r.id
+          })) :
+        newResponses = [...subFormResponses]
+          .map(r => ({
+            ...r,
+            id: this.variableCodings.find(c => c.alias === r.id)?.id || r.id
+          }));
+
+      // change DISPLAYED to VALUE_CHANGED if requested
+      newResponses
+        .filter(r => r.status === 'DISPLAYED')
+        .forEach(r => {
+          const myCoding = this.variableCodings.find(c => c.id === r.id);
+          if (
+            myCoding &&
+            myCoding.sourceType === 'BASE' &&
             myCoding.sourceParameters.processing &&
-            myCoding.sourceParameters.processing.includes('TAKE_EMPTY_AS_VALID')
-          )
-        ) {
-          r.status = 'INVALID';
-        }
-      });
-
-    // ignore base var if derived var with same id
-    this.variableCodings
-      .filter(vc => vc.sourceType !== 'BASE')
-      .forEach(c => {
-        // todo: check delete array member while looping through array
-        newResponses.forEach((r, index) => {
-          if (r.id === c.id && !r.code && !r.score) {
-            if (r.status !== 'CODING_COMPLETE') {
-              newResponses.splice(index, 1);
-            }
+            myCoding.sourceParameters.processing.includes(
+              'TAKE_DISPLAYED_AS_VALUE_CHANGED'
+            )
+          ) {
+            r.status = 'VALUE_CHANGED';
           }
         });
+
+      // set invalid if value is empty
+      newResponses
+        .filter(
+          r => r.status === 'VALUE_CHANGED' && CodingFactory.isEmptyValue(r.value)
+        )
+        .forEach(r => {
+          const myCoding = this.variableCodings.find(c => c.id === r.id);
+          if (
+            myCoding &&
+            myCoding.sourceType === 'BASE' &&
+            !(
+              myCoding.sourceParameters.processing &&
+              myCoding.sourceParameters.processing.includes('TAKE_EMPTY_AS_VALID')
+            )
+          ) {
+            r.status = 'INVALID';
+          }
+        });
+
+      // ignore base var if derived var with same id
+      this.variableCodings.filter(vc => vc.sourceType !== 'BASE');
+      newResponses = newResponses.filter(r => {
+        const shouldDelete = this.variableCodings
+          .some(vc => vc.sourceType !== 'BASE' &&
+                r.id === vc.id && !r.code && !r.score && r.status !== 'CODING_COMPLETE');
+        return !shouldDelete;
       });
 
-    // set up variable tree
-    let varDependencies: VariableGraphNode[] = [];
-    let globalDeriveError = false;
-    try {
-      varDependencies = this.getVariableDependencyTree();
-    } catch {
-      globalDeriveError = true;
-      varDependencies = [];
-    }
+      // set up variable tree
+      let varDependencies: VariableGraphNode[] = [];
+      let globalDeriveError = false;
+      try {
+        varDependencies = this.getVariableDependencyTree();
+      } catch {
+        globalDeriveError = true;
+        varDependencies = [];
+      }
 
-    // add derived variables when error and missing responses
-    this.variableCodings.forEach(c => {
-      if (c.sourceType === 'BASE') {
-        if (globalDeriveError) {
-          varDependencies.push({
-            id: c.id,
-            level: 0,
-            sources: [],
-            page: c.page || ''
-          });
+      // add derived variables when error and missing responses
+      this.variableCodings.forEach(c => {
+        if (c.sourceType === 'BASE') {
+          if (globalDeriveError) {
+            varDependencies.push({
+              id: c.id,
+              level: 0,
+              sources: [],
+              page: c.page || ''
+            });
+          }
         }
-      }
-      const existingResponse = newResponses.find(r => r.id === c.id);
-      if (!existingResponse) {
-        if (c.sourceType !== 'BASE_NO_VALUE') {
-          newResponses.push({
-            id: c.id,
-            value: null,
-            status:
-              globalDeriveError && c.sourceType !== 'BASE' ?
-                'DERIVE_ERROR' :
-                'UNSET'
-          });
+        const existingResponse = newResponses.find(r => r.id === c.id);
+        if (!existingResponse) {
+          if (c.sourceType !== 'BASE_NO_VALUE') {
+            newResponses.push({
+              id: c.id,
+              value: null,
+              status:
+                globalDeriveError && c.sourceType !== 'BASE' ?
+                  'DERIVE_ERROR' :
+                  'UNSET'
+            });
+          }
         }
+      });
+
+      const maxVarLevel = Math.max(...varDependencies.map(n => n.level));
+
+      for (let level = 0; level <= maxVarLevel; level++) {
+        varDependencies
+          .filter(n => n.level === level)
+          // eslint-disable-next-line @typescript-eslint/no-loop-func
+          .forEach(varNode => {
+            const targetResponse = newResponses.find(r => r.id === varNode.id);
+            const varCoding = this.variableCodings.find(
+              vc => vc.id === varNode.id
+            );
+            if (targetResponse && varCoding) {
+              if (
+                varNode.sources.length > 0 &&
+                validStatesToStartDeriving.includes(targetResponse.status)
+              ) {
+                // derive
+                if (!varCoding.sourceParameters.processing?.includes('NO_CODING')) {
+                  try {
+                    const derivedResponse = CodingScheme.deriveValue(
+                      this.variableCodings,
+                      varCoding,
+                      newResponses.filter(r => varNode.sources.includes(r.id))
+                    );
+                    targetResponse.status = derivedResponse.status;
+                    if (derivedResponse.status === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
+                  } catch (e) {
+                    targetResponse.status = 'DERIVE_ERROR';
+                    targetResponse.value = null;
+                  }
+                }
+              }
+              if (targetResponse.status === 'VALUE_CHANGED') {
+                if (varCoding.codes.length > 0) {
+                  const codedResponse = CodingFactory.code(
+                    targetResponse,
+                    varCoding
+                  );
+                  if (codedResponse.status !== targetResponse.status) {
+                    targetResponse.status = codedResponse.status;
+                    targetResponse.code = codedResponse.code;
+                    targetResponse.score = codedResponse.score;
+                  }
+                } else {
+                  targetResponse.status = 'NO_CODING';
+                }
+              }
+            }
+          });
       }
+      // responses id to alias
+      newResponses = newResponses
+        .map(r => ({
+          ...r,
+          id: this.variableCodings.find(c => c.id === r.id)?.alias || r.id
+        }));
+
+      allCodedResponses = [...allCodedResponses, ...newResponses];
     });
 
-    const maxVarLevel = Math.max(...varDependencies.map(n => n.level));
+    // remove duplicate responses
+    let uniqueResponses = allCodedResponses
+      .filter((item, index, self) => index === self
+        .findIndex(t => (
+          t.id === item.id && t.subform === item.subform
+        ))
+      );
 
-    for (let level = 0; level <= maxVarLevel; level++) {
-      varDependencies
-        .filter(n => n.level === level)
-        // eslint-disable-next-line @typescript-eslint/no-loop-func
-        .forEach(varNode => {
-          const targetResponse = newResponses.find(r => r.id === varNode.id);
-          const varCoding = this.variableCodings.find(
-            vc => vc.id === varNode.id
-          );
-          if (targetResponse && varCoding) {
-            if (
-              varNode.sources.length > 0 &&
-              validStatesToStartDeriving.includes(targetResponse.status)
-            ) {
-              // derive
-              if (!varCoding.sourceParameters.processing?.includes('NO_CODING')) {
-                try {
-                  const derivedResponse = CodingScheme.deriveValue(
-                    this.variableCodings,
-                    varCoding,
-                    newResponses.filter(r => varNode.sources.includes(r.id))
-                  );
-                  targetResponse.status = derivedResponse.status;
-                  if (derivedResponse.status === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
-                } catch (e) {
-                  targetResponse.status = 'DERIVE_ERROR';
-                  targetResponse.value = null;
-                }
-              }
-            }
-            if (targetResponse.status === 'VALUE_CHANGED') {
-              if (varCoding.codes.length > 0) {
-                const codedResponse = CodingFactory.code(
-                  targetResponse,
-                  varCoding
-                );
-                if (codedResponse.status !== targetResponse.status) {
-                  targetResponse.status = codedResponse.status;
-                  targetResponse.code = codedResponse.code;
-                  targetResponse.score = codedResponse.score;
-                }
-              } else {
-                targetResponse.status = 'NO_CODING';
-              }
-            }
-          }
-        });
+    // remove unset responses if it value is part in subform
+    if (Object.keys(subformGroups).length > 0) {
+      uniqueResponses = uniqueResponses.filter(ur => {
+        const found = Object.values(subformGroups)[0].find(sr => sr.id === ur.id);
+        return !(found && ur.status === 'UNSET');
+      });
     }
-    // responses id to alias
-    newResponses = newResponses
-      .map(r => ({
-        ...r,
-        id: this.variableCodings.find(c => c.id === r.id)?.alias || r.id
-      }));
-    return newResponses;
+    return uniqueResponses;
   }
 
   validate(baseVariables: VariableInfo[]): CodingSchemeProblem[] {
