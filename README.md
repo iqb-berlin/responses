@@ -9,6 +9,10 @@ This package contains of type definitions for processing assessment data. Additi
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 3.5
+
+* Antworten in Unterformularen werden kodiert
+
 ### 3.4
 
 * `BASE_NO_VALUE` source type wird nicht zu den Antworten hinzugefügt
