@@ -242,13 +242,15 @@ export class CodingScheme {
     coding: VariableCodingData,
     sourceResponses: Response[]
   ): Response {
+    const subformSource = sourceResponses.find(r => r.subform !== undefined)?.subform;
     // Killer
     const hasUnset = sourceResponses.some(r => r.status === 'UNSET');
     if (hasUnset) {
       return <Response>{
         id: coding.id,
         value: null,
-        status: 'UNSET'
+        status: 'UNSET',
+        subform: subformSource
       };
     }
     const hasDeriveError = sourceResponses.some(r => r.status === 'DERIVE_ERROR');
@@ -256,7 +258,8 @@ export class CodingScheme {
       return <Response>{
         id: coding.id,
         value: null,
-        status: 'DERIVE_ERROR'
+        status: 'DERIVE_ERROR',
+        subform: subformSource
       };
     }
     const hasNoCoding = sourceResponses.some(r => r.status === 'NO_CODING');
@@ -264,7 +267,8 @@ export class CodingScheme {
       return <Response>{
         id: coding.id,
         value: null,
-        status: 'DERIVE_ERROR'
+        status: 'DERIVE_ERROR',
+        subform: subformSource
       };
     }
     const hasCodingError = sourceResponses.some(r => r.status === 'CODING_ERROR');
@@ -272,7 +276,8 @@ export class CodingScheme {
       return <Response>{
         id: coding.id,
         value: null,
-        status: 'CODING_ERROR'
+        status: 'CODING_ERROR',
+        subform: subformSource
       };
     }
     const hasInvalid = sourceResponses.some(r => r.status === 'INVALID');
@@ -280,7 +285,8 @@ export class CodingScheme {
       return <Response>{
         id: coding.id,
         value: null,
-        status: 'INVALID'
+        status: 'INVALID',
+        subform: subformSource
       };
     }
 
@@ -297,7 +303,8 @@ export class CodingScheme {
           return <Response>{
             id: coding.id,
             value: null,
-            status: 'DERIVE_PENDING'
+            status: 'DERIVE_PENDING',
+            subform: subformSource
           };
         }
       }
@@ -308,7 +315,8 @@ export class CodingScheme {
         return <Response>{
           id: coding.id,
           value: null,
-          status: sourceResponses[0].status
+          status: sourceResponses[0].status,
+          subform: subformSource
         };
       }
       if (sourceResponses
@@ -316,13 +324,15 @@ export class CodingScheme {
         return <Response>{
           id: coding.id,
           value: null,
-          status: 'PARTLY_DISPLAYED'
+          status: 'PARTLY_DISPLAYED',
+          subform: subformSource
         };
       }
       return <Response>{
         id: coding.id,
         value: null,
-        status: 'INVALID'
+        status: 'INVALID',
+        subform: subformSource
       };
     }
 
@@ -333,7 +343,8 @@ export class CodingScheme {
         return < Response > {
           id: coding.id,
           value: null,
-          status: 'CODING_COMPLETE'
+          status: 'CODING_COMPLETE',
+          subform: subformSource
         };
       }
       case 'COPY_VALUE': {
@@ -341,14 +352,16 @@ export class CodingScheme {
           return <Response>{
             id: coding.id,
             value: null,
-            status: 'DERIVE_PENDING'
+            status: 'DERIVE_PENDING',
+            subform: subformSource
           };
         }
         const stringfiedValue = JSON.stringify(sourceResponses[0].value);
         return <Response>{
           id: coding.id,
           value: JSON.parse(stringfiedValue),
-          status: 'VALUE_CHANGED'
+          status: 'VALUE_CHANGED',
+          subform: subformSource
         };
       }
       case 'CONCAT_CODE': {
@@ -369,7 +382,8 @@ export class CodingScheme {
         return <Response>{
           id: coding.id,
           value: codes.join(DeriveConcatDelimiter),
-          status: 'VALUE_CHANGED'
+          status: 'VALUE_CHANGED',
+          subform: subformSource
         };
       }
       case 'SUM_CODE':
@@ -382,7 +396,8 @@ export class CodingScheme {
               throw new Error('response not found in derive');
             })
             .reduce((sum, current) => sum + current, 0),
-          status: 'VALUE_CHANGED'
+          status: 'VALUE_CHANGED',
+          subform: subformSource
         };
       case 'SUM_SCORE':
         return <Response>{
@@ -394,7 +409,8 @@ export class CodingScheme {
               throw new Error('response not found in derive');
             })
             .reduce((sum, current) => sum + current, 0),
-          status: 'VALUE_CHANGED'
+          status: 'VALUE_CHANGED',
+          subform: subformSource
         };
       case 'UNIQUE_VALUES': {
         const valuesToCompare: string[] = [];
@@ -445,7 +461,8 @@ export class CodingScheme {
         return <Response>{
           id: coding.id,
           value: duplicates.length === 0,
-          status: 'VALUE_CHANGED'
+          status: 'VALUE_CHANGED',
+          subform: subformSource
         };
       }
       case 'SOLVER':
@@ -513,7 +530,8 @@ export class CodingScheme {
               return <Response>{
                 id: coding.id,
                 value: newValue,
-                status: newValue === null ? 'DERIVE_ERROR' : 'VALUE_CHANGED'
+                status: newValue === null ? 'DERIVE_ERROR' : 'VALUE_CHANGED',
+                subform: subformSource
               };
             }
           }
@@ -570,28 +588,28 @@ export class CodingScheme {
     const notSubformResponses: Response[] = [];
 
     // group responses into sub-forms
-    const subformGroups = newResponses.reduce((acc, item:Response) => {
-      if (item.subform !== undefined) {
-        if (!acc[item.subform]) {
-          acc[item.subform] = [];
+    const subformGroups = newResponses.reduce((acc, r:Response) => {
+      if (r.subform !== undefined) {
+        if (!acc[r.subform]) {
+          acc[r.subform] = [];
         }
-        acc[item.subform].push(item);
+        acc[r.subform].push(r);
       } else {
-        notSubformResponses.push(item);
+        notSubformResponses.push(r);
       }
       return acc;
     }, {} as Record<string, Response[]>);
 
     // code responses for each sub-form
-    [...Object.values(subformGroups), notSubformResponses].forEach(subFormResponses => {
+    [...Object.values(subformGroups), notSubformResponses].forEach(allResponses => {
       // responses id to alias
-      subFormResponses.every(r => r.subform !== undefined) ?
-        newResponses = [...subFormResponses, ...notSubformResponses]
+      allResponses.every(r => r.subform !== undefined) ?
+        newResponses = [...allResponses, ...notSubformResponses]
           .map(r => ({
             ...r,
             id: this.variableCodings.find(c => c.alias === r.id)?.id || r.id
           })) :
-        newResponses = [...subFormResponses]
+        newResponses = [...allResponses]
           .map(r => ({
             ...r,
             id: this.variableCodings.find(c => c.alias === r.id)?.id || r.id
@@ -704,6 +722,7 @@ export class CodingScheme {
                       newResponses.filter(r => varNode.sources.includes(r.id))
                     );
                     targetResponse.status = derivedResponse.status;
+                    targetResponse.subform = derivedResponse.subform;
                     if (derivedResponse.status === 'VALUE_CHANGED') targetResponse.value = derivedResponse.value;
                   } catch (e) {
                     targetResponse.status = 'DERIVE_ERROR';
@@ -729,17 +748,17 @@ export class CodingScheme {
             }
           });
       }
+
       // responses id to alias
       newResponses = newResponses
         .map(r => ({
           ...r,
           id: this.variableCodings.find(c => c.id === r.id)?.alias || r.id
         }));
-
       allCodedResponses = [...allCodedResponses, ...newResponses];
     });
 
-    // remove duplicate responses
+    // remove duplicate responses if not from derived var
     let uniqueResponses = allCodedResponses
       .filter((item, index, self) => index === self
         .findIndex(t => (
@@ -747,14 +766,19 @@ export class CodingScheme {
         ))
       );
 
-    // remove unset responses if it value is part in subform
+    const derivedAliases = this.variableCodings
+      .filter(vc => (vc.sourceType !== 'BASE') && (vc.sourceType !== 'BASE_NO_VALUE'))
+      .map(vc => vc.alias || vc.id);
+
+    // remove unset responses if value is part in subform
     if (Object.keys(subformGroups).length > 0) {
       uniqueResponses = uniqueResponses.filter(ur => {
-        const found = Object.values(subformGroups)[0].find(sr => sr.id === ur.id);
-        return !(found && ur.status === 'UNSET');
+        const foundInSubformGroups = Object.values(subformGroups)[0].find(sr => sr.id === ur.id);
+        const foundInDerived = derivedAliases.includes(ur.id);
+        return !((foundInSubformGroups || foundInDerived) && ur.status === 'UNSET');
       });
     }
-    return uniqueResponses;
+    return [...uniqueResponses];
   }
 
   validate(baseVariables: VariableInfo[]): CodingSchemeProblem[] {
