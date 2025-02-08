@@ -29,7 +29,7 @@ export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RA
 export const RuleMethodParameterCount = {
   MATCH: -1,
   MATCH_REGEX: -1,
-  NUMERIC_MATCH: 1,
+  NUMERIC_MATCH: -1,
   NUMERIC_RANGE: 2,
   NUMERIC_LESS_THAN: 1,
   NUMERIC_MORE_THAN: 1,
