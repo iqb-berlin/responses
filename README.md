@@ -12,6 +12,7 @@ This package contains of type definitions for processing assessment data. Additi
 ### 3.5
 
 * Antworten in Unterformularen werden kodiert
+* Setze RuleMethodParameterCount -1 for NUMERIC_MATCH Regel
 
 ### 3.4
 
