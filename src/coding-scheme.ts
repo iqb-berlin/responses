@@ -295,7 +295,8 @@ export class CodingScheme {
       if (sourceResponses
         .every(r => r.status === 'CODING_INCOMPLETE' ||
           r.status === 'CODING_COMPLETE' ||
-          r.status === 'DERIVE_PENDING')) {
+          r.status === 'DERIVE_PENDING' ||
+          r.status === 'INTENDED_INCOMPLETE')) {
         if (!(coding.sourceType === 'MANUAL' ||
           coding.sourceType === 'COPY_VALUE' ||
           coding.sourceType === 'UNIQUE_VALUES' ||
@@ -309,6 +310,7 @@ export class CodingScheme {
         }
       }
     }
+
     const amountFalseStates = this.amountFalseStates(coding, sourceResponses);
     if (sourceResponses.length >= amountFalseStates && amountFalseStates > 0) {
       if (amountFalseStates && sourceResponses.every(r => r.status === sourceResponses[0].status)) {
@@ -335,11 +337,17 @@ export class CodingScheme {
         subform: subformSource
       };
     }
-
     // eslint-disable-next-line default-case
     switch (coding.sourceType) {
-      // todo: check purpose of changing status
       case 'MANUAL': {
+        if (sourceResponses.every(r => r.status === 'INTENDED_INCOMPLETE')) {
+          return < Response > {
+            id: coding.id,
+            value: null,
+            status: 'CODING_INCOMPLETE',
+            subform: subformSource
+          };
+        }
         return < Response > {
           id: coding.id,
           value: null,
@@ -551,19 +559,21 @@ export class CodingScheme {
         'INVALID',
         'VALUE_CHANGED',
         'NO_CODING',
-        'CODING_INCOMPLETE',
         'CODING_ERROR',
-        'CODING_COMPLETE'];
+        'CODING_COMPLETE',
+        'INTENDED_INCOMPLETE'
+      ];
       sourceResponses.forEach(r => {
         if (!validStates.includes(r.status) ||
-          !(r.status === 'DISPLAYED' &&
+          (r.status === 'DISPLAYED' &&
             coding.sourceParameters.processing?.includes('TAKE_DISPLAYED_AS_VALUE_CHANGED'))) {
           errors += 1;
         }
       });
     }
     if (coding.sourceType === 'COPY_VALUE' || coding.sourceType === 'UNIQUE_VALUES' || coding.sourceType === 'SOLVER') {
-      const validStates = ['VALUE_CHANGED', 'NO_CODING', 'CODING_INCOMPLETE', 'CODING_ERROR', 'CODING_COMPLETE'];
+      const validStates =
+        ['VALUE_CHANGED', 'NO_CODING', 'CODING_INCOMPLETE', 'CODING_ERROR', 'CODING_COMPLETE', 'INTENDED_INCOMPLETE'];
       sourceResponses.forEach(r => {
         if (!validStates.includes(r.status)) {
           errors += 1;
@@ -572,7 +582,7 @@ export class CodingScheme {
     }
     if (coding.sourceType === 'CONCAT_CODE' || coding.sourceType === 'SUM_CODE' || coding.sourceType === 'SUM_SCORE') {
       sourceResponses.forEach(r => {
-        if (!(r.status === 'CODING_COMPLETE')) {
+        if (!(r.status === 'CODING_COMPLETE' || r.status === 'INTENDED_INCOMPLETE')) {
           errors += 1;
         }
       });
