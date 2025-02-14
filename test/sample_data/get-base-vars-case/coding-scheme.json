@@ -1,7 +1,8 @@
 {
   "variableCodings" : [
     {
-      "id" : "text-field_1",
+      "id" : "text-field_1_XX",
+      "alias": "text-field_1",
       "label" : "",
       "sourceType" : "BASE",
       "deriveSources" : [],
@@ -35,7 +36,8 @@
       "page" : ""
     },
     {
-      "id" : "text-field_2",
+      "id" : "text-field_2_XX",
+      "alias" : "text-field_2",
       "label" : "",
       "sourceType" : "BASE",
       "deriveSources" : [],
@@ -69,12 +71,13 @@
       "page" : ""
     },
     {
-      "id" : "derived",
+      "id" : "derived_XX",
+      "alias" : "derived",
       "label" : "derived",
       "sourceType" : "SUM_SCORE",
       "deriveSources" : [
-        "text-field_1",
-        "text-field_2"
+        "text-field_1_XX",
+        "text-field_2_XX"
       ],
       "processing" : [],
       "codeModel" : "NONE",
