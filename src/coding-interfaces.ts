@@ -24,13 +24,15 @@ export interface Response {
   score?: number
 }
 
-export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_LESS_THAN' |
-'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'IS_NULL' | 'IS_TRUE' | 'IS_FALSE';
+export type RuleMethod = 'MATCH' | 'MATCH_REGEX' | 'NUMERIC_MATCH' | 'NUMERIC_RANGE' | 'NUMERIC_FULL_RANGE'
+| 'NUMERIC_LESS_THAN' | 'NUMERIC_MORE_THAN' | 'NUMERIC_MAX' | 'NUMERIC_MIN' | 'IS_EMPTY' | 'IS_NULL'
+| 'IS_TRUE' | 'IS_FALSE';
 export const RuleMethodParameterCount = {
   MATCH: -1,
   MATCH_REGEX: -1,
   NUMERIC_MATCH: -1,
   NUMERIC_RANGE: 2,
+  NUMERIC_FULL_RANGE: 2,
   NUMERIC_LESS_THAN: 1,
   NUMERIC_MORE_THAN: 1,
   NUMERIC_MAX: 1,

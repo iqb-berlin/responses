@@ -327,6 +327,17 @@ export abstract class CodingFactory {
           }
         }
         break;
+      case 'NUMERIC_FULL_RANGE':
+        if (valueToCheck !== null && valueToCheck !== '') {
+          valueAsNumber = this.getValueAsNumber(valueToCheck);
+          if (typeof valueAsNumber === 'number' && rule.parameters) {
+            const compareValueLL = this.getValueAsNumber(rule.parameters[0]);
+            const compareValueUL = this.getValueAsNumber(rule.parameters[1]);
+            // eslint-disable-next-line max-len
+            if (typeof compareValueLL === 'number' && typeof compareValueUL === 'number') returnValue = valueAsNumber >= compareValueLL && valueAsNumber <= compareValueUL;
+          }
+        }
+        break;
       case 'IS_TRUE':
         returnValue = valueToCheck === 1 || valueToCheck === '1' || valueToCheck === true || valueToCheck === 'true';
         break;

@@ -230,6 +230,20 @@ export abstract class ToTextFactory {
                 }
               }
               break;
+            case 'NUMERIC_FULL_RANGE':
+              if (r.parameters && r.parameters.length === 2) {
+                const compareValueLL = CodingFactory.getValueAsNumber(r.parameters[0]);
+                const compareValueUL = CodingFactory.getValueAsNumber(r.parameters[1]);
+                if (compareValueLL === null || compareValueUL === null) {
+                  description += 'VERGLEICHSWERT NICHT NUMERISCH';
+                } else if (compareValueLL >= compareValueUL) {
+                  description += 'VERGLEICHSWERTE UNGÜLTIG';
+                } else {
+                  // eslint-disable-next-line max-len
+                  description += `${CODE_RULE_TEXT.NUMERIC_MIN} '${compareValueLL}' und ${CODE_RULE_TEXT.NUMERIC_MAX} '${compareValueUL}'`;
+                }
+              }
+              break;
             case 'IS_EMPTY':
             case 'IS_NULL':
             case 'IS_TRUE':
