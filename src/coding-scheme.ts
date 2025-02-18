@@ -1,3 +1,4 @@
+/* eslint-disable implicit-arrow-linebreak */
 import { evaluate } from 'mathjs';
 import {
   VariableCodingData,
@@ -932,52 +933,26 @@ export class CodingScheme {
     return returnTexts;
   }
 
-  getBaseVarsList(derivedVarsIds: string[]): string[] {
-    const allBaseVariables: string[] = this.variableCodings
-      .filter(c => c.deriveSources.length === 0)
-      .map(c => c.id);
-    const baseVariablesIds: string[] = [];
-    if (derivedVarsIds.length > 0) {
-      derivedVarsIds.forEach(derivedVarId => {
-        const derivedVar: VariableCodingData | undefined =
-          this.variableCodings.find(
-            variableCoding => variableCoding.id === derivedVarId
-          );
-        if (derivedVar) {
-          if (derivedVar.sourceType === 'BASE') {
-            baseVariablesIds.push(derivedVar.id);
-          } else {
-            baseVariablesIds.push(
-              ...this.derivedVarToBaseVars(derivedVar, allBaseVariables)
-            );
-          }
-        }
-      });
-      return [...new Set(baseVariablesIds)];
-    }
-    return [];
-  }
+  /**
+   * Get a list of all base variables need for the coding of a given list of variables.
+   * Variables are identified by what is called internally **alias** and **id** in outside applications
+   */
+  getBaseVarsList(varAliases: string[]): string[] {
+    const getVarBy = (selector: 'id' | 'alias') =>
+      (varId: string) =>
+        this.variableCodings.find(variable => variable[selector] === varId);
 
-  derivedVarToBaseVars(
-    derivedVariable: VariableCodingData,
-    allBaseVariables: string[]
-  ) {
-    let baseVariablesIds: string[] = [];
-    derivedVariable.deriveSources.forEach(derivedVar => {
-      if (allBaseVariables.includes(derivedVar)) {
-        baseVariablesIds.push(derivedVar);
-      } else {
-        const variableCoding = this.variableCodings.find(
-          c => c.id === derivedVar
-        );
-        if (variableCoding) {
-          baseVariablesIds = [
-            ...baseVariablesIds,
-            ...this.derivedVarToBaseVars(variableCoding, allBaseVariables)
-          ];
-        }
-      }
-    });
-    return [...new Set(baseVariablesIds)];
+    const getSourceVarAliases = (sourceVar: VariableCodingData | undefined): string[] => {
+      if (!sourceVar) return [];
+      if (sourceVar.sourceType === 'BASE') return [sourceVar.alias];
+      return sourceVar.deriveSources
+        .map(getVarBy('id'))
+        .flatMap(getSourceVarAliases);
+    };
+
+    const baseVarAliases = varAliases
+      .map(getVarBy('alias'))
+      .flatMap(getSourceVarAliases);
+    return [...new Set(baseVarAliases)];
   }
 }
