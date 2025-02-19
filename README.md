@@ -9,6 +9,10 @@ This package contains of type definitions for processing assessment data. Additi
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 3.6
+
+* `NUMERIC_FULL_RANGE` Regel >= Wert <= hinzugefügt
+
 ### 3.5
 
 * Antworten in Unterformularen werden kodiert
