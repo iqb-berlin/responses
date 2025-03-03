@@ -13,5 +13,10 @@
     "id": "b3",
     "status": "VALUE_CHANGED",
     "value": "Frickelbude"
+  },
+  {
+    "id": "b4",
+    "status": "VALUE_CHANGED",
+    "value": "Frickelbude"
   }
 ]

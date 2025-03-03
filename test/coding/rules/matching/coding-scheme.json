@@ -132,6 +132,52 @@
         }
 
       ]
+    },
+    {
+      "id": "b4",
+      "score": 1,
+      "sourceType": "BASE",
+      "sourceParameters": {
+        "processing": [
+          "TAKE_NOT_REACHED_AS_VALUE_CHANGED"
+        ]
+      },
+      "codes": [
+        {
+          "id": 1,
+          "score": 7,
+          "ruleSets": [
+            {
+              "rules": [
+                {
+                  "method": "MATCH",
+                  "parameters": [
+                    "Counterpart\nFrickelbude\nWackel Schwanz"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": 2,
+          "score": 2,
+          "ruleSets": [
+            {
+              "rules": [
+                {
+                  "method": "MATCH_REGEX",
+                  "parameters": [
+                    "KO+B\r\nFZ*M"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+
+      ]
     }
+
   ]
 }

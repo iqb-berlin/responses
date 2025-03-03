@@ -67,6 +67,7 @@
                     "REMOVE_ALL_SPACES",
                     "REMOVE_DISPENSABLE_SPACES",
                     "TAKE_DISPLAYED_AS_VALUE_CHANGED",
+                    "TAKE_NOT_REACHED_AS_VALUE_CHANGED",
                     "TAKE_EMPTY_AS_VALID",
                     "SORT"
                   ]
@@ -208,6 +209,7 @@
                                 "MATCH",
                                 "MATCH_REGEX",
                                 "NUMERIC_MATCH",
+                                "NUMERIC_FULL_MATCH",
                                 "NUMERIC_RANGE",
                                 "NUMERIC_LESS_THAN",
                                 "NUMERIC_MORE_THAN",

@@ -11,7 +11,7 @@
         "score": 1,
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
-          "Wert ist mindestens '111' und Wert ist maximal als '222'"
+          "Wert ist mindestens '111' und Wert ist maximal '222'"
         ]
       },
       {
@@ -19,7 +19,7 @@
         "score": 2,
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
-          "Wert ist mindestens '222' und Wert ist maximal als '444'"
+          "Wert ist mindestens '222' und Wert ist maximal '444'"
         ]
       }
     ]
@@ -61,7 +61,7 @@
         "score": 7,
         "hasManualInstruction": false,
         "ruleSetDescriptions": [
-          "Wert ist maximal als '10'"
+          "Wert ist maximal '10'"
         ]
       },
       {

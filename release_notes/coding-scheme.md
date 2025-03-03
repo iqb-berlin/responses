@@ -1,6 +1,14 @@
 # `coding-scheme`
 ## Versionsänderungen der Datenstruktur
 
+### 3.2
+
+* `TAKE_NOT_REACHED_AS_VALUE_CHANGED` neuer Parameter für die Verarbeitung von Quell-Variablen
+* `NUMERIC_FULL_RANGE` Regel >= Wert <= hinzugefügt
+* `BASE_NO_VALUE` source type wird nicht zu den Antworten hinzugefügt
+* Status `INTENDED_INCOMPLETE` und code type `INTENDED_INCOMPLETE` hinzugefügt
+* Setze RuleMethodParameterCount -1 for NUMERIC_MATCH Regel
+
 ### 3.1
 * neuer Wert für Property `valueArrayPos`: `LENGTH`; Werte Array muss angebene Länge haben
 * neuer Wert für Property `valueArrayPos`: `ANY_OPEN`; dann wird - im Gegensatz zu `ANY` - erlaubt, dass Werte im Array sind, für die der Regelsatz nicht zutrifft

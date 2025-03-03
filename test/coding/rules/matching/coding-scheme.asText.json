@@ -82,5 +82,30 @@
         ]
       }
     ]
+  },
+  {
+    "id": "b4",
+    "label": "",
+    "source": "Basisvariable 'b4' (stets als geändert gesehen)",
+    "processing": "",
+    "hasManualInstruction": false,
+    "codes": [
+      {
+        "id": "1",
+        "score": 7,
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (Zahl/Text) mit 'Counterpart', 'Frickelbude', 'Wackel Schwanz'"
+        ]
+      },
+      {
+        "id": "2",
+        "score": 2,
+        "hasManualInstruction": false,
+        "ruleSetDescriptions": [
+          "Übereinstimmung (reg. Ausdruck) mit 'KO+B\r', 'FZ*M'"
+        ]
+      }
+    ]
   }
 ]

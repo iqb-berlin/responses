@@ -37,9 +37,10 @@ const CODE_RULE_TEXT = {
   MATCH_REGEX: 'Übereinstimmung (reg. Ausdruck) mit',
   NUMERIC_MATCH: 'Übereinstimmung (numerisch) mit',
   NUMERIC_RANGE: '..Kombi..',
+  NUMERIC_FULL_RANGE: '..Kombi..',
   NUMERIC_LESS_THAN: 'Wert geringer als',
   NUMERIC_MORE_THAN: 'Wert größer als',
-  NUMERIC_MAX: 'Wert ist maximal als',
+  NUMERIC_MAX: 'Wert ist maximal',
   NUMERIC_MIN: 'Wert ist mindestens',
   IS_EMPTY: 'Leerer Wert',
   IS_NULL: 'Wert ist NULL',
@@ -72,6 +73,9 @@ export abstract class ToTextFactory {
         }
         if (parameters && parameters.processing && parameters.processing.includes('TAKE_EMPTY_AS_VALID')) {
           parameterTextsBase.push('leerer Wert ist gültig');
+        }
+        if (parameters && parameters.processing && parameters.processing.includes('TAKE_NOT_REACHED_AS_VALUE_CHANGED')) {
+          parameterTextsBase.push('stets als geändert gesehen');
         }
         const parameterTextBase = parameterTextsBase.length > 0 ? ` (${parameterTextsBase.join('; ')})` : '';
         returnText = `Basisvariable '${variableId}'${parameterTextBase}`;
@@ -157,7 +161,7 @@ export abstract class ToTextFactory {
             returnText += `${i > 0 ? ', ' : ''}Zur Kodierung ist eine separate Datei erforderlich (Bild, Audio)`;
             break;
           default:
-            returnText += `${i > 0 ? ', ' : ''}?? unbekannter Wer für Prozessparameter '${t}'`;
+            returnText += `${i > 0 ? ', ' : ''}?? unbekannter Wert für Prozessparameter '${t}'`;
         }
       });
     }

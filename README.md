@@ -9,6 +9,10 @@ This package contains of type definitions for processing assessment data. Additi
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 3.7
+
+* `TAKE_NOT_REACHED_AS_VALUE_CHANGED` neuer Parameter für die Verarbeitung von Quell-Variablen
+
 ### 3.6
 
 * `NUMERIC_FULL_RANGE` Regel >= Wert <= hinzugefügt

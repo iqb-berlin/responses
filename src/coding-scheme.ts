@@ -567,7 +567,8 @@ export class CodingScheme {
       sourceResponses.forEach(r => {
         if (!validStates.includes(r.status) ||
           (r.status === 'DISPLAYED' &&
-            coding.sourceParameters.processing?.includes('TAKE_DISPLAYED_AS_VALUE_CHANGED'))) {
+            coding.sourceParameters.processing?.includes('TAKE_DISPLAYED_AS_VALUE_CHANGED')) ||
+          (r.status === 'NOT_REACHED' && coding.sourceParameters.processing?.includes('TAKE_NOT_REACHED_AS_VALUE_CHANGED'))) {
           errors += 1;
         }
       });
@@ -637,6 +638,23 @@ export class CodingScheme {
             myCoding.sourceParameters.processing &&
             myCoding.sourceParameters.processing.includes(
               'TAKE_DISPLAYED_AS_VALUE_CHANGED'
+            )
+          ) {
+            r.status = 'VALUE_CHANGED';
+          }
+        });
+
+      // change NOT_REACHED to VALUE_CHANGED if requested
+      newResponses
+        .filter(r => r.status === 'NOT_REACHED')
+        .forEach(r => {
+          const myCoding = this.variableCodings.find(c => c.id === r.id);
+          if (
+            myCoding &&
+            myCoding.sourceType === 'BASE' &&
+            myCoding.sourceParameters.processing &&
+            myCoding.sourceParameters.processing.includes(
+              'TAKE_NOT_REACHED_AS_VALUE_CHANGED'
             )
           ) {
             r.status = 'VALUE_CHANGED';
