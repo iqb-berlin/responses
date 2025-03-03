@@ -209,7 +209,7 @@
                                 "MATCH",
                                 "MATCH_REGEX",
                                 "NUMERIC_MATCH",
-                                "NUMERIC_FULL_MATCH",
+                                "NUMERIC_FULL_RANGE",
                                 "NUMERIC_RANGE",
                                 "NUMERIC_LESS_THAN",
                                 "NUMERIC_MORE_THAN",
