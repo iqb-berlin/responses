@@ -6,7 +6,6 @@
   "description": "Data interfaces for processing assessment data.",
   "scripts": {
     "test_coding": "jest test/coding",
-    "test_schema": "jest test/schema",
     "test_coding2text": "cd test && ts-node test-code2text case2",
     "test_getBaseVarsList": "cd test && ts-node test-getBaseVarsList get-base-vars-case",
     "validate_coding_scheme": "cd test && ts-node validate-coding-scheme validate-coding-scheme-case",
@@ -52,6 +51,9 @@
     "ts-node": "^10.9.1"
   },
   "dependencies": {
+    "@iqbspecs/coding-scheme": "^3.2.0",
+    "@iqbspecs/response": "^1.4.0",
+    "@iqbspecs/variable-info": "^1.3.0",
     "mathjs": "^12.4.2"
   }
 }

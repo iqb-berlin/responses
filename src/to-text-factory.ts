@@ -1,13 +1,14 @@
 import {
-  CodeAsText,
-  CodeData, CodingToTextMode,
-  DeriveConcatDelimiter,
-  ProcessingParameterType,
-  SourceType,
-  VariableInfo,
-  VariableSourceParameters
+  CodeAsText, CodingToTextMode
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
+import {
+  CodeData,
+  DeriveConcatDelimiter, ProcessingParameterType,
+  SourceType,
+  VariableSourceParameters
+} from '@iqbspecs/coding-scheme/coding-scheme.interface';
+import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
 
 const VARINFO_TYPE_TEXT = {
   string: 'String/Text',
@@ -287,7 +288,7 @@ export abstract class ToTextFactory {
 
   static varInfoAsText(varInfo: VariableInfo): string[] {
     const returnText: string[] = [];
-    let typeString = `Datentyp: ${VARINFO_TYPE_TEXT[varInfo.type] || `unbekannt "${varInfo.type}"`}`;
+    let typeString = `Datentyp: ${VARINFO_TYPE_TEXT[varInfo.type as keyof typeof VARINFO_TYPE_TEXT] || `unbekannt "${varInfo.type}"`}`;
     if (varInfo.format) {
       typeString += `; Format: ${VARINFO_FORMAT_TEXT[varInfo.format] || `unbekannt "${varInfo.format}"`}`;
     }

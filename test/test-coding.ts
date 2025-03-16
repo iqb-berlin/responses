@@ -1,36 +1,54 @@
 #!/usr/bin/env node
 /* eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import fs from 'fs';
-import { CodingScheme } from '../src';
+import path from 'path';
+import { CodingSchemeFactory } from '../src';
+const sampleFolder = path.resolve(__dirname, 'sample_data', process.argv[2]);
 
-const sampleFolder = `${__dirname}/sample_data/${process.argv[2]}`;
-let codingScheme;
-let responses;
-let varList;
-try {
-  let fileContent = fs.readFileSync(`${sampleFolder}/responses.json`, 'utf8');
-  responses = JSON.parse(fileContent);
-  fileContent = fs.readFileSync(`${sampleFolder}/coding-scheme.json`, 'utf8');
-  codingScheme = JSON.parse(fileContent);
-  fileContent = fs.readFileSync(`${sampleFolder}/var-list.json`, 'utf8');
-  varList = JSON.parse(fileContent);
-} catch (err) {
-  console.log('\x1b[0;31mERROR\x1b[0m reading data');
-  console.error(err);
-  process.exitCode = 1;
+/**
+ * Lädt eine JSON-Datei und gibt ihren Inhalt als Objekt zurück.
+ * @param filePath - Der Pfad zur Datei.
+ * @returns Das JSON-Objekt.
+ * @throws Fehler, wenn die Datei nicht gelesen oder geparst werden kann.
+ */
+function loadJsonFile(filePath: string): any {
+  try {
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    return JSON.parse(fileContent);
+  } catch (error) {
+    console.error(`\x1b[0;31mERROR\x1b[0m: Fehler beim Laden der Datei '${filePath}'.`);
+    throw error;
+  }
 }
 
-if (responses && codingScheme && varList) {
-  const codings = new CodingScheme(codingScheme.variableCodings);
-  const problems = codings.validate(varList);
-  const fatalErrors = problems.filter(p => p.breaking);
-  if (fatalErrors.length === 0) {
-    console.log(codings.code(responses));
-  } else {
-    console.log(
-      `\x1b[0;31merrors\x1b[0m in coding scheme:`
-    );
-    console.log(problems);
-    process.exitCode = 1;
+let codingSchemeData;
+let responsesData;
+let varListData;
+
+try {
+  responsesData = loadJsonFile(path.join(sampleFolder, 'responses.json'));
+  codingSchemeData = loadJsonFile(path.join(sampleFolder, 'coding-scheme.json'));
+  varListData = loadJsonFile(path.join(sampleFolder, 'var-list.json'));
+} catch (error) {
+  console.error(error);
+  process.exit(1);
+}
+
+if (responsesData && codingSchemeData && varListData) {
+  try {
+    const problems = CodingSchemeFactory.validate(varListData,codingSchemeData.variableCodings);
+    const fatalErrors = problems.filter((problem) => problem.breaking);
+
+    if (fatalErrors.length === 0) {
+      console.log(CodingSchemeFactory.code(responsesData,codingSchemeData.variableCodings));
+    } else {
+      console.error(`\x1b[0;31mFEHLER\x1b[0m im Kodierungsschema erkannt:`);
+      fatalErrors.forEach((error) => console.error(error));
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error(`\x1b[0;31mERROR\x1b[0m: Fehler bei der Verarbeitung der Daten.`);
+    console.error(error);
+    process.exit(1);
   }
 }

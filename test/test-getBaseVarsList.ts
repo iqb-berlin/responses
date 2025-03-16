@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /* eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import fs from 'fs';
-import { CodingScheme } from '../src';
-
+import { CodingScheme } from '@iqbspecs/coding-scheme/coding-scheme.interface';
+import { CodingSchemeFactory } from '../src';
 const sampleFolder = `${__dirname}/sample_data/${process.argv[2]}`;
 let codings: CodingScheme;
 try {
@@ -41,11 +41,11 @@ const compareArrays = (a: Array<string>, b: Array<string>) => {
   return JSON.stringify(a) === JSON.stringify(b);
 };
 
-codings.asText();
+CodingSchemeFactory.asText(codings.variableCodings,'EXTENDED');
 
 expectations
   .forEach(expectation => {
-    const baseVarList = codings.getBaseVarsList(expectation.in);
+    const baseVarList = CodingSchemeFactory.getBaseVarsList(expectation.in,codings.variableCodings);
     if (compareArrays(expectation.out, baseVarList)) {
       console.log(`\x1b[0;32m'${expectation.name}' check passed\x1b[0m`);
     } else {

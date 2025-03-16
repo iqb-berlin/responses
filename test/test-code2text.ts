@@ -1,33 +1,46 @@
 #!/usr/bin/env node
 /* eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import fs from 'fs';
-import { CodingScheme } from "../src";
+// @ts-ignore
+import { CodingSchemeFactory } from "../src";
 
-const sampleFolder = `${__dirname}/sample_data/${process.argv[2]}`;
-let codingScheme;
+const ERROR_COLOR = '\x1b[0;31m';
+const WARNING_COLOR = '\x1b[0;33m';
+const RESET_COLOR = '\x1b[0m';
+
+const sampleFolderPath = `${__dirname}/sample_data/${process.argv[2]}`;
+const codingSchemeFilePath = `${sampleFolderPath}/coding-scheme.json`;
+
+function logError(message: string, errorDetails?: Error): void {
+  console.error(`${ERROR_COLOR}ERROR${RESET_COLOR} ${message}`);
+  if (errorDetails) console.error(errorDetails);
+}
+
+function processCodings(codingSchemeData: any): void {
+  const codingTexts = CodingSchemeFactory.asText(codingSchemeData.variableCodings,'SIMPLE');
+  codingTexts?.forEach(({ codes }) => {
+    codes?.forEach(({ ruleSetDescriptions }) => {
+      console.log('\t', ruleSetDescriptions);
+      ruleSetDescriptions?.forEach(description =>
+        console.log(`\t\t${WARNING_COLOR}>>>${RESET_COLOR} ${description}`)
+      );
+    });
+  });
+}
+
+let codingSchemeData;
 try {
-  const fileContent = fs.readFileSync(`${sampleFolder}/coding-scheme.json`, 'utf8');
-  codingScheme = JSON.parse(fileContent);
+  const fileContent = fs.readFileSync(codingSchemeFilePath, 'utf8');
+  codingSchemeData = JSON.parse(fileContent);
+  console.log('Coding scheme data:', codingSchemeData);
 } catch (err) {
-  console.log('\x1b[0;31mERROR\x1b[0m reading data');
-  console.error(err);
+  logError('reading data', err as Error);
   process.exitCode = 1;
 }
 
-if (codingScheme) {
-  const codings = new CodingScheme(codingScheme.variableCodings);
-  const codingAsText = codings.asText();
-  codingAsText.forEach(c => {
-    c.codes.forEach(cc => {
-      console.log('\t', cc);
-      cc.ruleSetDescriptions.forEach(xcc => {
-        console.log('\t\t\x1b[0;33m>>>\x1b[0m', xcc);
-      });
-    });
-  });
-} else {
-  console.log(
-    '\x1b[0;31merrors\x1b[0m in coding scheme:'
-  );
+if (!codingSchemeData) {
+  logError('in coding scheme.');
   process.exitCode = 1;
+} else {
+  processCodings(codingSchemeData);
 }

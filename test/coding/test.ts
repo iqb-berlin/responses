@@ -1,15 +1,11 @@
 import fs from 'fs';
-import Ajv, { ValidateFunction } from 'ajv';
-import {CodingScheme} from "../../src";
+import Ajv from 'ajv';
+import {CodingSchemeFactory} from "../../src";
+import { CodingScheme } from '@iqbspecs/coding-scheme/coding-scheme.interface';
 
-const codingSchemeSchemaFileName = `${__dirname}/../../json_schema/coding-scheme.schema.json`;
-const codingSchemeSchemaFileContent = fs.readFileSync(codingSchemeSchemaFileName, 'utf8');
-const responseSchemaFileName = `${__dirname}/../../json_schema/response.schema.json`;
-const responseSchemaFileContent = fs.readFileSync(responseSchemaFileName, 'utf8');
+
 const folder = process.env.FOLDER;
 const ajv = new Ajv();
-let compiledCodingSchemeSchema: ValidateFunction<unknown> | null = ajv.compile(JSON.parse(codingSchemeSchemaFileContent));
-let compiledResponseSchema: ValidateFunction<unknown> | null = ajv.compile(JSON.parse(responseSchemaFileContent));
 const regexInput = /^(.+)_input.json$/;
 
 function testOneFolder(path: string, label: string) {
@@ -18,12 +14,7 @@ function testOneFolder(path: string, label: string) {
         if (fs.existsSync(codingSchemeFilename)) {
             const fileContentCodingScheme = fs.readFileSync(codingSchemeFilename, 'utf8');
             const codingScheme = JSON.parse(fileContentCodingScheme);
-            const codingSchemeValid = compiledCodingSchemeSchema ? compiledCodingSchemeSchema(codingScheme) : null
-            test('valid coding scheme', () => {
-                expect(codingSchemeValid).not.toBeNull();
-            });
-            if (codingSchemeValid !== null) {
-                const codingSchemeObject = new CodingScheme((codingScheme as CodingScheme).variableCodings);
+                  const codingSchemeObject = new CodingScheme((codingScheme as CodingSchemeFactory).variableCodings);
                 const inputFiles = fs.readdirSync(path).filter(fn => fn.endsWith('_input.json'));
                 if (inputFiles.length > 0) {
                     inputFiles.forEach(inputFile => {
@@ -39,14 +30,6 @@ function testOneFolder(path: string, label: string) {
                                 parsedInput = null;
                                 problems.push('parsing input file')
                             }
-                            if (parsedInput) {
-                                parsedInput.forEach((r: any) => {
-                                    if (problems.length === 0) {
-                                        const ok = compiledResponseSchema ? compiledResponseSchema(r) : null;
-                                        if (!ok) problems.push('input file invalid')
-                                    }
-                                });
-                            }
                             if (problems.length === 0) {
                                 fileContent = fs.readFileSync(`${path}/${inputId}_outcome.json`, 'utf8');
                                 if (fileContent) {
@@ -58,14 +41,8 @@ function testOneFolder(path: string, label: string) {
                                         problems.push('parsing outcome file')
                                     }
                                     if (parsedOutcome) {
-                                        parsedOutcome.forEach((r: any) => {
-                                            if (problems.length === 0) {
-                                                const ok = compiledResponseSchema ? compiledResponseSchema(r) : null;
-                                                if (!ok) problems.push('outcome file invalid')
-                                            }
-                                        });
                                         if (problems.length === 0) {
-                                            const result = codingSchemeObject.code(parsedInput);
+                                            const result = CodingSchemeFactory.code(parsedInput, codingSchemeObject.variableCodings);
                                             test(inputId, () => {
                                                 expect(JSON.stringify(result)).toBe(JSON.stringify(parsedOutcome));
                                             });
@@ -85,7 +62,7 @@ function testOneFolder(path: string, label: string) {
                         }
                     })
                 }
-                const codingToText = codingSchemeObject.asText();
+                const codingToText = CodingSchemeFactory.asText(codingSchemeObject.variableCodings,'EXTENDED');
                 const codingToTextStringified = JSON.stringify(codingToText);
                 const codingToTextFilename = `${path}/coding-scheme.asText.json`;
                 if (fs.existsSync(codingToTextFilename)) {
@@ -98,7 +75,7 @@ function testOneFolder(path: string, label: string) {
                     console.log(codingToTextFilename, '######################################################')
                     console.log(codingToTextStringified);
                 }
-            }
+
         }
         const subFolders = fs.readdirSync(path, { withFileTypes: true })
             .filter(dirEntry => dirEntry.isDirectory())
@@ -108,15 +85,5 @@ function testOneFolder(path: string, label: string) {
         })
     })
 }
-
-
-describe('schema is valid', () => {
-    test('for coding scheme', () => {
-        expect(compiledCodingSchemeSchema).not.toBeNull();
-    });
-    test('for response', () => {
-        expect(compiledResponseSchema).not.toBeNull();
-    });
-});
 
 testOneFolder(folder ? `${__dirname}/${folder}` : __dirname, folder || '.');

@@ -1,14 +1,11 @@
+import { ResponseValueSingleType, ResponseValueType, Response } from '@iqbspecs/response/response.interface';
 import {
-  ResponseValueType,
-  VariableCodingData,
-  Response,
-  ProcessingParameterType,
-  CodingRule,
-  ResponseValueSingleType,
-  TransformedResponseValueType,
-  RuleSet,
-  SourceProcessingType, numericRules, booleanRules
-} from './coding-interfaces';
+  booleanRules,
+  CodingRule, numericRules,
+  ProcessingParameterType, RuleSet,
+  SourceProcessingType, TransformedResponseValueType,
+  VariableCodingData
+} from '@iqbspecs/coding-scheme/coding-scheme.interface';
 
 export abstract class CodingFactory {
   static createCodingVariable(varId: string): VariableCodingData {

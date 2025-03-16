@@ -1,19 +1,16 @@
 /* eslint-disable implicit-arrow-linebreak */
 import { evaluate } from 'mathjs';
+import { Response } from '@iqbspecs/response/response.interface';
 import {
-  VariableCodingData,
-  Response,
-  VariableInfo,
-  CodingSchemeProblem,
-  RuleMethodParameterCount,
+  CodeData, DeriveConcatDelimiter,
+  ProcessingParameterType, RuleMethodParameterCount,
+  RuleSet, validStatesForDerivingValue, validStatesToStartDeriving,
+  VariableCodingData
+} from '@iqbspecs/coding-scheme/coding-scheme.interface';
+import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
+import {
   CodingAsText,
-  CodeData,
-  RuleSet,
-  ProcessingParameterType,
-  DeriveConcatDelimiter,
-  validStatesForDerivingValue,
-  validStatesToStartDeriving,
-  CodingToTextMode
+  CodingToTextMode, CodingSchemeProblem
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';

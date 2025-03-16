@@ -1,4 +1,4 @@
-import { VariableInfo } from './coding-interfaces';
+import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
 
 export class VariableList {
   variables: VariableInfo[] = [];
