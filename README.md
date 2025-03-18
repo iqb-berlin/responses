@@ -3,15 +3,14 @@
 
 This package contains of type definitions for processing assessment data. Additionally, you find TypeScript interfaces and classes, so these data structures can be used in a coherent way. 
 
-* [specification of interfaces in Html format](https://iqb-berlin.github.io/responses)
+* [Iqb specifications](https://iqb-specifications.github.io/)
 * [Ausführliche Darstellungen zum Kodieren](https://iqb-berlin.github.io/coding-info)
-* release notes for data structures (German only): [missing](release_notes/missing.md), [coding-scheme](release_notes/coding-scheme.md), [response](release_notes/response.md), [state-map](release_notes/state-map.md)
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
 ### 4.0
 
-Übernimmt folgende Spezifikation:
+Übernimmt folgende Spezifikationen:
 * @iqbspecs/coding-scheme 
 * @iqbspecs/response 
 * @iqbspecs/variable-info
