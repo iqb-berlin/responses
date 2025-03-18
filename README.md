@@ -9,6 +9,13 @@ This package contains of type definitions for processing assessment data. Additi
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 4.0
+
+Übernimmt folgende Spezifikation:
+* @iqbspecs/coding-scheme 
+* @iqbspecs/response 
+* @iqbspecs/variable-info
+
 ### 3.7
 
 * `TAKE_NOT_REACHED_AS_VALUE_CHANGED` neuer Parameter für die Verarbeitung von Quell-Variablen
