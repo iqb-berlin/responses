@@ -1,14 +1,14 @@
 import {
-  CodeAsText, CodingToTextMode
-} from './coding-interfaces';
-import { CodingFactory } from './coding-factory';
-import {
   CodeData,
-  DeriveConcatDelimiter, ProcessingParameterType,
+  DeriveConcatDelimiter, ProcessingParameterType, SourceProcessingType,
   SourceType,
   VariableSourceParameters
 } from '@iqbspecs/coding-scheme/coding-scheme.interface';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
+import {
+  CodeAsText, CodingToTextMode
+} from './coding-interfaces';
+import { CodingFactory } from './coding-factory';
 
 const VARINFO_TYPE_TEXT = {
   string: 'String/Text',
@@ -68,55 +68,52 @@ export abstract class ToTextFactory {
     let returnText;
     switch (sourceType) {
       case 'BASE': {
-        const parameterTextsBase: string[] = [];
-        if (parameters && parameters.processing && parameters.processing.includes('TAKE_DISPLAYED_AS_VALUE_CHANGED')) {
-          parameterTextsBase.push('stets als geändert gesehen');
-        }
-        if (parameters && parameters.processing && parameters.processing.includes('TAKE_EMPTY_AS_VALID')) {
-          parameterTextsBase.push('leerer Wert ist gültig');
-        }
-        if (parameters && parameters.processing && parameters.processing.includes('TAKE_NOT_REACHED_AS_VALUE_CHANGED')) {
-          parameterTextsBase.push('stets als geändert gesehen');
-        }
-        const parameterTextBase = parameterTextsBase.length > 0 ? ` (${parameterTextsBase.join('; ')})` : '';
+        const processingMessages: Record<string, string> = {
+          TAKE_DISPLAYED_AS_VALUE_CHANGED: 'stets als geändert gesehen',
+          TAKE_EMPTY_AS_VALID: 'leerer Wert ist gültig',
+          TAKE_NOT_REACHED_AS_VALUE_CHANGED: 'stets als geändert gesehen'
+        };
+
+        const parameterTextsBase: string[] = parameters?.processing?.filter(key => processingMessages[key])
+          .map(key => processingMessages[key]) || [];
+
+        const parameterTextBase = parameterTextsBase.length > 0 ?
+          ` (${parameterTextsBase.join('; ')})` :
+          '';
+
         returnText = `Basisvariable '${variableId}'${parameterTextBase}`;
         break;
       }
       case 'COPY_VALUE':
-        if (sources && sources.length > 0) {
-          returnText = `Kopie von Variable '${sources[0]}'`;
-        } else {
-          returnText = 'Kopie, aber keine Quelle angegeben';
-        }
+        returnText = sources?.length ?
+          `Kopie von Variable '${sources[0]}'` :
+          'Kopie, aber keine Quelle angegeben';
         break;
       case 'CONCAT_CODE': {
-        const parameterTextConcatCodeSolver = parameters && parameters.processing &&
-        parameters.processing.includes('SORT') ? ' (sortiert)' : '';
-        returnText = `Codes von Variablen '${
-          // eslint-disable-next-line max-len
-          sources.join(', ')}' aneinandergehängt mit Trennzeichen '${DeriveConcatDelimiter}'${parameterTextConcatCodeSolver}`;
+        const isSorted = parameters?.processing?.includes('SORT') ? ' (sortiert)' : '';
+        const joinedSources = sources.join(', ');
+        returnText = `Codes von Variablen '${joinedSources}' aneinandergehängt mit Trennzeichen '${DeriveConcatDelimiter}'${isSorted}`;
         break;
       }
       case 'SUM_CODE':
         returnText = `Codes von Variablen '${sources.join(', ')}' summiert`;
         break;
       case 'UNIQUE_VALUES': {
-        const parameterTextsUniqueValues: string[] = [];
-        if (parameters && parameters.processing && parameters.processing.includes('REMOVE_ALL_SPACES')) {
-          parameterTextsUniqueValues.push('alle Leerzeichen werden entfernt');
-        }
-        if (parameters && parameters.processing && parameters.processing.includes('REMOVE_DISPENSABLE_SPACES')) {
-          parameterTextsUniqueValues.push('alle Leerzeichen vorn und hinten sowie die doppelten werden entfernt');
-        }
-        if (parameters && parameters.processing && parameters.processing.includes('TO_NUMBER')) {
-          parameterTextsUniqueValues.push('Umwandlung vorher in numerischen Wert');
-        }
-        if (parameters && parameters.processing && parameters.processing.includes('TO_LOWER_CASE')) {
-          parameterTextsUniqueValues.push('Umwandlung vorher in Kleinbuchstaben');
-        }
+        const parameterProcessingMessages: Record<string, string> = {
+          REMOVE_ALL_SPACES: 'alle Leerzeichen werden entfernt',
+          REMOVE_DISPENSABLE_SPACES: 'alle Leerzeichen vorn und hinten sowie die doppelten werden entfernt',
+          TO_NUMBER: 'Umwandlung vorher in numerischen Wert',
+          TO_LOWER_CASE: 'Umwandlung vorher in Kleinbuchstaben'
+        };
+
+        const parameterTextsUniqueValues = Object.entries(parameterProcessingMessages)
+          .filter(([key]) => parameters?.processing?.includes(key as SourceProcessingType))
+          .map(([, message]) => message);
+
         const parameterTextUniqueValues = parameterTextsUniqueValues.length > 0 ?
-          ` (${parameterTextsUniqueValues.join('; ')})` : '';
-        // eslint-disable-next-line max-len
+          ` (${parameterTextsUniqueValues.join('; ')})` :
+          '';
+
         returnText = `Prüft, ob die Werte der Variablen '${sources.join(', ')}' unique/einzigartig sind${parameterTextUniqueValues}`;
         break;
       }
@@ -137,34 +134,23 @@ export abstract class ToTextFactory {
   }
 
   static processingAsText(processing: ProcessingParameterType[], fragmenting?: string): string {
+    const processDescriptions: Record<string, string> = {
+      REPLAY_REQUIRED: 'Zur Kodierung muss die Antwort mit der Aufgabe angezeigt werden (Replay)',
+      IGNORE_CASE: 'Groß-/Kleinschreibung wird ignoriert',
+      IGNORE_ALL_SPACES: 'Entfernen aller Leerzeichen vor Kodierung',
+      IGNORE_DISPENSABLE_SPACES: 'Entfernen unnötiger Leerzeichen vor Kodierung',
+      SORT_ARRAY: 'Sortieren von Listenwerten vor Kodierung',
+      ATTACHMENT: 'Zur Kodierung ist eine separate Datei erforderlich (Bild, Audio)'
+    };
+
     let returnText = '';
     if (processing && processing.length > 0) {
-      returnText = '';
-      processing.forEach((t, i) => {
-        switch (t) {
-          case 'REPLAY_REQUIRED':
-            returnText += `${i > 0 ? ', ' : ''
-            }Zur Kodierung ist muss die Antwort mit der Aufgabe angezeigt werden (Replay)`;
-            break;
-          case 'IGNORE_CASE':
-            returnText += `${i > 0 ? ', ' : ''}Groß-/Kleinschreibung wird ignoriert`;
-            break;
-          case 'IGNORE_ALL_SPACES':
-            returnText += `${i > 0 ? ', ' : ''}Entfernen aller Leerzeichen vor Kodierung`;
-            break;
-          case 'IGNORE_DISPENSABLE_SPACES':
-            returnText += `${i > 0 ? ', ' : ''}Entfernen unnötiger Leerzeichen vor Kodierung`;
-            break;
-          case 'SORT_ARRAY':
-            returnText += `${i > 0 ? ', ' : ''}Sortieren von Listenwerten vor Kodierung`;
-            break;
-          case 'ATTACHMENT':
-            returnText += `${i > 0 ? ', ' : ''}Zur Kodierung ist eine separate Datei erforderlich (Bild, Audio)`;
-            break;
-          default:
-            returnText += `${i > 0 ? ', ' : ''}?? unbekannter Wert für Prozessparameter '${t}'`;
-        }
-      });
+      returnText = processing
+        .map(t => (processDescriptions[t] ?
+          processDescriptions[t] :
+          `?? unbekannter Wert für Prozessparameter '${t}'`)
+        )
+        .join(', ');
     }
     if (fragmenting) {
       if (returnText.length > 0) returnText += '; ';
@@ -180,26 +166,49 @@ export abstract class ToTextFactory {
     return <CodeAsText>{
       id: code.id === null ? 'null' : code.id.toString(10),
       score: code.score,
-      label: mode === 'SIMPLE' && code.type !== 'UNSET' ? codeLabel.toUpperCase() : codeLabel,
+      label: mode === 'SIMPLE' && code.type !== 'UNSET' ? codeLabel?.toUpperCase() : codeLabel,
       ruleSetOperatorAnd: code.ruleSetOperatorAnd,
       hasManualInstruction: !!code.manualInstruction,
-      ruleSetDescriptions: code.ruleSets.map((rs, i) => {
-        let description = (code.ruleSets.length > 1) && mode === 'EXTENDED' ? `Regelset ${i + 1}: ` : '';
-        if ((!rs.rules || rs.rules.length === 0) && mode === 'EXTENDED') return `${description}Keine Regeln definiert.`;
-        if (['RESIDUAL_AUTO', 'RESIDUAL'].indexOf(code.type) >= 0) return `${description}Alle anderen Antworten.`;
-        if (['INTENDED_INCOMPLETE'].indexOf(code.type) >= 0) return `${description}Kodierung soll unvollständig sein.`;
+      ruleSetDescriptions: code.ruleSets?.map((rs, i) => {
+        let description = code.ruleSets.length > 1 && mode === 'EXTENDED' ?
+          `Regelset ${i + 1}: ` :
+          '';
+
+        if (mode === 'EXTENDED') {
+          if (!rs.rules || rs.rules.length === 0) {
+            return `${description}Keine Regeln definiert.`;
+          }
+        }
+
+        switch (code.type) {
+          case 'RESIDUAL':
+          case 'RESIDUAL_AUTO':
+            return `${description}Alle anderen Antworten.`;
+
+          case 'INTENDED_INCOMPLETE':
+            return `${description}Kodierung soll unvollständig sein.`;
+
+          default:
+            break;
+        }
 
         rs.rules.forEach((r, j) => {
           if (rs.rules.length > 1) description += mode === 'EXTENDED' ? `${j > 0 ? '; ' : ''}(R${j + 1}) ` : '';
           switch (r.method) {
             case 'MATCH':
             case 'MATCH_REGEX':
-              if (r.parameters && r.parameters[0] && typeof r.parameters[0] === 'string') {
+              if (r.parameters?.[0] && typeof r.parameters[0] === 'string') {
+                const parameter = r.parameters[0];
                 if (mode === 'SIMPLE') {
-                  if (r.method === 'MATCH') description += r.parameters[0].replace(/[\r\n]/g, '\nODER\n');
-                  // MATCH_REGEX will be ignored!
+                  if (r.method === 'MATCH') {
+                    description += parameter.replace(/[\r\n]/g, '\nODER\n');
+                  } else {
+                    // Note: MATCH_REGEX is ignored in 'SIMPLE'-mode.
+                  }
                 } else {
-                  description += `${CODE_RULE_TEXT[r.method]} '${r.parameters[0].replace(/\n/g, '\', \'')}'`;
+                  const formattedParameter = parameter.replace(/\n/g, '\', \'');
+                  const ruleText = CODE_RULE_TEXT[r.method] || 'Unbekannte Regel';
+                  description += `${ruleText} '${formattedParameter}'`;
                 }
               } else {
                 description += 'FALSCHE PARAMETERZAHL/TYPFEHLER';
@@ -210,41 +219,36 @@ export abstract class ToTextFactory {
             case 'NUMERIC_MORE_THAN':
             case 'NUMERIC_MAX':
             case 'NUMERIC_MIN':
-              if (r.parameters && r.parameters.length === 1) {
+              if (r.parameters?.length === 1) {
                 const compareValue = CodingFactory.getValueAsNumber(r.parameters[0]);
-                if (compareValue === null) {
-                  description += 'VERGLEICHSWERT NICHT NUMERISCH';
-                } else {
-                  description += `${CODE_RULE_TEXT[r.method]} '${compareValue}'`;
-                }
+                description += compareValue === null ?
+                  'VERGLEICHSWERT NICHT NUMERISCH' :
+                  `${CODE_RULE_TEXT[r.method]} '${compareValue}'`;
               } else {
                 description += 'FALSCHE PARAMETERZAHL';
               }
+
               break;
             case 'NUMERIC_RANGE':
-              if (r.parameters && r.parameters.length === 2) {
-                const compareValueLL = CodingFactory.getValueAsNumber(r.parameters[0]);
-                const compareValueUL = CodingFactory.getValueAsNumber(r.parameters[1]);
-                if (compareValueLL === null || compareValueUL === null) {
+              if (r.parameters?.length === 2) {
+                const [lowerLimit, upperLimit] = r.parameters.map(CodingFactory.getValueAsNumber);
+                if (lowerLimit === null || upperLimit === null) {
                   description += 'VERGLEICHSWERT NICHT NUMERISCH';
-                } else if (compareValueLL >= compareValueUL) {
+                } else if (lowerLimit >= upperLimit) {
                   description += 'VERGLEICHSWERTE UNGÜLTIG';
                 } else {
-                  // eslint-disable-next-line max-len
-                  description += `${CODE_RULE_TEXT.NUMERIC_MORE_THAN} '${compareValueLL}' und ${CODE_RULE_TEXT.NUMERIC_MAX} '${compareValueUL}'`;
+                  description += `${CODE_RULE_TEXT.NUMERIC_MORE_THAN} '${lowerLimit}' und ${CODE_RULE_TEXT.NUMERIC_MAX} '${upperLimit}'`;
                 }
               }
               break;
             case 'NUMERIC_FULL_RANGE':
-              if (r.parameters && r.parameters.length === 2) {
-                const compareValueLL = CodingFactory.getValueAsNumber(r.parameters[0]);
-                const compareValueUL = CodingFactory.getValueAsNumber(r.parameters[1]);
+              if (r.parameters?.length === 2) {
+                const [compareValueLL, compareValueUL] = r.parameters.map(CodingFactory.getValueAsNumber);
                 if (compareValueLL === null || compareValueUL === null) {
                   description += 'VERGLEICHSWERT NICHT NUMERISCH';
                 } else if (compareValueLL >= compareValueUL) {
                   description += 'VERGLEICHSWERTE UNGÜLTIG';
                 } else {
-                  // eslint-disable-next-line max-len
                   description += `${CODE_RULE_TEXT.NUMERIC_MIN} '${compareValueLL}' und ${CODE_RULE_TEXT.NUMERIC_MAX} '${compareValueUL}'`;
                 }
               }
@@ -259,24 +263,38 @@ export abstract class ToTextFactory {
               description += `${description.length > 0 ? '; ' : ''
               }Problem: unbekannte Regel '${r.method}'`;
           }
-          if (typeof r.fragment === 'number' && r.fragment >= 0) description += ` - F${r.fragment + 1}`;
-          if (mode === 'SIMPLE' && rs.rules.length > 1 && rs.rules.length > j + 1) {
+          if (typeof r.fragment === 'number' && r.fragment >= 0) {
+            description += ` - F${r.fragment + 1}`;
+          }
+
+          const hasMultipleRules = rs.rules.length > 1;
+          const isNotLastRule = rs.rules.length > j + 1;
+
+          if (mode === 'SIMPLE' && hasMultipleRules && isNotLastRule) {
             const nextRule = rs.rules[j + 1];
-            if (nextRule.method !== 'MATCH_REGEX') description += `\n\n${rs.ruleOperatorAnd ? 'UND' : 'ODER'}\n\n`;
+            const isDifferentMethod = nextRule.method !== 'MATCH_REGEX';
+
+            if (isDifferentMethod) {
+              const operator = rs.ruleOperatorAnd ? 'UND' : 'ODER';
+              description += `\n\n${operator}\n\n`;
+            }
           }
         });
-        const connectText = (rs.rules.length > 1) && mode === 'EXTENDED' ?
-          `${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung` : '';
-        let arrayPosText = '';
-        if (typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >= 0) {
-          arrayPosText = `A${rs.valueArrayPos + 1}`;
-        } else if (rs.valueArrayPos === 'SUM') {
-          arrayPosText = 'A S';
-        } else if (rs.valueArrayPos === 'LENGTH') {
-          arrayPosText = 'A L';
-        } else if (rs.valueArrayPos === 'ANY_OPEN') {
-          arrayPosText = 'A O';
-        }
+        const connectText = (rs.rules.length > 1 && mode === 'EXTENDED') ?
+          `${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung` :
+          '';
+
+        const arrayPosMapping: Record<string, string> = {
+          SUM: 'A S',
+          LENGTH: 'A L',
+          ANY_OPEN: 'A O'
+        };
+
+        const arrayPosText =
+          (typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >= 0) ?
+            `A${rs.valueArrayPos + 1}` :
+            (typeof rs.valueArrayPos === 'string' ? arrayPosMapping[rs.valueArrayPos] : '') || '';
+
         if (connectText || arrayPosText) {
           description += ` (${connectText}${connectText && arrayPosText ? '; ' : ''}${arrayPosText})`;
         }
@@ -288,33 +306,53 @@ export abstract class ToTextFactory {
 
   static varInfoAsText(varInfo: VariableInfo): string[] {
     const returnText: string[] = [];
-    let typeString = `Datentyp: ${VARINFO_TYPE_TEXT[varInfo.type as keyof typeof VARINFO_TYPE_TEXT] || `unbekannt "${varInfo.type}"`}`;
-    if (varInfo.format) {
-      typeString += `; Format: ${VARINFO_FORMAT_TEXT[varInfo.format] || `unbekannt "${varInfo.format}"`}`;
+
+    // Helper function: Determine data type and format
+    const buildTypeString = (): string => {
+      const typeText = VARINFO_TYPE_TEXT[varInfo.type as keyof typeof VARINFO_TYPE_TEXT] || `unbekannt "${varInfo.type}"`;
+      const formatText = varInfo.format ?
+        `; Format: ${VARINFO_FORMAT_TEXT[varInfo.format] || `unbekannt "${varInfo.format}"`}` :
+        '';
+      const multipleText = varInfo.multiple ? '; Liste/mehrfach' : '';
+      const nullableText = varInfo.nullable ? '; "null"-Wert möglich' : '';
+      return `Datentyp: ${typeText}${formatText}${multipleText}${nullableText}`;
+    };
+
+    // Helper function to display possible values.
+    const buildValueString = (): string => {
+      const valuesText = varInfo.values.map(v => {
+        let valueString: string;
+        if (typeof v.value === 'number') {
+          valueString = v.value.toString(10);
+        } else if (typeof v.value === 'string') {
+          valueString = v.value;
+        } else {
+          valueString = v.value ? 'Ja/Wahr' : 'Nein/Falsch';
+        }
+        const labelText = v.label ? ` - ${v.label}` : '';
+        return `"${valueString}${labelText}"`;
+      }).join('; ');
+      return `Mögliche Werte: ${valuesText}`;
+    };
+
+    returnText.push(buildTypeString());
+
+    if (varInfo.values.length > 0) {
+      returnText.push(buildValueString());
     }
-    if (varInfo.multiple) typeString += '; Liste/mehrfach';
-    if (varInfo.nullable) typeString += '; "null"-Wert möglich';
-    returnText.push(typeString);
-    const valueText = `Mögliche Werte: ${varInfo.values.map(v => {
-      let vTxt = '"';
-      if (typeof v.value === 'number') {
-        vTxt += v.value.toString(10);
-      } else if (typeof v.value === 'string') {
-        vTxt += v.value;
-      } else {
-        vTxt += v.value ? 'Ja/Wahr' : 'Nein/Falsch';
-      }
-      vTxt += `"${v.label ? ` - ${v.label}` : ''}`;
-      return vTxt;
-    }).join('; ')}`;
-    returnText.push(valueText);
-    if (varInfo.valuePositionLabels && varInfo.valuePositionLabels.length > 0) {
+
+    if (varInfo.valuePositionLabels?.length > 0) {
       returnText.push(`Bezeichnungen der Werte-Positionen in der Liste: ${varInfo.valuePositionLabels.join('; ')}`);
     }
+
     if (varInfo.valuesComplete) {
       returnText.push('Es sind keine anderen als die gelisteten Werte möglich (geschlossenes Format).');
     }
-    if (varInfo.page) returnText.push(`Variable ist auf Seite "${varInfo.page}" verortet`);
+
+    if (varInfo.page) {
+      returnText.push(`Variable ist auf Seite "${varInfo.page}" verortet`);
+    }
+
     return returnText;
   }
 }

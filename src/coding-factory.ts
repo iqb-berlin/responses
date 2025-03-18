@@ -8,12 +8,12 @@ import {
 } from '@iqbspecs/coding-scheme/coding-scheme.interface';
 
 export abstract class CodingFactory {
-  static createCodingVariable(varId: string): VariableCodingData {
-    return <VariableCodingData>{
+  static createBaseCodingVariable(varId: string, sourceType: 'BASE' | 'BASE_NO_VALUE'): VariableCodingData {
+    return {
       id: varId,
       alias: varId,
       label: '',
-      sourceType: 'BASE',
+      sourceType: sourceType,
       sourceParameters: {
         solverExpression: '',
         processing: []
@@ -24,26 +24,15 @@ export abstract class CodingFactory {
       manualInstruction: '',
       codeModel: 'NONE',
       codes: []
-    };
+    } as VariableCodingData;
+  }
+
+  static createCodingVariable(varId: string): VariableCodingData {
+    return this.createBaseCodingVariable(varId, 'BASE');
   }
 
   static createNoValueCodingVariable(varId: string): VariableCodingData {
-    return <VariableCodingData>{
-      id: varId,
-      alias: varId,
-      label: '',
-      sourceType: 'BASE_NO_VALUE',
-      sourceParameters: {
-        solverExpression: '',
-        processing: []
-      },
-      deriveSources: [],
-      processing: [],
-      fragmenting: '',
-      manualInstruction: '',
-      codeModel: 'NONE',
-      codes: []
-    };
+    return this.createBaseCodingVariable(varId, 'BASE_NO_VALUE');
   }
 
   private static transformString(
@@ -52,122 +41,170 @@ export abstract class CodingFactory {
     fragmentExp?: RegExp
   ): string | string[] {
     if (fragmentExp) {
-      const newValueArray = [...value.matchAll(fragmentExp)];
-      return newValueArray[0].filter((v, i) => i > 0);
+      const matchResult = [...value.matchAll(fragmentExp)];
+      // Extract all groups, ignore the first entry (full match)
+      return matchResult.length > 0 ? matchResult[0].slice(1) : [];
     }
-    const removeAllWhiteSpaces = processing.includes('REMOVE_ALL_SPACES') || processing.includes('IGNORE_ALL_SPACES');
-    // eslint-disable-next-line max-len
-    const removeDispensableWhiteSpaces = processing.includes('REMOVE_DISPENSABLE_SPACES') || processing.includes('IGNORE_DISPENSABLE_SPACES');
-    const toLowerCase = processing.includes('IGNORE_CASE') || processing.includes('TO_LOWER_CASE');
-    let newString = value && removeAllWhiteSpaces ? value.replace(/\s+/g, '') : value;
-    if (newString && removeDispensableWhiteSpaces) newString = newString.trim().replace(/\s+/g, ' ');
-    if (newString && toLowerCase) newString = newString.toLowerCase();
-    return newString;
+
+    const shouldRemoveAllSpaces = processing
+      .includes('REMOVE_ALL_SPACES') || processing.includes('IGNORE_ALL_SPACES');
+    const shouldTrimAndNormalizeSpaces = processing
+      .includes('REMOVE_DISPENSABLE_SPACES') || processing.includes('IGNORE_DISPENSABLE_SPACES');
+    const shouldConvertToLowerCase = processing
+      .includes('IGNORE_CASE') || processing.includes('TO_LOWER_CASE');
+
+    let transformedString = value;
+
+    // Remove all whitespaces if the respective setting is enabled
+    if (shouldRemoveAllSpaces && transformedString) {
+      transformedString = transformedString.replace(/\s+/g, '');
+    }
+
+    // Normalize whitespaces if needed (trim and reduce multiple internal spaces)
+    if (shouldTrimAndNormalizeSpaces && transformedString) {
+      transformedString = transformedString.trim().replace(/\s+/g, ' ');
+    }
+
+    // Convert string to lowercase if enabled
+    if (shouldConvertToLowerCase && transformedString) {
+      transformedString = transformedString.toLowerCase();
+    }
+
+    return transformedString;
   }
 
   private static transformValue(
     value: ResponseValueType,
     fragmenting: string,
-    sortArray : boolean
+    sortArray: boolean
   ): TransformedResponseValueType {
-    // raises exceptions if transformation fails
     const fragmentRegEx = fragmenting ? new RegExp(fragmenting, 'g') : undefined;
+    const transformIfString = (v: unknown): unknown => {
+      if (typeof v === 'string') {
+        return this.transformString(v, [], fragmentRegEx);
+      }
+      return v;
+    };
+
     if (Array.isArray(value)) {
       if (sortArray) {
-        return value.sort((a, b) => {
+        value.sort((a, b) => {
           const aAsString = this.getValueAsString(a) || '';
           const bAsString = this.getValueAsString(b) || '';
-          if (aAsString < bAsString) return -1;
-          if (aAsString > bAsString) return 1;
-          return 0;
-        }).map(v => {
-          if (v && typeof v === 'string') return this.transformString(v, [], fragmentRegEx);
-          return v;
-        }) as TransformedResponseValueType;
+          return aAsString.localeCompare(bAsString);
+        });
       }
-      return value.map(v => {
-        if (v && typeof v === 'string') return this.transformString(v, [], fragmentRegEx);
-        return v;
-      }) as TransformedResponseValueType;
+      return value.map(transformIfString) as TransformedResponseValueType;
     }
-    if (value && typeof value === 'string') return this.transformString(value, [], fragmentRegEx);
+
+    if (typeof value === 'string') {
+      return this.transformString(value, [], fragmentRegEx);
+    }
+
+    // Return the value as-is if no transformation is needed
     return value;
   }
 
-  private static findString(value: string,
-                            codingProcessing: ProcessingParameterType[],
-                            parameters: string[] = []): boolean {
-    let allStrings: string[] = [];
-    parameters.forEach(p => {
-      allStrings.push(...p.split(/\r?\n/));
-    });
-    allStrings = allStrings.map(s => {
-      const newValue = this.transformString(s, codingProcessing);
-      if (Array.isArray(newValue)) return newValue[0] || '';
-      return newValue;
-    });
+  private static findString(
+    value: string,
+    codingProcessing: ProcessingParameterType[],
+    parameters: string[] = []
+  ): boolean {
+    // Flatten and transform all strings from parameters
+    const allStrings = parameters
+      .flatMap(p => p.split(/\r?\n/)) // Split parameters into lines
+      .map(s => {
+        const transformed = this.transformString(s, codingProcessing);
+        return Array.isArray(transformed) ? (transformed[0] || '') : transformed;
+      });
+
+    // Transform the value to be compared
     let stringToCompare = this.transformString(value, codingProcessing);
-    if (Array.isArray(stringToCompare)) stringToCompare = stringToCompare[0] || '';
-    const inList = allStrings.find(s => stringToCompare === s);
-    return !!inList;
+    if (Array.isArray(stringToCompare)) {
+      stringToCompare = stringToCompare[0] || '';
+    }
+
+    // Check if the transformed value exists in the list
+    return allStrings.includes(stringToCompare);
   }
 
-  private static findStringRegEx(value: string, parameters: string[], addCaseIgnoreFlag: boolean): boolean {
-    const allStrings: string[] = [];
-    parameters.forEach(p => {
-      allStrings.push(...p.split(/\r?\n/));
+  private static findStringRegEx(
+    value: string,
+    parameters: string[],
+    addCaseIgnoreFlag: boolean
+  ): boolean {
+    // Combine all strings from the given parameters by splitting them line by line
+    const allStrings = parameters.flatMap(p => p.split(/\r?\n/));
+
+    // Check if at least one regex matches the given value
+    return allStrings.some(s => {
+      const regEx = new RegExp(s, addCaseIgnoreFlag ? 'i' : undefined);
+      return regEx.test(value);
     });
-    const trueCases = allStrings.map((s: string): boolean => {
-      const regEx = addCaseIgnoreFlag ? new RegExp(s, 'i') : new RegExp(s);
-      return !!regEx.exec(value);
-    }).filter(found => found);
-    return trueCases.length > 0;
   }
 
   private static findNumericValue(value: ResponseValueSingleType, parameters: string[] = []): boolean {
-    const allStrings: string[] = [];
-    parameters.forEach(p => {
-      allStrings.push(...p.split(/\r?\n/));
-    });
-    const allCompareValues = allStrings.map(s => this.getValueAsNumber(s));
+    const allCompareValues = parameters
+      .flatMap(p => p.split(/\r?\n/))
+      .map(s => this.getValueAsNumber(s));
     const valueAsNumber = this.getValueAsNumber(value);
-    if (valueAsNumber !== null) {
-      const firstMatch = allCompareValues.find(v => v === valueAsNumber);
-      if (firstMatch || firstMatch === 0) {
-        return true;
-      }
-    }
-    return false;
+    return valueAsNumber !== null && allCompareValues.includes(valueAsNumber);
   }
 
   static getValueAsNumber(value: ResponseValueSingleType): number | null {
-    if (value === null || value === '') return 0;
-    if (typeof value === 'number') return value;
-    if (typeof value === 'boolean') return (value as boolean) ? 1 : 0;
-    let normalizedString = value.length < 6 ? (value as string).replace('.', ',') : value;
-    normalizedString = normalizedString.replace(/\s/g, '');
-    normalizedString = normalizedString.replace(',', '.');
-    const isInvalidNumber = !/^[-+]?\d+\.?\d*$/.exec(normalizedString);
-    if (isInvalidNumber) return null;
-    const validValue = Number.parseFloat(normalizedString);
-    return Number.isNaN(validValue) ? null : validValue;
+    if (value === null || value === '') {
+      return 0;
+    }
+    if (typeof value === 'number') {
+      return value;
+    }
+    if (typeof value === 'boolean') {
+      return value ? 1 : 0;
+    }
+    if (typeof value === 'string') {
+      // Normalize the string (remove spaces and adjust decimal separator)
+      let normalizedString = value.trim();
+      normalizedString = normalizedString.replace(/\s+/g, '') // Remove all whitespace
+        .replace(',', '.'); // Replace comma with dot as decimal separator
+
+      // Check if the string represents a valid number
+      const isInvalidNumber = !/^[-+]?\d+(\.\d+)?$/.test(normalizedString);
+      if (isInvalidNumber) {
+        return null;
+      }
+
+      // Parse the number, check for NaN, and return the result
+      const parsedValue = Number.parseFloat(normalizedString);
+      return Number.isNaN(parsedValue) ? null : parsedValue;
+    }
+
+    // If the value is of an unsupported type, return null
+    return null;
   }
 
   static getValueAsString(
     value: ResponseValueSingleType,
-    processing: (ProcessingParameterType | SourceProcessingType)[] = []): string | null {
-    if (typeof value === 'number') return value.toString(10);
-    if (typeof value === 'boolean') return value ? 'true' : 'false';
-    if (typeof value === 'string') {
-      let newString = value as string;
-      if (processing.includes('REMOVE_ALL_SPACES') || processing.includes('IGNORE_ALL_SPACES')) {
-        newString = newString.replace(/\s/g, '');
-      } else if (processing.includes('REMOVE_DISPENSABLE_SPACES') || processing.includes('IGNORE_DISPENSABLE_SPACES')) {
-        newString = newString.trim().replace(/\s+/g, ' ');
-      }
-      if (processing.includes('TO_LOWER_CASE')) newString = newString.toLowerCase();
-      return newString;
+    processing: (ProcessingParameterType | SourceProcessingType)[] = []
+  ): string | null {
+    if (typeof value === 'number') {
+      return value.toString(10);
     }
+    if (typeof value === 'boolean') {
+      return value ? 'true' : 'false';
+    }
+    if (typeof value === 'string') {
+      let processedString = value;
+      if (processing.includes('REMOVE_ALL_SPACES') || processing.includes('IGNORE_ALL_SPACES')) {
+        processedString = processedString.replace(/\s/g, '');
+      } else if (processing.includes('REMOVE_DISPENSABLE_SPACES') || processing.includes('IGNORE_DISPENSABLE_SPACES')) {
+        processedString = processedString.trim().replace(/\s+/g, ' ');
+      }
+      if (processing.includes('TO_LOWER_CASE')) {
+        processedString = processedString.toLowerCase();
+      }
+      return processedString;
+    }
+    // Return null if the value cannot be converted to a string
     return null;
   }
 
@@ -177,21 +214,24 @@ export abstract class CodingFactory {
     valueMustBeBoolean: boolean
   ): boolean {
     if (valueMustBeNumeric) {
-      const valueAsNumber = this.getValueAsNumber(valueToCheck);
-      return typeof valueAsNumber === 'number';
+      return this.isNumeric(valueToCheck);
     }
+
     if (valueMustBeBoolean) {
-      return valueToCheck === 0 ||
-        valueToCheck === 1 ||
-        valueToCheck === '1' ||
-        valueToCheck === true ||
-        valueToCheck === 'true' ||
-        valueToCheck === '0' ||
-        valueToCheck === false ||
-        valueToCheck === 'false' ||
-        valueToCheck === null;
+      return this.isBooleanLike(valueToCheck);
     }
+
     return true;
+  }
+
+  private static isNumeric(value: unknown): boolean {
+    const valueAsNumber = this.getValueAsNumber(value as ResponseValueSingleType);
+    return typeof valueAsNumber === 'number' && !Number.isNaN(valueAsNumber);
+  }
+
+  private static isBooleanLike(value: unknown): boolean {
+    const booleanLikeValues = [0, 1, '0', '1', true, false, 'true', 'false', null];
+    return booleanLikeValues.includes(value as string | number | boolean | null);
   }
 
   static isValidRule(
@@ -199,41 +239,39 @@ export abstract class CodingFactory {
     rule: CodingRule,
     isValueArray: boolean
   ): boolean {
-    let returnValue = true;
     const valueMustBeNumeric = numericRules.includes(rule.method);
     const valueMustBeBoolean = booleanRules.includes(rule.method);
-    if (valueMustBeNumeric || valueMustBeBoolean) {
-      if (isValueArray && Array.isArray(valueToCheck)) {
-        valueToCheck.forEach(v => {
-          if (returnValue) {
-            if (Array.isArray(v)) {
-              if (rule.fragment && rule.fragment >= 0 && v.length >= rule.fragment) {
-                returnValue = this.isValidValueForRule(v[rule.fragment], valueMustBeNumeric, valueMustBeBoolean);
-              } else {
-                returnValue = this.isValidValueForRule(v[0], valueMustBeNumeric, valueMustBeBoolean);
-              }
-            } else {
-              returnValue = this.isValidValueForRule(v, valueMustBeNumeric, valueMustBeBoolean);
-            }
-          }
-        });
-      } else if (Array.isArray(valueToCheck)) {
-        let newValueToCheck: ResponseValueSingleType = valueToCheck[0] as ResponseValueSingleType;
-        if (rule.fragment && rule.fragment >= 0 && valueToCheck.length >= rule.fragment) {
-          newValueToCheck = valueToCheck[rule.fragment] as ResponseValueSingleType;
-        }
-        returnValue = this.isValidValueForRule(newValueToCheck, valueMustBeNumeric, valueMustBeBoolean);
-      } else {
-        returnValue = this.isValidValueForRule(valueToCheck, valueMustBeNumeric, valueMustBeBoolean);
-      }
+
+    // If the rule doesn't require numeric or boolean handling, it's valid by default.
+    if (!valueMustBeNumeric && !valueMustBeBoolean) {
+      return true;
     }
-    return returnValue;
+
+    // Helper method to validate a single value based on the rule requirements.
+    const validateValue = (value: ResponseValueSingleType): boolean => this.isValidValueForRule(value, valueMustBeNumeric, valueMustBeBoolean);
+
+    // Helper method to extract the fragment value from an array based on the rule.
+    const getFragmentValue = (arr: unknown[]): unknown => (rule.fragment && rule.fragment >= 0 && arr.length > rule.fragment ?
+      arr[rule.fragment] :
+      arr[0]);
+
+    if (Array.isArray(valueToCheck)) {
+      // Handle cases where the valueToCheck is an array.
+      if (isValueArray) {
+        // If valueToCheck contains nested arrays, validate each element.
+        return valueToCheck.every(v => (Array.isArray(v) ? validateValue(getFragmentValue(v) as ResponseValueSingleType) : validateValue(v as ResponseValueSingleType))
+        );
+      }
+      // If valueToCheck is a single array, extract a fragment value and validate it.
+      return validateValue(getFragmentValue(valueToCheck) as ResponseValueSingleType);
+    }
+
+    // Handle cases where valueToCheck is a single value.
+    return validateValue(valueToCheck);
   }
 
   static isEmptyValue(value: ResponseValueType): boolean {
-    if (value === '') return true;
-    const isArray = Array.isArray(value);
-    return isArray && value.length === 0;
+    return value === '' || (Array.isArray(value) && value.length === 0);
   }
 
   static checkOneValue(valueToCheck: ResponseValueSingleType,
@@ -319,7 +357,6 @@ export abstract class CodingFactory {
           if (typeof valueAsNumber === 'number' && rule.parameters) {
             const compareValueLL = this.getValueAsNumber(rule.parameters[0]);
             const compareValueUL = this.getValueAsNumber(rule.parameters[1]);
-            // eslint-disable-next-line max-len
             if (typeof compareValueLL === 'number' && typeof compareValueUL === 'number') returnValue = valueAsNumber > compareValueLL && valueAsNumber <= compareValueUL;
           }
         }
@@ -348,47 +385,41 @@ export abstract class CodingFactory {
   private static isMatchRule(valueToCheck: TransformedResponseValueType, rule: CodingRule,
                              isValueArray: boolean, codingProcessing: ProcessingParameterType[]): boolean {
     if (Array.isArray(valueToCheck) && isValueArray) {
-      let valueIndex = 0;
-      let oneMatch = false;
-      while (!oneMatch && valueIndex < valueToCheck.length) {
-        const valueMemberToCheck = valueToCheck[valueIndex];
-        if (Array.isArray(valueMemberToCheck)) {
-          if (typeof rule.fragment === 'undefined' || rule.fragment < 0) {
-            let fragmentIndex = 0;
-            while (!oneMatch && fragmentIndex < valueMemberToCheck.length) {
-              if (CodingFactory.checkOneValue(valueMemberToCheck[fragmentIndex],
-                rule,
-                codingProcessing)) { oneMatch = true; }
-              fragmentIndex += 1;
-            }
-          } else if (
-            CodingFactory.checkOneValue(valueMemberToCheck[rule.fragment],
-              rule,
-              codingProcessing
-            )) { oneMatch = true; }
-        } else if (CodingFactory.checkOneValue(valueMemberToCheck, rule, codingProcessing)) oneMatch = true;
-        valueIndex += 1;
-      }
       if (valueToCheck.length === 0) {
-        if (CodingFactory.checkOneValue('', rule, codingProcessing)) {
-          oneMatch = true;
+        return CodingFactory.checkOneValue('', rule, codingProcessing);
+      }
+      // eslint-disable-next-line no-restricted-syntax
+      for (const valueMember of valueToCheck) {
+        if (Array.isArray(valueMember)) {
+          if (typeof rule.fragment === 'undefined' || rule.fragment < 0) {
+            // eslint-disable-next-line no-restricted-syntax
+            for (const fragment of valueMember) {
+              if (CodingFactory.checkOneValue(fragment, rule, codingProcessing)) {
+                return true;
+              }
+            }
+          } else if (CodingFactory.checkOneValue(valueMember[rule.fragment], rule, codingProcessing)) {
+            return true;
+          }
+        } else if (CodingFactory.checkOneValue(valueMember, rule, codingProcessing)) {
+          return true;
         }
       }
-      return oneMatch;
+      return false;
     }
     if (Array.isArray(valueToCheck)) {
-      if (typeof rule.fragment === 'undefined' || rule.fragment < 0) {
-        let fragmentIndex = 0;
-        let oneMatch = false;
-        while (!oneMatch && fragmentIndex < valueToCheck.length) {
-          if (CodingFactory.checkOneValue(valueToCheck[fragmentIndex] as string,
-            rule,
-            codingProcessing)) { oneMatch = true; }
-          fragmentIndex += 1;
-        }
-        return oneMatch;
+      const { fragment } = rule;
+      // Check all fragments if `fragment` is undefined or negative
+      if (fragment == null || fragment < 0) {
+        return valueToCheck.some(value => CodingFactory.checkOneValue(value as string, rule, codingProcessing)
+        );
       }
-      return CodingFactory.checkOneValue(valueToCheck[rule.fragment] as string, rule, codingProcessing);
+      // Check specific fragment
+      return CodingFactory.checkOneValue(
+        valueToCheck[fragment] as string,
+        rule,
+        codingProcessing
+      );
     }
     return CodingFactory.checkOneValue(valueToCheck as ResponseValueSingleType, rule, codingProcessing);
   }
@@ -417,12 +448,10 @@ export abstract class CodingFactory {
     let ruleIndex = 0;
     let matchAll = false;
     while (!oneMatch && ruleIndex < ruleSet.rules.length) {
-      let isMatch;
-      if (typeof valueMemberToCheck !== 'undefined') {
-        isMatch = this.isMatchRule(valueMemberToCheck, ruleSet.rules[ruleIndex], false, codingProcessing);
-      } else {
-        isMatch = this.isMatchRule(valueToCheck, ruleSet.rules[ruleIndex], isValueArray, codingProcessing);
-      }
+      const currentRule = ruleSet.rules[ruleIndex];
+      const valueToEvaluate = typeof valueMemberToCheck !== 'undefined' ? valueMemberToCheck : valueToCheck;
+      const isMatch = this.isMatchRule(valueToEvaluate, currentRule, typeof valueMemberToCheck === 'undefined' && isValueArray, codingProcessing);
+
       if (isMatch) {
         if (!ruleSet.ruleOperatorAnd) {
           oneMatch = true;
@@ -432,24 +461,23 @@ export abstract class CodingFactory {
       } else {
         oneMisMatch = true;
       }
+
       ruleIndex += 1;
     }
-    if (oneMatch && isValueArray &&
+    if (
+      oneMatch &&
+      isValueArray &&
       Array.isArray(valueToCheck) &&
       valueToCheck.length > 1 &&
-      ruleSet.valueArrayPos === 'ANY') {
-      // check whether ALL values in array match
-      let valueIndex = 0;
-      while (oneMatch && valueIndex < valueToCheck.length) {
-        // eslint-disable-next-line @typescript-eslint/no-shadow
-        let ruleIndex = 0;
-        while (oneMatch && ruleIndex < ruleSet.rules.length) {
-          oneMatch = this.isMatchRule(valueToCheck[valueIndex], ruleSet.rules[ruleIndex], false, codingProcessing);
-          ruleIndex += 1;
-        }
-        valueIndex += 1;
-      }
+      ruleSet.valueArrayPos === 'ANY'
+    ) {
+      // Check if ALL values in the array comply with the rules
+      oneMatch = valueToCheck.every(value => ruleSet.rules
+        .every(rule => this.isMatchRule(value, rule, false, codingProcessing)
+        )
+      );
     }
+
     return ((oneMatch) || (matchAll && !oneMisMatch));
   }
 
@@ -457,20 +485,24 @@ export abstract class CodingFactory {
     const stringifiedResponse = JSON.stringify(response);
     const newResponse: Response = JSON.parse(stringifiedResponse);
     if (coding && coding.codes.length > 0) {
-      let valueToCheck: TransformedResponseValueType;
+      let valueToCheck: TransformedResponseValueType | null = null;
       try {
-        valueToCheck = this.transformValue(
-          newResponse.value, coding.fragmenting || '', coding.processing && coding.processing.includes('SORT_ARRAY')
-        );
-      } catch (e) {
+        const shouldSortArray = Boolean(coding.processing && coding.processing.includes('SORT_ARRAY'));
+        const fragmentingPattern = coding.fragmenting || '';
+        valueToCheck = this.transformValue(newResponse.value, fragmentingPattern, shouldSortArray);
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error('Error during value transformation:', error.message);
+        }
         newResponse.status = 'CODING_ERROR';
-        valueToCheck = null;
       }
+
       if (newResponse.status !== 'CODING_ERROR') {
         let hasElse = false;
         let elseCode: 'INVALID' | 'INTENDED_INCOMPLETE' | number = 0;
         let elseScore = 0;
         let changed = false;
+
         coding.codes.forEach(c => {
           if (!changed) {
             // ignore other rules if ELSE-rule found
@@ -497,42 +529,37 @@ export abstract class CodingFactory {
                 newResponse.status = 'CODING_ERROR';
                 changed = true;
               } else {
-                let oneMatch = false;
-                let oneMisMatch = false;
-                let ruleSetIndex = 0;
+                let hasMatch = false;
+                let hasMismatch = false;
                 let matchAll = false;
-                while (!oneMatch && ruleSetIndex < c.ruleSets.length) {
-                  if (!c.ruleSetOperatorAnd) {
-                    if (CodingFactory.isMatchRuleSet(valueToCheck,
-                      c.ruleSets[ruleSetIndex],
-                      Array.isArray(newResponse.value),
-                      coding.processing || [])) {
-                      oneMatch = true;
-                    } else {
-                      oneMisMatch = true;
-                    }
-                  } else if (CodingFactory.isMatchRuleSet(valueToCheck,
-                    c.ruleSets[ruleSetIndex],
-                    Array.isArray(newResponse.value),
-                    coding.processing || [])) {
-                    matchAll = true;
-                  } else {
-                    oneMisMatch = true;
-                  }
 
-                  ruleSetIndex += 1;
-                }
-                if ((oneMatch || matchAll) && (!oneMisMatch)) {
-                  if (c.id === 'INVALID') {
-                    newResponse.status = 'INVALID';
-                    newResponse.code = 0;
-                  } else if (c.id === 'INTENDED_INCOMPLETE') {
-                    newResponse.status = 'INTENDED_INCOMPLETE';
-                    newResponse.code = 0;
+                // eslint-disable-next-line no-restricted-syntax
+                for (const currentRuleSet of c.ruleSets) {
+                  const isMatchingRuleSet = CodingFactory.isMatchRuleSet(
+                    valueToCheck,
+                    currentRuleSet,
+                    Array.isArray(newResponse.value),
+                    coding.processing || []
+                  );
+
+                  if (isMatchingRuleSet) {
+                    if (c.ruleSetOperatorAnd) {
+                      matchAll = true;
+                    } else {
+                      hasMatch = true;
+                      break; // break if OR operator and match
+                    }
                   } else {
-                    newResponse.code = c.id;
-                    newResponse.score = c.score || 0;
-                    newResponse.status = 'CODING_COMPLETE';
+                    hasMismatch = true;
+                  }
+                }
+
+                if ((hasMatch || matchAll) && !hasMismatch) {
+                  const { id, score } = c;
+                  newResponse.status = (id === 'INVALID' || id === 'INTENDED_INCOMPLETE') ? id : 'CODING_COMPLETE';
+                  newResponse.code = (id === 'INVALID' || id === 'INTENDED_INCOMPLETE') ? 0 : id;
+                  if (newResponse.status === 'CODING_COMPLETE') {
+                    newResponse.score = score || 0;
                   }
                   changed = true;
                 }
