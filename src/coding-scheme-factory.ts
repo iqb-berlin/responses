@@ -657,7 +657,7 @@ export abstract class CodingSchemeFactory {
         }
       }
 
-      // Mapping von Responses (ID zu Alias)
+      // Mapping of responses (ID to Alias)
       function mapResponseIdsToAlias(
         responses: Response[],
         codings: VariableCodingData[]
@@ -671,7 +671,7 @@ export abstract class CodingSchemeFactory {
         }));
       }
 
-      // Responses kombinieren
+      // combine responses
       newResponses = mapResponseIdsToAlias(newResponses, variableCodings);
       allCodedResponses = [...allCodedResponses, ...newResponses];
     });
@@ -781,7 +781,7 @@ export abstract class CodingSchemeFactory {
               const parameterCount = r.parameters ? r.parameters.length : 0;
               const expectedParameterCount = RuleMethodParameterCount[r.method];
 
-              // Prüfen, ob es ein Parameteranzahl-Mismatch gibt.
+              // Check if there is a parameter count mismatch.
               const isMismatch = expectedParameterCount < 0 ?
                 parameterCount < 1 :
                 parameterCount !== expectedParameterCount;
