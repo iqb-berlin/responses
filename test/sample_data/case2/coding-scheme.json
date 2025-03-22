@@ -5,19 +5,21 @@
       "label": "",
       "sourceType": "BASE",
       "deriveSources": [ ],
-      "processing": [ ],
-      "manualInstruction": "",
-      "codeModel": "NONE",
-      "codeModelParameters": [ ],
       "codes": [ {
         "id": 1,
         "label": "",
         "score": 0,
-        "rules": [
+        "ruleSetOperatorAnd" : false,
+        "ruleSets" : [
           {
-            "method": "NUMERIC_RANGE",
-            "parameters": [
-              "3", "5"
+            "ruleOperatorAnd" : false,
+            "rules": [
+              {
+                "method": "NUMERIC_RANGE",
+                "parameters": [
+                  "3", "5"
+                ]
+              }
             ]
           }
         ],
@@ -27,11 +29,17 @@
           "id": 2,
           "label": "",
           "score": 0,
-          "rules": [
+          "ruleSetOperatorAnd" : false,
+          "ruleSets" : [
             {
-              "method": "NUMERIC_RANGE",
-              "parameters": [
-                "0", "8"
+              "ruleOperatorAnd" : false,
+              "rules": [
+                {
+                  "method": "NUMERIC_RANGE",
+                  "parameters": [
+                    "0", "8"
+                  ]
+                }
               ]
             }
           ],
@@ -44,19 +52,21 @@
       "label": "",
       "sourceType": "BASE",
       "deriveSources": [ ],
-      "processing": [ ],
-      "manualInstruction": "",
-      "codeModel": "NONE",
-      "codeModelParameters": [ ],
       "codes": [ {
         "id": 1,
         "label": "",
         "score": 0,
-        "rules": [
+        "ruleSetOperatorAnd" : false,
+        "ruleSets" : [
           {
-            "method": "MATCH",
-            "parameters": [
-              "3"
+            "ruleOperatorAnd" : false,
+            "rules": [
+              {
+                "method": "MATCH",
+                "parameters": [
+                  "3"
+                ]
+              }
             ]
           }
         ],
@@ -68,57 +78,73 @@
       "label": "",
       "sourceType": "BASE",
       "deriveSources": [ ],
-      "processing": [ ],
-      "fragmenting": "(\\d+)",
-      "manualInstruction": "",
-      "codeModel": "NONE",
-      "codeModelParameters": [ ],
-      "codes": [ {
+      "sourceParameters": {
+        "processing": [ ],
+        "fragmenting": "(\\d+)"
+      },
+      "codes": [
+        {
         "id": 1,
         "label": "",
         "score": 0,
-        "rules": [
+        "ruleSetOperatorAnd" : false,
+        "ruleSets" : [
           {
-            "method": "MATCH",
-            "parameters": [
-              "4"
+            "ruleOperatorAnd" : false,
+            "rules": [
+              {
+                "method": "MATCH",
+                "parameters": [
+                  "4"
+                ]
+              }
             ]
           }
-            ],
+        ],
         "manualInstruction": ""
       },
         {
           "id": 2,
           "label": "",
           "score": 0,
-          "rules": [
+          "ruleSetOperatorAnd" : false,
+          "ruleSets" : [
             {
-              "method": "MATCH",
-              "parameters": [
-                "4"
+              "ruleOperatorAnd" : false,
+              "rules": [
+                {
+                  "method": "MATCH",
+                  "parameters": [
+                    "4"
+                  ]
+                }
               ]
             }
-      ]
-    }]},
+          ]
+        }
+
+      ]},
     {
       "id": "Susi",
       "label": "",
       "sourceType": "BASE",
       "deriveSources": [ ],
-      "processing": [ ],
-      "manualInstruction": "",
-      "codeModel": "NONE",
-      "codeModelParameters": [ ],
       "codes": [
         {
           "id": 1,
           "label": "",
           "score": 0,
-          "rules": [
+          "ruleSetOperatorAnd" : false,
+          "ruleSets" : [
             {
-              "method": "MATCH",
-              "parameters": [
-                "22222"
+              "ruleOperatorAnd" : false,
+              "rules": [
+                {
+                  "method": "MATCH",
+                  "parameters": [
+                    "22222"
+                  ]
+                }
               ]
             }
           ],
@@ -133,24 +159,27 @@
       "deriveSources": [
         "Paul", "Otto"
       ],
-      "processing": [ ],
-      "manualInstruction": "",
-      "codeModel": "NONE",
-      "codeModelParameters": [ ],
       "codes": [  {
         "id": 1,
         "label": "",
         "score": 0,
-        "rules": [
+        "ruleSetOperatorAnd" : false,
+        "ruleSets" : [
           {
-            "method": "NUMERIC_MAX",
-            "parameters": [
-              "3"
+            "ruleOperatorAnd" : false,
+            "rules": [
+              {
+                "method": "NUMERIC_MAX",
+                "parameters": [
+                  "3"
+                ]
+              }
             ]
           }
         ],
         "manualInstruction": ""
       }]
     }
-  ]
+  ],
+  "version": "3.2"
 }
