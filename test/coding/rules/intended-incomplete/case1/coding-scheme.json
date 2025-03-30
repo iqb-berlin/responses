@@ -110,7 +110,7 @@
       "codeModel": "NONE",
       "codes": [
         {
-          "id": "INTENDED_INCOMPLETE",
+          "id": 7,
           "type": "INTENDED_INCOMPLETE",
           "label": "",
           "score": 0,

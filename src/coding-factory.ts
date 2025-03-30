@@ -501,14 +501,15 @@ export abstract class CodingFactory {
         let hasElse = false;
         let elseCode: 'INVALID' | 'INTENDED_INCOMPLETE' | number = 0;
         let elseScore = 0;
+        let elseType = '';
         let changed = false;
 
         coding.codes.forEach(c => {
           if (!changed) {
-            // ignore other rules if ELSE-rule found
             if (c.type === 'RESIDUAL_AUTO' || c.type === 'INTENDED_INCOMPLETE') {
               hasElse = true;
               elseCode = c.id;
+              elseType = c.type;
               elseScore = c.score;
             } else {
               // todo: this section is somehow unclear!
@@ -569,11 +570,10 @@ export abstract class CodingFactory {
         });
         if (!changed) {
           if (hasElse) {
-            // @ts-expect-error elseCode is 'INVALID' | 'INTENDED_INCOMPLETE' | number
-            if (elseCode === 'INTENDED_INCOMPLETE') {
+            if (elseType === 'INTENDED_INCOMPLETE') {
               newResponse.status = 'INTENDED_INCOMPLETE';
-              newResponse.code = 0;
-              newResponse.score = 0;
+              newResponse.code = elseCode;
+              newResponse.score = elseScore;
             // @ts-expect-error elseCode is 'INVALID' | 'INTENDED_INCOMPLETE' | number
             } else if (elseCode === 'INVALID') {
               newResponse.status = 'INVALID';
