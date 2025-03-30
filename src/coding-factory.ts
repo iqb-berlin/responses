@@ -482,117 +482,108 @@ export abstract class CodingFactory {
   }
 
   static code(response: Response, coding: VariableCodingData): Response {
-    const stringifiedResponse = JSON.stringify(response);
-    const newResponse: Response = JSON.parse(stringifiedResponse);
-    if (coding && coding.codes.length > 0) {
-      let valueToCheck: TransformedResponseValueType | null = null;
-      try {
-        const shouldSortArray = Boolean(coding.processing && coding.processing.includes('SORT_ARRAY'));
-        const fragmentingPattern = coding.fragmenting || '';
-        valueToCheck = this.transformValue(newResponse.value, fragmentingPattern, shouldSortArray);
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.error('Error during value transformation:', error.message);
-        }
-        newResponse.status = 'CODING_ERROR';
-      }
+    // Create a deep copy of the response object
+    const newResponse: Response = JSON.parse(JSON.stringify(response));
 
-      if (newResponse.status !== 'CODING_ERROR') {
-        let hasElse = false;
-        let elseCode: 'INVALID' | 'INTENDED_INCOMPLETE' | number = 0;
-        let elseScore = 0;
-        let elseType = '';
-        let changed = false;
-
-        coding.codes.forEach(c => {
-          if (!changed) {
-            if (c.type === 'RESIDUAL_AUTO' || c.type === 'INTENDED_INCOMPLETE') {
-              hasElse = true;
-              elseCode = c.id;
-              elseType = c.type;
-              elseScore = c.score;
-            } else {
-              // todo: this section is somehow unclear!
-              //  It will find a rule(set) which is invalid OR for which the value is invalid.
-              //  But for what? The rules should be validated elsewhere, and whether the value is valid for all
-              //  rules or not (numeric?) is not important.
-              /**
-              const invalidRule = c.ruleSets.find(rs => !!rs.rules.find(r => {
-                if (typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >= 0) {
-                  return Array.isArray(newResponse.value) && Array.isArray(valueToCheck) ?
-                    !CodingFactory.isValidRule(valueToCheck[rs.valueArrayPos], r, false) : true;
-                }
-                return !CodingFactory.isValidRule(valueToCheck, r, Array.isArray(newResponse.value));
-              }));
-                  * */
-              const invalidRule = false;
-              if (invalidRule) {
-                newResponse.status = 'CODING_ERROR';
-                changed = true;
-              } else {
-                let hasMatch = false;
-                let hasMismatch = false;
-                let matchAll = false;
-
-                // eslint-disable-next-line no-restricted-syntax
-                for (const currentRuleSet of c.ruleSets) {
-                  const isMatchingRuleSet = CodingFactory.isMatchRuleSet(
-                    valueToCheck,
-                    currentRuleSet,
-                    Array.isArray(newResponse.value),
-                    coding.processing || []
-                  );
-
-                  if (isMatchingRuleSet) {
-                    if (c.ruleSetOperatorAnd) {
-                      matchAll = true;
-                    } else {
-                      hasMatch = true;
-                      break; // break if OR operator and match
-                    }
-                  } else {
-                    hasMismatch = true;
-                  }
-                }
-
-                if ((hasMatch || matchAll) && !hasMismatch) {
-                  const { id, score } = c;
-                  newResponse.status = (id === 'INVALID' || id === 'INTENDED_INCOMPLETE') ? id : 'CODING_COMPLETE';
-                  newResponse.code = (id === 'INVALID' || id === 'INTENDED_INCOMPLETE') ? 0 : id;
-                  if (newResponse.status === 'CODING_COMPLETE') {
-                    newResponse.score = score || 0;
-                  }
-                  changed = true;
-                }
-              }
-            }
-          }
-        });
-        if (!changed) {
-          if (hasElse) {
-            if (elseType === 'INTENDED_INCOMPLETE') {
-              newResponse.status = 'INTENDED_INCOMPLETE';
-              newResponse.code = elseCode;
-              newResponse.score = elseScore;
-            // @ts-expect-error elseCode is 'INVALID' | 'INTENDED_INCOMPLETE' | number
-            } else if (elseCode === 'INVALID') {
-              newResponse.status = 'INVALID';
-              newResponse.code = 0;
-              newResponse.score = 0;
-            } else {
-              newResponse.code = elseCode;
-              newResponse.score = elseScore;
-              newResponse.status = 'CODING_COMPLETE';
-            }
-          } else {
-            newResponse.status = 'CODING_INCOMPLETE';
-          }
-          changed = true;
-        }
-      }
-    } else {
+    // Check if coding data exists
+    if (!coding || coding.codes.length === 0) {
       newResponse.status = 'NO_CODING';
+      return newResponse;
     }
+
+    let valueToCheck: TransformedResponseValueType | null = null;
+
+    // Attempt to transform the value
+    try {
+      const shouldSortArray = coding.processing?.includes('SORT_ARRAY') || false;
+      const fragmentingPattern = coding.fragmenting || '';
+      valueToCheck = this.transformValue(newResponse.value, fragmentingPattern, shouldSortArray);
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('Error during value transformation:', error.message);
+      }
+      newResponse.status = 'CODING_ERROR';
+      return newResponse;
+    }
+
+    // Proceed with coding if no transformation error occurred
+    let hasElse = false;
+    let elseCode: 'INVALID' | 'INTENDED_INCOMPLETE' | number = 0;
+    let elseScore = 0;
+    let elseType = '';
+    let changed = false;
+
+    // Loop through all coding codes
+    for (const code of coding.codes) {
+      if (changed) break;
+
+      // Check for special cases: "RESIDUAL_AUTO" and "INTENDED_INCOMPLETE"
+      if (['RESIDUAL_AUTO', 'INTENDED_INCOMPLETE'].includes(code.type)) {
+        hasElse = true;
+        elseCode = code.id;
+        elseType = code.type;
+        elseScore = code.score || 0;
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+
+      let hasMatch = false;
+      let hasMismatch = false;
+
+      // Evaluate all rule sets for the current code
+      for (const ruleSet of code.ruleSets) {
+        const isMatching = CodingFactory.isMatchRuleSet(
+          valueToCheck,
+          ruleSet,
+          Array.isArray(newResponse.value),
+          coding.processing || []
+        );
+
+        if (isMatching) {
+          hasMatch = true;
+          if (!code.ruleSetOperatorAnd) break; // Early exit for "OR" operator
+        } else {
+          hasMismatch = true;
+          if (code.ruleSetOperatorAnd) break; // Early exit for "AND" operator
+        }
+      }
+
+      // Validate and process the code based on rule set results
+      if (hasMatch && !(code.ruleSetOperatorAnd && hasMismatch)) {
+        const { id, score } = code;
+        const isInvalidOrIncomplete = id === 'INVALID' || id === 'INTENDED_INCOMPLETE';
+
+        newResponse.status = isInvalidOrIncomplete ? id : 'CODING_COMPLETE';
+        newResponse.code = isInvalidOrIncomplete ? 0 : id;
+        newResponse.score = isInvalidOrIncomplete ? 0 : score || 0;
+
+        changed = true;
+      }
+    }
+
+    // If no matches were found, handle "else" cases
+    if (!changed) {
+      if (hasElse) {
+        if (elseType === 'INTENDED_INCOMPLETE') {
+          newResponse.status = 'INTENDED_INCOMPLETE';
+          // @ts-ignore
+          newResponse.code = elseCode;
+          newResponse.score = elseScore;
+        } else if (elseCode === 'INVALID') {
+          newResponse.status = 'INVALID';
+          newResponse.code = 0;
+          newResponse.score = 0;
+        } else {
+          newResponse.status = 'CODING_COMPLETE';
+          // @ts-ignore
+          newResponse.code = elseCode;
+          newResponse.score = elseScore;
+        }
+      } else {
+        newResponse.status = 'CODING_INCOMPLETE';
+      }
+    }
+
     return newResponse;
   }
 }
