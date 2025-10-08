@@ -2,14 +2,14 @@
 import { evaluate } from 'mathjs';
 import { Response } from '@iqbspecs/response/response.interface';
 import {
-  DeriveConcatDelimiter, RuleMethodParameterCount, validStatesForDerivingValue, validStatesToStartDeriving,
+  DeriveConcatDelimiter,
+  RuleMethodParameterCount,
+  validStatesForDerivingValue,
+  validStatesToStartDeriving,
   VariableCodingData
 } from '@iqbspecs/coding-scheme/coding-scheme.interface';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
-import {
-  CodingAsText,
-  CodingToTextMode, CodingSchemeProblem
-} from './coding-interfaces';
+import { CodingAsText, CodingSchemeProblem, CodingToTextMode } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';
 
@@ -267,7 +267,7 @@ export abstract class CodingSchemeFactory {
         };
       case 'UNIQUE_VALUES': {
         const valuesToCompare: string[] = sourceResponses
-          .filter(r => validStatesForDerivingValue.includes(r.status))
+          .filter(r => validStatesForDerivingValue.includes(r.status) || r.status === 'INTENDED_INCOMPLETE')
           .map(r => {
             const processing = coding.sourceParameters?.processing;
             const isToNumberProcessing = processing?.includes('TO_NUMBER');

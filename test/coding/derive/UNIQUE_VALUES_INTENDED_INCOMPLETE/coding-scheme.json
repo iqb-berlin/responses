@@ -1,0 +1,136 @@
+{
+  "variableCodings": [
+    {
+      "id": "b1",
+      "sourceType": "BASE",
+      "codes": [
+        {
+          "id": 1,
+          "score": 1,
+          "ruleSets": [
+            {
+              "rules": [
+                {
+                  "method": "MATCH",
+                  "parameters": [
+                    "111"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "b2",
+      "sourceType": "BASE",
+      "codes": [
+        {
+          "id": 0,
+          "type": "INTENDED_INCOMPLETE",
+          "score": 0,
+          "ruleSets": []
+        }
+      ]
+    },
+    {
+      "id": "b3",
+      "sourceType": "BASE",
+      "codes": [
+        {
+          "id": 1,
+          "score": 7,
+          "ruleSets": [
+            {
+              "rules": [
+                {
+                  "method": "MATCH",
+                  "parameters": [
+                    "333"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d1",
+      "sourceType": "UNIQUE_VALUES",
+      "deriveSources": [
+        "b1", "d2"
+      ]
+    },
+    {
+      "id": "d2",
+      "sourceType": "UNIQUE_VALUES",
+      "deriveSources": [
+        "b1",
+        "b2"
+      ]
+    },
+    {
+      "id": "d3",
+      "sourceType": "UNIQUE_VALUES",
+      "deriveSources": [
+        "b1", "b2", "b3"
+      ],
+      "codes": [
+        {
+          "id": 1,
+          "score": 7,
+          "ruleSets": [
+            {
+              "rules": [
+                {
+                  "method": "MATCH",
+                  "parameters": [
+                    "true"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d4",
+      "sourceType": "UNIQUE_VALUES",
+      "deriveSources": [
+        "b1",
+        "b2",
+        "b3"
+      ]
+    },
+    {
+      "id": "d5",
+      "sourceType": "UNIQUE_VALUES",
+      "deriveSources": [
+        "b1",
+        "b2",
+        "b3"
+      ]
+    },
+    {
+      "id": "d6",
+      "sourceType": "UNIQUE_VALUES",
+      "deriveSources": [
+        "b1",
+        "b2",
+        "b3"
+      ]
+    },
+    {
+      "id": "d7",
+      "sourceType": "UNIQUE_VALUES",
+      "deriveSources": [
+        "b1",
+        "b2",
+        "b3"
+      ]
+    }
+  ]
+}
