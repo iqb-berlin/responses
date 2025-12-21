@@ -222,6 +222,48 @@ describe('CodingSchemeFactory', () => {
         problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
       ).toBe(true);
     });
+
+    test('detects INVALID_SOURCE for duplicate coding ids', () => {
+      const baseVars: VariableInfo[] = [] as unknown as VariableInfo[];
+      const v1 = CodingFactory.createCodingVariable('v1');
+      const v1dup = CodingFactory.createCodingVariable('v1');
+
+      const problems = CodingSchemeFactory.validate(baseVars, [v1, v1dup]);
+      expect(
+        problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
+      ).toBe(true);
+    });
+
+    test('detects INVALID_SOURCE for duplicate aliases', () => {
+      const baseVars: VariableInfo[] = [] as unknown as VariableInfo[];
+      const v1: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('v1'),
+        alias: 'a'
+      } as VariableCodingData;
+      const v2: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('v2'),
+        alias: 'a'
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [v1, v2]);
+      expect(
+        problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
+      ).toBe(true);
+    });
+
+    test('detects INVALID_SOURCE when an alias collides with another variable id', () => {
+      const baseVars: VariableInfo[] = [] as unknown as VariableInfo[];
+      const v1: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('v1'),
+        alias: 'v2'
+      } as VariableCodingData;
+      const v2 = CodingFactory.createCodingVariable('v2');
+
+      const problems = CodingSchemeFactory.validate(baseVars, [v1, v2]);
+      expect(
+        problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
+      ).toBe(true);
+    });
   });
 
   describe('code', () => {

@@ -821,10 +821,59 @@ export abstract class CodingSchemeFactory {
     variableCodings: VariableCodingData[]
   ): CodingSchemeProblem[] {
     const baseVarById = new Map<string, VariableInfo>();
-    baseVariables.forEach(bv => {
-      if (bv?.id) baseVarById.set(bv.id, bv);
-    });
     const problems: CodingSchemeProblem[] = [];
+
+    const pushInvalidSourceProblem = (
+      variableId: string,
+      variableLabel: string
+    ) => {
+      problems.push({
+        type: 'INVALID_SOURCE',
+        breaking: true,
+        variableId,
+        variableLabel
+      });
+    };
+
+    const baseVarIdCounts = new Map<string, number>();
+    baseVariables.forEach(bv => {
+      if (bv?.id) {
+        baseVarById.set(bv.id, bv);
+        baseVarIdCounts.set(bv.id, (baseVarIdCounts.get(bv.id) ?? 0) + 1);
+      }
+    });
+    [...baseVarIdCounts.entries()]
+      .filter(([, count]) => count > 1)
+      .forEach(([id]) => {
+        pushInvalidSourceProblem(id, '');
+      });
+
+    const codingIdCounts = new Map<string, number>();
+    const codingAliasCounts = new Map<string, number>();
+    const codingIds = new Set<string>();
+    variableCodings.forEach(vc => {
+      codingIdCounts.set(vc.id, (codingIdCounts.get(vc.id) ?? 0) + 1);
+      codingIds.add(vc.id);
+      if (vc.alias) {
+        codingAliasCounts.set(
+          vc.alias,
+          (codingAliasCounts.get(vc.alias) ?? 0) + 1
+        );
+      }
+    });
+
+    variableCodings.forEach(vc => {
+      if ((codingIdCounts.get(vc.id) ?? 0) > 1) {
+        pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
+      }
+      if (vc.alias && (codingAliasCounts.get(vc.alias) ?? 0) > 1) {
+        pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
+      }
+      if (vc.alias && codingIds.has(vc.alias) && vc.alias !== vc.id) {
+        pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
+      }
+    });
+
     const allDerivedVariableIds: string[] = variableCodings
       .filter(
         vc => vc.sourceType !== 'BASE' && vc.sourceType !== 'BASE_NO_VALUE'
