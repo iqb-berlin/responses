@@ -12,6 +12,7 @@ import {
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';
 import { deepClone } from './utils/deep-clone';
+import { CODING_SCHEME_STATUS } from './constants';
 import {
   getVariableDependencyTree,
   type VariableGraphNode
@@ -19,7 +20,10 @@ import {
 import { deriveValue } from './derive/derive-value';
 import { validateCodingScheme } from './validation/validate-coding-scheme';
 import { groupResponsesBySubform } from './subform/grouping';
-import { mapResponseIdToAlias } from './mapping/alias-mapper';
+import {
+  mapResponseAliasToId,
+  mapResponseIdToAlias
+} from './mapping/alias-mapper';
 import {
   markEmptyValuesInvalidForBaseUnlessAllowed,
   normalizeDisplayedToValueChanged,
@@ -32,6 +36,161 @@ export type { VariableGraphNode } from './graph/dependency-tree';
 export abstract class CodingSchemeFactory {
   variableCodings: VariableCodingData[] = [];
 
+  private static prepareResponsesForGroup(
+    groupResponses: Response[],
+    variableCodings: VariableCodingData[],
+    notSubformResponses: Response[]
+  ): Response[] {
+    const updatedResponses = mapResponseAliasToId(
+      groupResponses,
+      variableCodings
+    );
+
+    const isSubformGroup = groupResponses.every(r => r.subform !== undefined);
+    return isSubformGroup ?
+      [...updatedResponses, ...notSubformResponses] :
+      [...updatedResponses];
+  }
+
+  private static normalizeStatuses(
+    responses: Response[],
+    variableCodings: VariableCodingData[]
+  ): void {
+    normalizeDisplayedToValueChanged(responses, variableCodings);
+    normalizeNotReachedToValueChanged(responses, variableCodings);
+    markEmptyValuesInvalidForBaseUnlessAllowed(responses, variableCodings);
+  }
+
+  private static buildDependencyPlan(
+    variableCodings: VariableCodingData[],
+    options?: { onError?: (error: unknown) => void }
+  ): { varDependencies: VariableGraphNode[]; globalDeriveError: boolean } {
+    try {
+      return {
+        varDependencies:
+          CodingSchemeFactory.getVariableDependencyTree(variableCodings),
+        globalDeriveError: false
+      };
+    } catch (error) {
+      options?.onError?.(error);
+      return { varDependencies: [], globalDeriveError: true };
+    }
+  }
+
+  private static ensureResponsesExist(
+    responses: Response[],
+    variableCodings: VariableCodingData[],
+    varDependencies: VariableGraphNode[],
+    globalDeriveError: boolean
+  ): VariableGraphNode[] {
+    const updatedDependencies = [...varDependencies];
+
+    variableCodings.forEach(coding => {
+      if (globalDeriveError && coding.sourceType === 'BASE') {
+        updatedDependencies.push({
+          id: coding.id,
+          level: 0,
+          sources: [],
+          page: coding.page || ''
+        });
+      }
+
+      if (responses.some(response => response.id === coding.id)) {
+        return;
+      }
+
+      if (coding.sourceType !== 'BASE_NO_VALUE') {
+        const status =
+          globalDeriveError && coding.sourceType !== 'BASE' ?
+            CODING_SCHEME_STATUS.DERIVE_ERROR :
+            CODING_SCHEME_STATUS.UNSET;
+
+        responses.push({
+          id: coding.id,
+          value: null,
+          status
+        });
+      }
+    });
+
+    return updatedDependencies;
+  }
+
+  private static applyDerivationsAndCoding(
+    responses: Response[],
+    variableCodings: VariableCodingData[],
+    varDependencies: VariableGraphNode[],
+    options?: { onError?: (error: unknown) => void }
+  ): void {
+    const maxVarLevel = Math.max(0, ...varDependencies.map(n => n.level));
+
+    for (let level = 0; level <= maxVarLevel; level++) {
+      const currentLevelNodes = varDependencies.filter(
+        n => n.level === level
+      );
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const varNode of currentLevelNodes) {
+        const targetResponse = responses.find(r => r.id === varNode.id);
+        const varCoding = variableCodings.find(vc => vc.id === varNode.id);
+
+        if (!targetResponse || !varCoding) {
+          break;
+        }
+
+        if (
+          varNode.sources.length > 0 &&
+          validStatesToStartDeriving.includes(targetResponse.status)
+        ) {
+          CodingSchemeFactory.deriveResponse(
+            variableCodings,
+            targetResponse,
+            varCoding,
+            varNode.sources,
+            responses,
+            options
+          );
+        }
+
+        if (targetResponse.status === CODING_SCHEME_STATUS.VALUE_CHANGED) {
+          CodingSchemeFactory.processCoding(targetResponse, varCoding, options);
+        }
+      }
+    }
+  }
+
+  private static finalizeAndDeduplicate(
+    allCodedResponses: Response[],
+    subformGroups: Record<string, Response[]>,
+    variableCodings: VariableCodingData[]
+  ): Response[] {
+    let uniqueResponses = allCodedResponses.filter(
+      (item, index, self) => index ===
+        self.findIndex(t => t.id === item.id && t.subform === item.subform)
+    );
+
+    const derivedAliases = variableCodings
+      .filter(
+        vc => vc.sourceType !== 'BASE' && vc.sourceType !== 'BASE_NO_VALUE'
+      )
+      .map(vc => vc.alias || vc.id);
+
+    if (Object.keys(subformGroups).length > 0) {
+      uniqueResponses = uniqueResponses.filter(ur => {
+        const foundInSubformGroups = Object.values(subformGroups)[0].find(
+          sr => sr.id === ur.id
+        );
+        const foundInDerived = derivedAliases.includes(ur.id);
+        return !(
+          (foundInSubformGroups || foundInDerived) &&
+          ur.status === CODING_SCHEME_STATUS.UNSET
+        );
+      });
+    }
+
+    return [...uniqueResponses];
+  }
+
   private static deriveResponse(
     variableCodings: VariableCodingData[],
     targetResponse: Response,
@@ -40,7 +199,7 @@ export abstract class CodingSchemeFactory {
     responsesList: Response[],
     options?: { onError?: (error: unknown) => void }
   ): void {
-    if (targetResponse.status === 'CODING_ERROR') {
+    if (targetResponse.status === CODING_SCHEME_STATUS.CODING_ERROR) {
       return;
     }
 
@@ -56,12 +215,12 @@ export abstract class CodingSchemeFactory {
       targetResponse.status = derivedResponse.status;
       targetResponse.subform = derivedResponse.subform;
 
-      if (derivedResponse.status === 'VALUE_CHANGED') {
+      if (derivedResponse.status === CODING_SCHEME_STATUS.VALUE_CHANGED) {
         targetResponse.value = derivedResponse.value;
       }
     } catch (error) {
       options?.onError?.(error);
-      targetResponse.status = 'DERIVE_ERROR';
+      targetResponse.status = CODING_SCHEME_STATUS.DERIVE_ERROR;
       targetResponse.value = null;
     }
   }
@@ -90,10 +249,10 @@ export abstract class CodingSchemeFactory {
         ) || false;
 
       if (!takeEmptyAsValid) {
-        targetResponse.status = 'NO_CODING';
+        targetResponse.status = CODING_SCHEME_STATUS.NO_CODING;
       }
     } else {
-      targetResponse.status = 'NO_CODING';
+      targetResponse.status = CODING_SCHEME_STATUS.NO_CODING;
     }
   }
 
@@ -125,22 +284,13 @@ export abstract class CodingSchemeFactory {
     // code responses for each subform
     [...Object.values(subformGroups), notSubformResponses].forEach(
       allResponses => {
-        // responses id to alias
-        const updatedResponses = allResponses.map(r => ({
-          ...r,
-          id: variableCodings.find(c => c.alias === r.id)?.id || r.id
-        }));
-
-        newResponses = allResponses.every(r => r.subform !== undefined) ?
-          [...updatedResponses, ...notSubformResponses] :
-          [...updatedResponses];
-
-        normalizeDisplayedToValueChanged(newResponses, variableCodings);
-        normalizeNotReachedToValueChanged(newResponses, variableCodings);
-        markEmptyValuesInvalidForBaseUnlessAllowed(
-          newResponses,
-          variableCodings
+        newResponses = CodingSchemeFactory.prepareResponsesForGroup(
+          allResponses,
+          variableCodings,
+          notSubformResponses
         );
+
+        CodingSchemeFactory.normalizeStatuses(newResponses, variableCodings);
 
         // Remove base variables if a derived variable with the same ID exists
         newResponses = removeBaseResponsesShadowedByDerived(
@@ -148,95 +298,22 @@ export abstract class CodingSchemeFactory {
           variableCodings
         );
 
-        // Set up the variable tree
-        let varDependencies: VariableGraphNode[] = [];
-        let globalDeriveError = false;
+        const { varDependencies, globalDeriveError } =
+          CodingSchemeFactory.buildDependencyPlan(variableCodings, options);
 
-        try {
-          varDependencies =
-            CodingSchemeFactory.getVariableDependencyTree(variableCodings);
-        } catch (error) {
-          options?.onError?.(error);
-          globalDeriveError = true;
-          varDependencies = [];
-        }
+        const resolvedDependencies = CodingSchemeFactory.ensureResponsesExist(
+          newResponses,
+          variableCodings,
+          varDependencies,
+          globalDeriveError
+        );
 
-        // Handle derived variables in case of errors or missing responses
-        variableCodings.forEach(coding => {
-          if (globalDeriveError && coding.sourceType === 'BASE') {
-            varDependencies.push({
-              id: coding.id,
-              level: 0,
-              sources: [],
-              page: coding.page || ''
-            });
-          }
-
-          if (newResponses.some(response => response.id === coding.id)) {
-            return;
-          }
-
-          if (coding.sourceType !== 'BASE_NO_VALUE') {
-            const status =
-              globalDeriveError && coding.sourceType !== 'BASE' ?
-                'DERIVE_ERROR' :
-                'UNSET';
-
-            newResponses.push({
-              id: coding.id,
-              value: null,
-              status
-            });
-          }
-        });
-
-        const maxVarLevel = Math.max(...varDependencies.map(n => n.level));
-
-        for (let level = 0; level <= maxVarLevel; level++) {
-          // Filter variables at the current level
-          const currentLevelNodes = varDependencies.filter(
-            n => n.level === level
-          );
-
-          // eslint-disable-next-line no-restricted-syntax
-          for (const varNode of currentLevelNodes) {
-            const targetResponse = newResponses.find(
-              r => r.id === varNode.id
-            );
-            const varCoding = variableCodings.find(
-              vc => vc.id === varNode.id
-            );
-
-            if (!targetResponse || !varCoding) {
-              // Skip processing if there is no target response or variable coding for the node
-              break;
-            }
-
-            // If sources exist and the current status is valid for derivation
-            if (
-              varNode.sources.length > 0 &&
-              validStatesToStartDeriving.includes(targetResponse.status)
-            ) {
-              CodingSchemeFactory.deriveResponse(
-                variableCodings,
-                targetResponse,
-                varCoding,
-                varNode.sources,
-                newResponses,
-                options
-              );
-            }
-
-            // Process coding logic if the status is "VALUE_CHANGED"
-            if (targetResponse.status === 'VALUE_CHANGED') {
-              CodingSchemeFactory.processCoding(
-                targetResponse,
-                varCoding,
-                options
-              );
-            }
-          }
-        }
+        CodingSchemeFactory.applyDerivationsAndCoding(
+          newResponses,
+          variableCodings,
+          resolvedDependencies,
+          options
+        );
 
         // combine responses
         newResponses = mapResponseIdToAlias(newResponses, variableCodings);
@@ -244,32 +321,11 @@ export abstract class CodingSchemeFactory {
       }
     );
 
-    // remove duplicate responses if not from derived var
-    let uniqueResponses = allCodedResponses.filter(
-      (item, index, self) => index ===
-        self.findIndex(t => t.id === item.id && t.subform === item.subform)
+    return CodingSchemeFactory.finalizeAndDeduplicate(
+      allCodedResponses,
+      subformGroups,
+      variableCodings
     );
-
-    const derivedAliases = variableCodings
-      .filter(
-        vc => vc.sourceType !== 'BASE' && vc.sourceType !== 'BASE_NO_VALUE'
-      )
-      .map(vc => vc.alias || vc.id);
-
-    // remove unset responses if the value is part in subform
-    if (Object.keys(subformGroups).length > 0) {
-      uniqueResponses = uniqueResponses.filter(ur => {
-        const foundInSubformGroups = Object.values(subformGroups)[0].find(
-          sr => sr.id === ur.id
-        );
-        const foundInDerived = derivedAliases.includes(ur.id);
-        return !(
-          (foundInSubformGroups || foundInDerived) &&
-          ur.status === 'UNSET'
-        );
-      });
-    }
-    return [...uniqueResponses];
   }
 
   static validate(

@@ -14,6 +14,16 @@ import {
 } from '../constants';
 import { CodingFactory } from '../coding-factory';
 
+const deriveErrorResponse = (
+  coding: VariableCodingData,
+  subform: string | undefined
+): Response => <Response>{
+  id: coding.id,
+  value: null,
+  status: 'DERIVE_ERROR',
+  subform
+};
+
 export const amountFalseStates = (
   coding: VariableCodingData,
   sourceResponses: Response[]
@@ -211,18 +221,16 @@ export const deriveValue = (
 
     case 'SUM_CODE': {
       const deriveSources = coding.deriveSources ?? [];
+      const allSourcesPresent = deriveSources.every(sourceId => sourceResponses.some(r => r.id === sourceId)
+      );
+      if (!allSourcesPresent) {
+        return deriveErrorResponse(coding, subformSource);
+      }
       return <Response>{
         id: coding.id,
         value: deriveSources.reduce((sum, sourceId) => {
           const myResponse = sourceResponses.find(r => r.id === sourceId);
-
-          if (!myResponse) {
-            throw new Error(
-              `Response with id ${sourceId} not found in derive sources`
-            );
-          }
-
-          return sum + (myResponse.code || 0);
+          return sum + (myResponse?.code || 0);
         }, 0),
         status: 'VALUE_CHANGED',
         subform: subformSource
@@ -231,17 +239,18 @@ export const deriveValue = (
 
     case 'SUM_SCORE': {
       const deriveSources = coding.deriveSources ?? [];
+      const allSourcesPresent = deriveSources.every(sourceId => sourceResponses.some(r => r.id === sourceId)
+      );
+      if (!allSourcesPresent) {
+        return deriveErrorResponse(coding, subformSource);
+      }
+
       return <Response>{
         id: coding.id,
         value: deriveSources
           .map((sourceId: string) => {
             const response = sourceResponses.find(r => r.id === sourceId);
-            if (!response) {
-              throw new Error(
-                `Response with id "${sourceId}" not found in derive sources.`
-              );
-            }
-            return response.score ?? 0;
+            return response?.score ?? 0;
           })
           .reduce((total: number, score: number) => total + score, 0),
         status: 'VALUE_CHANGED',
@@ -327,20 +336,18 @@ export const deriveValue = (
 
         let newExpression = coding.sourceParameters.solverExpression;
 
-        replacements.forEach((varId, toReplace) => {
+        // eslint-disable-next-line no-restricted-syntax
+        for (const [toReplace, varId] of replacements.entries()) {
           const responseToReplace = sourceResponses.find(r => r.id === varId);
-
           if (!responseToReplace || Array.isArray(responseToReplace.value)) {
-            throw new Error(
-              'Response is missing or value is an array in the solver'
-            );
+            return deriveErrorResponse(coding, subformSource);
           }
 
           const valueToReplace = CodingFactory.getValueAsNumber(
             responseToReplace.value
           );
           if (valueToReplace === null) {
-            throw new Error('Response value is not numeric');
+            return deriveErrorResponse(coding, subformSource);
           }
 
           const replacePattern = new RegExp(`\\$\\{${toReplace}}`, 'g');
@@ -348,11 +355,17 @@ export const deriveValue = (
             replacePattern,
             valueToReplace.toString(10)
           );
-        });
+        }
 
-        let newValue = evaluate(newExpression);
+        let newValue: unknown;
+        try {
+          newValue = evaluate(newExpression);
+        } catch (error) {
+          return deriveErrorResponse(coding, subformSource);
+        }
 
         if (
+          typeof newValue !== 'number' ||
           Number.isNaN(newValue) ||
           newValue === Number.POSITIVE_INFINITY ||
           newValue === Number.NEGATIVE_INFINITY
@@ -372,5 +385,5 @@ export const deriveValue = (
       break;
   }
 
-  throw new Error('deriving failed');
+  return deriveErrorResponse(coding, subformSource);
 };

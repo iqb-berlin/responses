@@ -4,10 +4,17 @@ import { VariableCodingData } from '@iqbspecs/coding-scheme';
 export const mapResponseAliasToId = (
   responses: Response[],
   variableCodings: VariableCodingData[]
-): Response[] => responses.map(r => ({
-  ...r,
-  id: variableCodings.find(c => c.alias === r.id)?.id || r.id
-}));
+): Response[] => {
+  const aliasMap = new Map(
+    variableCodings
+      .filter(coding => Boolean(coding.alias))
+      .map(coding => [coding.alias as string, coding.id])
+  );
+  return responses.map(response => ({
+    ...response,
+    id: aliasMap.get(response.id) || response.id
+  }));
+};
 
 export const mapResponseIdToAlias = (
   responses: Response[],

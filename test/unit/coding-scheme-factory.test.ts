@@ -78,7 +78,7 @@ describe('CodingSchemeFactory', () => {
       expect(result.value).toBeNull();
     });
 
-    test('SUM_CODE throws DERIVE_ERROR when a declared source response is missing', () => {
+    test('SUM_CODE returns DERIVE_ERROR when a declared source response is missing', () => {
       const coding: VariableCodingData = {
         ...CodingFactory.createCodingVariable('d'),
         sourceType: 'SUM_CODE',
@@ -94,8 +94,9 @@ describe('CodingSchemeFactory', () => {
         score: 0
       } as Response;
 
-      expect(() => CodingSchemeFactory.deriveValue([coding], coding, [src])
-      ).toThrow(/not found/);
+      const result = CodingSchemeFactory.deriveValue([coding], coding, [src]);
+      expect(result.status).toBe('DERIVE_ERROR');
+      expect(result.value).toBeNull();
     });
 
     test('SOLVER returns DERIVE_ERROR if solver expression references sources not listed in deriveSources', () => {

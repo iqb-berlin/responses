@@ -4,13 +4,14 @@ import {
   VariableCodingData
 } from '@iqbspecs/coding-scheme';
 import { CodingFactory } from '../coding-factory';
+import { CODING_SCHEME_STATUS } from '../constants';
 
 export const normalizeDisplayedToValueChanged = (
   responses: Response[],
   variableCodings: VariableCodingData[]
 ): void => {
   responses
-    .filter(r => r.status === 'DISPLAYED')
+    .filter(r => r.status === CODING_SCHEME_STATUS.DISPLAYED)
     .forEach(r => {
       const myCoding = variableCodings.find(c => c.id === r.id);
       if (
@@ -21,7 +22,7 @@ export const normalizeDisplayedToValueChanged = (
           'TAKE_DISPLAYED_AS_VALUE_CHANGED' as SourceProcessingType
         )
       ) {
-        r.status = 'VALUE_CHANGED';
+        r.status = CODING_SCHEME_STATUS.VALUE_CHANGED;
       }
     });
 };
@@ -31,7 +32,7 @@ export const normalizeNotReachedToValueChanged = (
   variableCodings: VariableCodingData[]
 ): void => {
   responses
-    .filter(r => r.status === 'NOT_REACHED')
+    .filter(r => r.status === CODING_SCHEME_STATUS.NOT_REACHED)
     .forEach(r => {
       const myCoding = variableCodings.find(c => c.id === r.id);
       if (
@@ -40,7 +41,7 @@ export const normalizeNotReachedToValueChanged = (
           'TAKE_NOT_REACHED_AS_VALUE_CHANGED' as SourceProcessingType
         )
       ) {
-        r.status = 'VALUE_CHANGED';
+        r.status = CODING_SCHEME_STATUS.VALUE_CHANGED;
       }
     });
 };
@@ -51,7 +52,8 @@ export const markEmptyValuesInvalidForBaseUnlessAllowed = (
 ): void => {
   responses
     .filter(
-      r => r.status === 'VALUE_CHANGED' && CodingFactory.isEmptyValue(r.value)
+      r => r.status === CODING_SCHEME_STATUS.VALUE_CHANGED &&
+        CodingFactory.isEmptyValue(r.value)
     )
     .forEach(r => {
       const myCoding = variableCodings.find(coding => coding.id === r.id);
@@ -67,7 +69,7 @@ export const markEmptyValuesInvalidForBaseUnlessAllowed = (
         ) || false;
 
       if (isBaseType && !takeEmptyAsValid) {
-        r.status = 'INVALID';
+        r.status = CODING_SCHEME_STATUS.INVALID;
       }
     });
 };

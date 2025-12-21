@@ -19,6 +19,7 @@ import {
 } from './value-transform';
 import { isMatchRuleSet as isMatchRuleSetInternal } from './rule-engine';
 import { deepClone } from './utils/deep-clone';
+import { CODING_SCHEME_STATUS } from './constants';
 
 export abstract class CodingFactory {
   static createBaseCodingVariable(
@@ -85,7 +86,7 @@ export abstract class CodingFactory {
 
     // Check if coding data exists
     if (!coding || (coding.codes?.length ?? 0) === 0) {
-      newResponse.status = 'NO_CODING';
+      newResponse.status = CODING_SCHEME_STATUS.NO_CODING;
       return newResponse;
     }
 
@@ -103,7 +104,7 @@ export abstract class CodingFactory {
       );
     } catch (error) {
       options?.onError?.(error);
-      newResponse.status = 'CODING_ERROR';
+      newResponse.status = CODING_SCHEME_STATUS.CODING_ERROR;
       return newResponse;
     }
 
@@ -154,7 +155,7 @@ export abstract class CodingFactory {
 
         newResponse.status = isInvalidOrIncomplete ?
           (idAsString as 'INVALID' | 'INTENDED_INCOMPLETE') :
-          'CODING_COMPLETE';
+          CODING_SCHEME_STATUS.CODING_COMPLETE;
         newResponse.code = isInvalidOrIncomplete ? 0 : (id as number);
         newResponse.score = isInvalidOrIncomplete ? 0 : score || 0;
 
@@ -163,7 +164,7 @@ export abstract class CodingFactory {
       });
     } catch (error) {
       options?.onError?.(error);
-      newResponse.status = 'CODING_ERROR';
+      newResponse.status = CODING_SCHEME_STATUS.CODING_ERROR;
       return newResponse;
     }
 
@@ -171,20 +172,20 @@ export abstract class CodingFactory {
     if (!changed) {
       if (hasElse) {
         if (elseType === 'INTENDED_INCOMPLETE') {
-          newResponse.status = 'INTENDED_INCOMPLETE';
+          newResponse.status = CODING_SCHEME_STATUS.INTENDED_INCOMPLETE;
           newResponse.code = typeof elseCode === 'number' ? elseCode : 0;
           newResponse.score = elseScore;
         } else if (String(elseCode) === 'INVALID') {
-          newResponse.status = 'INVALID';
+          newResponse.status = CODING_SCHEME_STATUS.INVALID;
           newResponse.code = 0;
           newResponse.score = 0;
         } else {
-          newResponse.status = 'CODING_COMPLETE';
+          newResponse.status = CODING_SCHEME_STATUS.CODING_COMPLETE;
           newResponse.code = typeof elseCode === 'number' ? elseCode : 0;
           newResponse.score = elseScore;
         }
       } else {
-        newResponse.status = 'CODING_INCOMPLETE';
+        newResponse.status = CODING_SCHEME_STATUS.CODING_INCOMPLETE;
       }
     }
 
