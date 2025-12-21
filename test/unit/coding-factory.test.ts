@@ -6,7 +6,7 @@ import {
 import {
   ProcessingParameterType,
   VariableCodingData
-} from '@iqbspecs/coding-scheme/coding-scheme.interface';
+} from '@iqbspecs/coding-scheme';
 import { CodingFactory } from '../../src';
 
 describe('CodingFactory', () => {

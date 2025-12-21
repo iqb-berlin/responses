@@ -1,13 +1,13 @@
 import {
   CodeData,
-  DeriveConcatDelimiter, ProcessingParameterType, SourceProcessingType,
+  DeriveConcatDelimiter,
+  ProcessingParameterType,
+  SourceProcessingType,
   SourceType,
   VariableSourceParameters
-} from '@iqbspecs/coding-scheme/coding-scheme.interface';
+} from '@iqbspecs/coding-scheme';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
-import {
-  CodeAsText, CodingToTextMode
-} from './coding-interfaces';
+import { CodeAsText, CodingToTextMode } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 
 const VARINFO_TYPE_TEXT = {
@@ -61,10 +61,12 @@ const CODE_LABEL_BY_TYPE = {
 };
 
 export abstract class ToTextFactory {
-  static sourceAsText(variableId: string,
-                      sourceType: SourceType,
-                      sources: string[],
-                      parameters?: VariableSourceParameters): string {
+  static sourceAsText(
+    variableId: string,
+    sourceType: SourceType,
+    sources: string[],
+    parameters?: VariableSourceParameters
+  ): string {
     let returnText;
     switch (sourceType) {
       case 'BASE': {
@@ -74,12 +76,15 @@ export abstract class ToTextFactory {
           TAKE_NOT_REACHED_AS_VALUE_CHANGED: 'stets als geändert gesehen'
         };
 
-        const parameterTextsBase: string[] = parameters?.processing?.filter(key => processingMessages[key])
-          .map(key => processingMessages[key]) || [];
+        const parameterTextsBase: string[] =
+          parameters?.processing
+            ?.filter(key => processingMessages[key])
+            .map(key => processingMessages[key]) || [];
 
-        const parameterTextBase = parameterTextsBase.length > 0 ?
-          ` (${parameterTextsBase.join('; ')})` :
-          '';
+        const parameterTextBase =
+          parameterTextsBase.length > 0 ?
+            ` (${parameterTextsBase.join('; ')})` :
+            '';
 
         returnText = `Basisvariable '${variableId}'${parameterTextBase}`;
         break;
@@ -90,9 +95,13 @@ export abstract class ToTextFactory {
           'Kopie, aber keine Quelle angegeben';
         break;
       case 'CONCAT_CODE': {
-        const isSorted = parameters?.processing?.includes('SORT') ? ' (sortiert)' : '';
+        const isSorted = parameters?.processing?.includes('SORT') ?
+          ' (sortiert)' :
+          '';
         const joinedSources = sources.join(', ');
-        returnText = `Codes von Variablen '${joinedSources}' aneinandergehängt mit Trennzeichen '${DeriveConcatDelimiter}'${isSorted}`;
+        returnText =
+          `Codes von Variablen '${joinedSources}' aneinandergehängt ` +
+          `mit Trennzeichen '${DeriveConcatDelimiter}'${isSorted}`;
         break;
       }
       case 'SUM_CODE':
@@ -101,27 +110,38 @@ export abstract class ToTextFactory {
       case 'UNIQUE_VALUES': {
         const parameterProcessingMessages: Record<string, string> = {
           REMOVE_ALL_SPACES: 'alle Leerzeichen werden entfernt',
-          REMOVE_DISPENSABLE_SPACES: 'alle Leerzeichen vorn und hinten sowie die doppelten werden entfernt',
+          REMOVE_DISPENSABLE_SPACES:
+            'alle Leerzeichen vorn und hinten sowie die doppelten werden entfernt',
           TO_NUMBER: 'Umwandlung vorher in numerischen Wert',
           TO_LOWER_CASE: 'Umwandlung vorher in Kleinbuchstaben'
         };
 
-        const parameterTextsUniqueValues = Object.entries(parameterProcessingMessages)
-          .filter(([key]) => parameters?.processing?.includes(key as SourceProcessingType))
+        const parameterTextsUniqueValues = Object.entries(
+          parameterProcessingMessages
+        )
+          .filter(([key]) => parameters?.processing?.includes(key as SourceProcessingType)
+          )
           .map(([, message]) => message);
 
-        const parameterTextUniqueValues = parameterTextsUniqueValues.length > 0 ?
-          ` (${parameterTextsUniqueValues.join('; ')})` :
-          '';
+        const parameterTextUniqueValues =
+          parameterTextsUniqueValues.length > 0 ?
+            ` (${parameterTextsUniqueValues.join('; ')})` :
+            '';
 
-        returnText = `Prüft, ob die Werte der Variablen '${sources.join(', ')}' unique/einzigartig sind${parameterTextUniqueValues}`;
+        returnText = `Prüft, ob die Werte der Variablen '${sources.join(
+          ', '
+        )}' unique/einzigartig sind${parameterTextUniqueValues}`;
         break;
       }
       case 'SOLVER': {
-        const parameterTextSolver = parameters && parameters.solverExpression ?
-          `"${parameters.solverExpression}"` : 'FEHLT';
+        const parameterTextSolver =
+          parameters && parameters.solverExpression ?
+            `"${parameters.solverExpression}"` :
+            'FEHLT';
         // eslint-disable-next-line max-len
-        returnText = `Werte von Variablen '${sources.join(', ')}' werden über einen mathematischen Ausdruck verknüpft (Ausdruck: ${parameterTextSolver})`;
+        returnText = `Werte von Variablen '${sources.join(
+          ', '
+        )}' werden über einen mathematischen Ausdruck verknüpft (Ausdruck: ${parameterTextSolver})`;
         break;
       }
       case 'SUM_SCORE':
@@ -133,14 +153,20 @@ export abstract class ToTextFactory {
     return returnText;
   }
 
-  static processingAsText(processing: ProcessingParameterType[], fragmenting?: string): string {
+  static processingAsText(
+    processing: ProcessingParameterType[],
+    fragmenting?: string
+  ): string {
     const processDescriptions: Record<string, string> = {
-      REPLAY_REQUIRED: 'Zur Kodierung muss die Antwort mit der Aufgabe angezeigt werden (Replay)',
+      REPLAY_REQUIRED:
+        'Zur Kodierung muss die Antwort mit der Aufgabe angezeigt werden (Replay)',
       IGNORE_CASE: 'Groß-/Kleinschreibung wird ignoriert',
       IGNORE_ALL_SPACES: 'Entfernen aller Leerzeichen vor Kodierung',
-      IGNORE_DISPENSABLE_SPACES: 'Entfernen unnötiger Leerzeichen vor Kodierung',
+      IGNORE_DISPENSABLE_SPACES:
+        'Entfernen unnötiger Leerzeichen vor Kodierung',
       SORT_ARRAY: 'Sortieren von Listenwerten vor Kodierung',
-      ATTACHMENT: 'Zur Kodierung ist eine separate Datei erforderlich (Bild, Audio)'
+      ATTACHMENT:
+        'Zur Kodierung ist eine separate Datei erforderlich (Bild, Audio)'
     };
 
     let returnText = '';
@@ -161,18 +187,27 @@ export abstract class ToTextFactory {
     return returnText;
   }
 
-  static codeAsText(code: CodeData, mode: CodingToTextMode = 'EXTENDED'): CodeAsText {
-    const codeLabel = code.type === 'UNSET' ? code.label : CODE_LABEL_BY_TYPE[code.type];
+  static codeAsText(
+    code: CodeData,
+    mode: CodingToTextMode = 'EXTENDED'
+  ): CodeAsText {
+    const codeType = code.type || 'UNSET';
+    const codeLabel =
+      codeType === 'UNSET' ? code.label : CODE_LABEL_BY_TYPE[codeType];
     return <CodeAsText>{
       id: code.id === null ? 'null' : code.id.toString(10),
       score: code.score,
-      label: mode === 'SIMPLE' && code.type !== 'UNSET' ? codeLabel?.toUpperCase() : codeLabel,
+      label:
+        mode === 'SIMPLE' && codeType !== 'UNSET' ?
+          codeLabel?.toUpperCase() :
+          codeLabel,
       ruleSetOperatorAnd: code.ruleSetOperatorAnd,
       hasManualInstruction: !!code.manualInstruction,
       ruleSetDescriptions: code.ruleSets?.map((rs, i) => {
-        let description = code.ruleSets.length > 1 && mode === 'EXTENDED' ?
-          `Regelset ${i + 1}: ` :
-          '';
+        let description =
+          (code.ruleSets?.length || 0) > 1 && mode === 'EXTENDED' ?
+            `Regelset ${i + 1}: ` :
+            '';
 
         if (mode === 'EXTENDED') {
           if (!rs.rules || rs.rules.length === 0) {
@@ -180,7 +215,7 @@ export abstract class ToTextFactory {
           }
         }
 
-        switch (code.type) {
+        switch (codeType) {
           case 'RESIDUAL':
           case 'RESIDUAL_AUTO':
             return `${description}Alle anderen Antworten.`;
@@ -193,7 +228,10 @@ export abstract class ToTextFactory {
         }
 
         rs.rules.forEach((r, j) => {
-          if (rs.rules.length > 1) description += mode === 'EXTENDED' ? `${j > 0 ? '; ' : ''}(R${j + 1}) ` : '';
+          if (rs.rules.length > 1) {
+            description +=
+              mode === 'EXTENDED' ? `${j > 0 ? '; ' : ''}(R${j + 1}) ` : '';
+          }
           switch (r.method) {
             case 'MATCH':
             case 'MATCH_REGEX':
@@ -206,8 +244,9 @@ export abstract class ToTextFactory {
                     // Note: MATCH_REGEX is ignored in 'SIMPLE'-mode.
                   }
                 } else {
-                  const formattedParameter = parameter.replace(/\n/g, '\', \'');
-                  const ruleText = CODE_RULE_TEXT[r.method] || 'Unbekannte Regel';
+                  const formattedParameter = parameter.replace(/\n/g, "', '");
+                  const ruleText =
+                    CODE_RULE_TEXT[r.method] || 'Unbekannte Regel';
                   description += `${ruleText} '${formattedParameter}'`;
                 }
               } else {
@@ -220,10 +259,13 @@ export abstract class ToTextFactory {
             case 'NUMERIC_MAX':
             case 'NUMERIC_MIN':
               if (r.parameters?.length === 1) {
-                const compareValue = CodingFactory.getValueAsNumber(r.parameters[0]);
-                description += compareValue === null ?
-                  'VERGLEICHSWERT NICHT NUMERISCH' :
-                  `${CODE_RULE_TEXT[r.method]} '${compareValue}'`;
+                const compareValue = CodingFactory.getValueAsNumber(
+                  r.parameters[0]
+                );
+                description +=
+                  compareValue === null ?
+                    'VERGLEICHSWERT NICHT NUMERISCH' :
+                    `${CODE_RULE_TEXT[r.method]} '${compareValue}'`;
               } else {
                 description += 'FALSCHE PARAMETERZAHL';
               }
@@ -231,25 +273,33 @@ export abstract class ToTextFactory {
               break;
             case 'NUMERIC_RANGE':
               if (r.parameters?.length === 2) {
-                const [lowerLimit, upperLimit] = r.parameters.map(CodingFactory.getValueAsNumber);
+                const [lowerLimit, upperLimit] = r.parameters.map(
+                  CodingFactory.getValueAsNumber
+                );
                 if (lowerLimit === null || upperLimit === null) {
                   description += 'VERGLEICHSWERT NICHT NUMERISCH';
                 } else if (lowerLimit >= upperLimit) {
                   description += 'VERGLEICHSWERTE UNGÜLTIG';
                 } else {
-                  description += `${CODE_RULE_TEXT.NUMERIC_MORE_THAN} '${lowerLimit}' und ${CODE_RULE_TEXT.NUMERIC_MAX} '${upperLimit}'`;
+                  description +=
+                    `${CODE_RULE_TEXT.NUMERIC_MORE_THAN} '${lowerLimit}' und ` +
+                    `${CODE_RULE_TEXT.NUMERIC_MAX} '${upperLimit}'`;
                 }
               }
               break;
             case 'NUMERIC_FULL_RANGE':
               if (r.parameters?.length === 2) {
-                const [compareValueLL, compareValueUL] = r.parameters.map(CodingFactory.getValueAsNumber);
+                const [compareValueLL, compareValueUL] = r.parameters.map(
+                  CodingFactory.getValueAsNumber
+                );
                 if (compareValueLL === null || compareValueUL === null) {
                   description += 'VERGLEICHSWERT NICHT NUMERISCH';
                 } else if (compareValueLL >= compareValueUL) {
                   description += 'VERGLEICHSWERTE UNGÜLTIG';
                 } else {
-                  description += `${CODE_RULE_TEXT.NUMERIC_MIN} '${compareValueLL}' und ${CODE_RULE_TEXT.NUMERIC_MAX} '${compareValueUL}'`;
+                  description +=
+                    `${CODE_RULE_TEXT.NUMERIC_MIN} '${compareValueLL}' und ` +
+                    `${CODE_RULE_TEXT.NUMERIC_MAX} '${compareValueUL}'`;
                 }
               }
               break;
@@ -260,7 +310,8 @@ export abstract class ToTextFactory {
               description += `${CODE_RULE_TEXT[r.method]}`;
               break;
             default:
-              description += `${description.length > 0 ? '; ' : ''
+              description += `${
+                description.length > 0 ? '; ' : ''
               }Problem: unbekannte Regel '${r.method}'`;
           }
           if (typeof r.fragment === 'number' && r.fragment >= 0) {
@@ -280,9 +331,10 @@ export abstract class ToTextFactory {
             }
           }
         });
-        const connectText = (rs.rules.length > 1 && mode === 'EXTENDED') ?
-          `${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung` :
-          '';
+        const connectText =
+          rs.rules.length > 1 && mode === 'EXTENDED' ?
+            `${rs.ruleOperatorAnd ? 'UND' : 'ODER'}-Verknüpfung` :
+            '';
 
         const arrayPosMapping: Record<string, string> = {
           SUM: 'A S',
@@ -291,12 +343,16 @@ export abstract class ToTextFactory {
         };
 
         const arrayPosText =
-          (typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >= 0) ?
+          typeof rs.valueArrayPos === 'number' && rs.valueArrayPos >= 0 ?
             `A${rs.valueArrayPos + 1}` :
-            (typeof rs.valueArrayPos === 'string' ? arrayPosMapping[rs.valueArrayPos] : '') || '';
+            (typeof rs.valueArrayPos === 'string' ?
+              arrayPosMapping[rs.valueArrayPos] :
+              '') || '';
 
         if (connectText || arrayPosText) {
-          description += ` (${connectText}${connectText && arrayPosText ? '; ' : ''}${arrayPosText})`;
+          description += ` (${connectText}${
+            connectText && arrayPosText ? '; ' : ''
+          }${arrayPosText})`;
         }
 
         return description;
@@ -309,9 +365,14 @@ export abstract class ToTextFactory {
 
     // Helper function: Determine data type and format
     const buildTypeString = (): string => {
-      const typeText = VARINFO_TYPE_TEXT[varInfo.type as keyof typeof VARINFO_TYPE_TEXT] || `unbekannt "${varInfo.type}"`;
+      const typeText =
+        VARINFO_TYPE_TEXT[varInfo.type as keyof typeof VARINFO_TYPE_TEXT] ||
+        `unbekannt "${varInfo.type}"`;
       const formatText = varInfo.format ?
-        `; Format: ${VARINFO_FORMAT_TEXT[varInfo.format] || `unbekannt "${varInfo.format}"`}` :
+        `; Format: ${
+          VARINFO_FORMAT_TEXT[varInfo.format] ||
+            `unbekannt "${varInfo.format}"`
+        }` :
         '';
       const multipleText = varInfo.multiple ? '; Liste/mehrfach' : '';
       const nullableText = varInfo.nullable ? '; "null"-Wert möglich' : '';
@@ -320,18 +381,20 @@ export abstract class ToTextFactory {
 
     // Helper function to display possible values.
     const buildValueString = (): string => {
-      const valuesText = varInfo.values.map(v => {
-        let valueString: string;
-        if (typeof v.value === 'number') {
-          valueString = v.value.toString(10);
-        } else if (typeof v.value === 'string') {
-          valueString = v.value;
-        } else {
-          valueString = v.value ? 'Ja/Wahr' : 'Nein/Falsch';
-        }
-        const labelText = v.label ? ` - ${v.label}` : '';
-        return `"${valueString}${labelText}"`;
-      }).join('; ');
+      const valuesText = varInfo.values
+        .map(v => {
+          let valueString: string;
+          if (typeof v.value === 'number') {
+            valueString = v.value.toString(10);
+          } else if (typeof v.value === 'string') {
+            valueString = v.value;
+          } else {
+            valueString = v.value ? 'Ja/Wahr' : 'Nein/Falsch';
+          }
+          const labelText = v.label ? ` - ${v.label}` : '';
+          return `"${valueString}${labelText}"`;
+        })
+        .join('; ');
       return `Mögliche Werte: ${valuesText}`;
     };
 
@@ -342,11 +405,17 @@ export abstract class ToTextFactory {
     }
 
     if (varInfo.valuePositionLabels?.length > 0) {
-      returnText.push(`Bezeichnungen der Werte-Positionen in der Liste: ${varInfo.valuePositionLabels.join('; ')}`);
+      returnText.push(
+        `Bezeichnungen der Werte-Positionen in der Liste: ${varInfo.valuePositionLabels.join(
+          '; '
+        )}`
+      );
     }
 
     if (varInfo.valuesComplete) {
-      returnText.push('Es sind keine anderen als die gelisteten Werte möglich (geschlossenes Format).');
+      returnText.push(
+        'Es sind keine anderen als die gelisteten Werte möglich (geschlossenes Format).'
+      );
     }
 
     if (varInfo.page) {

@@ -4,7 +4,7 @@ import {
   CodeData,
   SourceProcessingType,
   VariableCodingData
-} from '@iqbspecs/coding-scheme/coding-scheme.interface';
+} from '@iqbspecs/coding-scheme';
 import { CodingFactory, CodingSchemeFactory } from '../../src';
 
 describe('CodingSchemeFactory', () => {
@@ -200,6 +200,7 @@ describe('CodingSchemeFactory', () => {
   describe('code', () => {
     test('marks empty string as INVALID for BASE unless TAKE_EMPTY_AS_VALID is set', () => {
       const v1 = CodingFactory.createCodingVariable('v1');
+      v1.sourceParameters = v1.sourceParameters || { processing: [] };
       v1.sourceParameters.processing = [];
 
       const responses: Response[] = [
@@ -210,6 +211,7 @@ describe('CodingSchemeFactory', () => {
       expect(coded.find(r => r.id === 'v1')?.status).toBe('INVALID');
 
       const v1ok = CodingFactory.createCodingVariable('v1');
+      v1ok.sourceParameters = v1ok.sourceParameters || { processing: [] };
       v1ok.sourceParameters.processing = [
         'TAKE_EMPTY_AS_VALID' as SourceProcessingType
       ];

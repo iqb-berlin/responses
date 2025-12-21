@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import fs from 'fs';
-import { CodingScheme } from '@iqbspecs/coding-scheme/coding-scheme.interface';
+import { CodingScheme } from '@iqbspecs/coding-scheme';
 import { CodingSchemeFactory } from '../src';
 
 const sampleFolder = `${__dirname}/sample_data/${process.argv[2]}`;

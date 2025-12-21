@@ -7,7 +7,7 @@ import {
   validStatesForDerivingValue,
   validStatesToStartDeriving,
   VariableCodingData
-} from '@iqbspecs/coding-scheme/coding-scheme.interface';
+} from '@iqbspecs/coding-scheme';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
 import { CodingAsText, CodingSchemeProblem, CodingToTextMode } from './coding-interfaces';
 import {
@@ -54,10 +54,11 @@ export abstract class CodingSchemeFactory {
         const existingNode = graph.find(node => node.id === vc.id);
 
         if (vc.sourceType !== 'BASE_NO_VALUE' && !existingNode) {
+          const deriveSources = vc.deriveSources ?? [];
           let maxLevel = 0;
           let commonPage: string | null = null;
 
-          const allSourcesResolved = vc.deriveSources.every(sourceId => {
+          const allSourcesResolved = deriveSources.every(sourceId => {
             const sourceNode = graph.find(node => node.id === sourceId);
             if (sourceNode) {
               maxLevel = Math.max(maxLevel, sourceNode.level);
@@ -74,7 +75,7 @@ export abstract class CodingSchemeFactory {
             graph.push({
               id: vc.id,
               level: maxLevel + 1,
-              sources: [...vc.deriveSources],
+              sources: [...deriveSources],
               page: commonPage || ''
             });
             return true;
@@ -245,13 +246,14 @@ export abstract class CodingSchemeFactory {
       }
 
       case 'CONCAT_CODE': {
+        const deriveSources = coding.deriveSources ?? [];
         const extractCode = (sourceId: string): string => {
           const response = sourceResponses.find(r => r.id === sourceId);
           return response && (response.code || response.code === 0) ?
             response.code.toString(10) :
             '?';
         };
-        const codes = coding.deriveSources.map(extractCode);
+        const codes = deriveSources.map(extractCode);
 
         if (coding.sourceParameters?.processing?.includes('SORT')) {
           codes.sort();
@@ -264,10 +266,11 @@ export abstract class CodingSchemeFactory {
           subform: subformSource
         };
       }
-      case 'SUM_CODE':
+      case 'SUM_CODE': {
+        const deriveSources = coding.deriveSources ?? [];
         return <Response>{
           id: coding.id,
-          value: coding.deriveSources.reduce((sum, sourceId) => {
+          value: deriveSources.reduce((sum, sourceId) => {
             const myResponse = sourceResponses.find(r => r.id === sourceId);
 
             if (!myResponse) {
@@ -281,10 +284,12 @@ export abstract class CodingSchemeFactory {
           status: 'VALUE_CHANGED',
           subform: subformSource
         };
-      case 'SUM_SCORE':
+      }
+      case 'SUM_SCORE': {
+        const deriveSources = coding.deriveSources ?? [];
         return <Response>{
           id: coding.id,
-          value: coding.deriveSources
+          value: deriveSources
             .map((sourceId: string) => {
               const response = sourceResponses.find(r => r.id === sourceId);
               if (!response) {
@@ -298,6 +303,7 @@ export abstract class CodingSchemeFactory {
           status: 'VALUE_CHANGED',
           subform: subformSource
         };
+      }
       case 'UNIQUE_VALUES': {
         const valuesToCompare: string[] = sourceResponses
           .filter(r => validStatesForDerivingValue.includes(r.status) || r.status === 'INTENDED_INCOMPLETE')
@@ -337,6 +343,7 @@ export abstract class CodingSchemeFactory {
           coding.sourceParameters.processing &&
           coding.sourceParameters.solverExpression
         ) {
+          const deriveSources = coding.deriveSources ?? [];
           const varSearchPattern = /\$\{(\s*[\w,-]+\s*)}/g;
           const sources: string[] = [];
           const replacements = new Map<string, string>();
@@ -365,7 +372,7 @@ export abstract class CodingSchemeFactory {
 
           // Verify if there are any missing sources required for deriving the value
           const missingDeriveVars = sources.filter(
-            source => !coding.deriveSources.includes(source)
+            source => !deriveSources.includes(source)
           );
 
           if (missingDeriveVars.length > 0) {
@@ -461,11 +468,11 @@ export abstract class CodingSchemeFactory {
           !manualValidStates.includes(r.status) &&
           !(
             (r.status === 'DISPLAYED' &&
-              coding.sourceParameters.processing?.includes(
+              coding.sourceParameters?.processing?.includes(
                 'TAKE_DISPLAYED_AS_VALUE_CHANGED'
               )) ||
             (r.status === 'NOT_REACHED' &&
-              coding.sourceParameters.processing?.includes(
+              coding.sourceParameters?.processing?.includes(
                 'TAKE_NOT_REACHED_AS_VALUE_CHANGED'
               ))
           );
@@ -536,7 +543,7 @@ export abstract class CodingSchemeFactory {
             if (
               myCoding &&
               myCoding.sourceType === 'BASE' &&
-              myCoding.sourceParameters.processing &&
+              myCoding.sourceParameters?.processing &&
               myCoding.sourceParameters.processing.includes(
                 'TAKE_DISPLAYED_AS_VALUE_CHANGED'
               )
@@ -579,7 +586,7 @@ export abstract class CodingSchemeFactory {
 
             const isBaseType = myCoding.sourceType === 'BASE';
             const takeEmptyAsValid =
-              myCoding.sourceParameters.processing?.includes(
+              myCoding.sourceParameters?.processing?.includes(
                 'TAKE_EMPTY_AS_VALID'
               ) || false;
 
@@ -696,8 +703,8 @@ export abstract class CodingSchemeFactory {
           sourceIds: string[],
           responsesList: Response[]
         ): void {
-          if (varCoding.sourceParameters?.processing?.includes('NO_CODING')) {
-            return; // Skip derivation if the "NO_CODING" process is set
+          if (targetResponse.status === 'CODING_ERROR') {
+            return;
           }
 
           try {
@@ -733,7 +740,7 @@ export abstract class CodingSchemeFactory {
           targetResponse: Response,
           varCoding: VariableCodingData
         ): void {
-          if (varCoding.codes.length > 0) {
+          if ((varCoding.codes?.length ?? 0) > 0) {
             // Perform variable coding if codes are available
             const codedResponse = CodingFactory.code(targetResponse, varCoding);
 
@@ -829,7 +836,7 @@ export abstract class CodingSchemeFactory {
     variableCodings
       .filter(vc => vc.sourceType === 'COPY_VALUE')
       .forEach(vc => {
-        variableValuesCopied.push(...vc.deriveSources);
+        variableValuesCopied.push(...(vc.deriveSources ?? []));
       });
     variableCodings.forEach(c => {
       if (c.sourceType === 'BASE') {
@@ -838,7 +845,7 @@ export abstract class CodingSchemeFactory {
             type: 'SOURCE_MISSING',
             breaking: true,
             variableId: c.alias || c.id,
-            variableLabel: c.label
+            variableLabel: c.label || ''
           });
         }
       } else if (c.deriveSources && c.deriveSources.length > 0) {
@@ -848,7 +855,7 @@ export abstract class CodingSchemeFactory {
               type: 'MORE_THAN_ONE_SOURCE',
               breaking: false,
               variableId: c.alias || c.id,
-              variableLabel: c.label
+              variableLabel: c.label || ''
             });
           }
           if (
@@ -859,7 +866,7 @@ export abstract class CodingSchemeFactory {
               type: 'VALUE_COPY_NOT_FROM_BASE',
               breaking: false,
               variableId: c.alias || c.id,
-              variableLabel: c.label
+              variableLabel: c.label || ''
             });
           }
         } else if (c.deriveSources.length === 1) {
@@ -867,7 +874,7 @@ export abstract class CodingSchemeFactory {
             type: 'ONLY_ONE_SOURCE',
             breaking: false,
             variableId: c.alias || c.id,
-            variableLabel: c.label
+            variableLabel: c.label || ''
           });
         }
         c.deriveSources.forEach(s => {
@@ -876,7 +883,7 @@ export abstract class CodingSchemeFactory {
               type: 'SOURCE_MISSING',
               breaking: true,
               variableId: c.alias || c.id,
-              variableLabel: c.label
+              variableLabel: c.label || ''
             });
           }
         });
@@ -885,13 +892,13 @@ export abstract class CodingSchemeFactory {
           type: 'SOURCE_MISSING',
           breaking: true,
           variableId: c.alias || c.id,
-          variableLabel: c.label
+          variableLabel: c.label || ''
         });
       }
 
-      if (c.codes.length > 0) {
-        c.codes.forEach(code => {
-          code.ruleSets.forEach(rs => {
+      if ((c.codes?.length ?? 0) > 0) {
+        c.codes?.forEach(code => {
+          code.ruleSets?.forEach(rs => {
             rs.rules.forEach(r => {
               const parameterCount = r.parameters ? r.parameters.length : 0;
               const expectedParameterCount = RuleMethodParameterCount[r.method];
@@ -908,7 +915,7 @@ export abstract class CodingSchemeFactory {
                   breaking: true,
                   variableId: c.alias || c.id,
                   code: code.id ? code.id.toString(10) : 'null',
-                  variableLabel: c.label
+                  variableLabel: c.label || ''
                 });
               }
             });
@@ -920,7 +927,7 @@ export abstract class CodingSchemeFactory {
             type: 'VACANT',
             breaking: false,
             variableId: c.alias || c.id,
-            variableLabel: c.label
+            variableLabel: c.label || ''
           });
         }
       }
@@ -933,14 +940,14 @@ export abstract class CodingSchemeFactory {
     mode: CodingToTextMode = 'EXTENDED'
   ): CodingAsText[] {
     return variableCodings.map(coding => {
-      const mappedSources = coding.deriveSources.map(
+      const mappedSources = (coding.deriveSources ?? []).map(
         source =>
           variableCodings.find(vc => vc.alias === source)?.alias || source
       );
 
       return {
         id: coding.alias || coding.id,
-        label: coding.label,
+        label: coding.label || '',
         source: ToTextFactory.sourceAsText(
           coding.alias || coding.id,
           coding.sourceType,
@@ -948,11 +955,13 @@ export abstract class CodingSchemeFactory {
           coding.sourceParameters
         ),
         processing: ToTextFactory.processingAsText(
-          coding.processing,
+          coding.processing || [],
           coding.fragmenting
         ),
         hasManualInstruction: Boolean(coding.manualInstruction),
-        codes: coding.codes.map(code => ToTextFactory.codeAsText(code, mode))
+        codes: (coding.codes || []).map(code =>
+          ToTextFactory.codeAsText(code, mode)
+        )
       };
     });
   }
@@ -972,8 +981,8 @@ export abstract class CodingSchemeFactory {
       sourceVar: VariableCodingData | undefined
     ): string[] => {
       if (!sourceVar) return [];
-      if (sourceVar.sourceType === 'BASE') return [sourceVar.alias];
-      return sourceVar.deriveSources
+      if (sourceVar.sourceType === 'BASE') return [sourceVar.alias || sourceVar.id];
+      return (sourceVar.deriveSources ?? [])
         .map(getVarBy('id'))
         .flatMap(getSourceVarAliases);
     };

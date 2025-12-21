@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import fs from 'fs';
-import { VariableCodingData } from '@iqbspecs/coding-scheme/coding-scheme.interface';
+import { VariableCodingData } from '@iqbspecs/coding-scheme';
 import { CodingSchemeFactory } from '../src';
 
 const ERROR_COLOR = '\x1b[0;31m';
