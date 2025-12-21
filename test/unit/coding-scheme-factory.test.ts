@@ -397,5 +397,73 @@ describe('CodingSchemeFactory', () => {
 
       expect(coded[0].id).toBe('ALIAS_1');
     });
+
+    test('keeps subforms separated when mapping ids and returning results', () => {
+      const coding: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('ID_1'),
+        alias: 'ALIAS_1',
+        sourceType: 'BASE',
+        sourceParameters: { processing: [] },
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [
+          {
+            id: 'ALIAS_1',
+            value: 1,
+            status: 'VALUE_CHANGED',
+            subform: 'S1'
+          } as Response,
+          {
+            id: 'ALIAS_1',
+            value: 2,
+            status: 'VALUE_CHANGED',
+            subform: 'S2'
+          } as Response
+        ],
+        [coding]
+      );
+
+      expect(coded).toHaveLength(2);
+      expect(coded.every(r => r.id === 'ALIAS_1')).toBe(true);
+      expect(new Set(coded.map(r => r.subform))).toEqual(
+        new Set(['S1', 'S2'])
+      );
+    });
+
+    test('removes a base response when a derived variable with the same id exists and base is unset-like', () => {
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('v1'),
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['base1'],
+        codes: []
+      } as VariableCodingData;
+
+      const base: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('v1'),
+        sourceType: 'BASE',
+        sourceParameters: { processing: [] },
+        codes: []
+      } as VariableCodingData;
+
+      const base1 = CodingFactory.createCodingVariable('base1');
+      base1.sourceType = 'BASE';
+      base1.sourceParameters = { processing: [] };
+
+      const coded = CodingSchemeFactory.code(
+        [
+          // base response for v1 is effectively unset-like (no code/score and not coded)
+          { id: 'v1', value: null, status: 'UNSET' } as Response,
+          // source for derived v1
+          { id: 'base1', value: 7, status: 'VALUE_CHANGED' } as Response
+        ],
+        [base1, base, derived]
+      );
+
+      // should keep only one v1 response (the derived placeholder/response, not the original base one)
+      const v1Responses = coded.filter(r => r.id === 'v1');
+      expect(v1Responses).toHaveLength(1);
+    });
   });
 });

@@ -18,15 +18,9 @@ import {
   transformValue as transformValueInternal
 } from './value-transform';
 import { isMatchRuleSet as isMatchRuleSetInternal } from './rule-engine';
+import { deepClone } from './utils/deep-clone';
 
 export abstract class CodingFactory {
-  private static deepClone<T>(obj: T): T {
-    if (typeof structuredClone === 'function') {
-      return structuredClone(obj);
-    }
-    return JSON.parse(JSON.stringify(obj)) as T;
-  }
-
   static createBaseCodingVariable(
     varId: string,
     sourceType: 'BASE' | 'BASE_NO_VALUE'
@@ -87,7 +81,7 @@ export abstract class CodingFactory {
     coding: VariableCodingData,
     options?: { onError?: (error: unknown) => void }
   ): Response {
-    const newResponse: Response = CodingFactory.deepClone(response);
+    const newResponse: Response = deepClone(response);
 
     // Check if coding data exists
     if (!coding || (coding.codes?.length ?? 0) === 0) {
