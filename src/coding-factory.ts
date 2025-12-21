@@ -20,6 +20,13 @@ import {
 import { isMatchRuleSet as isMatchRuleSetInternal } from './rule-engine';
 
 export abstract class CodingFactory {
+  private static deepClone<T>(obj: T): T {
+    if (typeof structuredClone === 'function') {
+      return structuredClone(obj);
+    }
+    return JSON.parse(JSON.stringify(obj)) as T;
+  }
+
   static createBaseCodingVariable(
     varId: string,
     sourceType: 'BASE' | 'BASE_NO_VALUE'
@@ -44,10 +51,6 @@ export abstract class CodingFactory {
 
   static createCodingVariable(varId: string): VariableCodingData {
     return this.createBaseCodingVariable(varId, 'BASE');
-  }
-
-  static createNoValueCodingVariable(varId: string): VariableCodingData {
-    return this.createBaseCodingVariable(varId, 'BASE_NO_VALUE');
   }
 
   static getValueAsNumber(value: ResponseValueSingleType): number | null {
@@ -79,9 +82,12 @@ export abstract class CodingFactory {
     );
   }
 
-  static code(response: Response, coding: VariableCodingData): Response {
-    // Create a deep copy of the response object
-    const newResponse: Response = JSON.parse(JSON.stringify(response));
+  static code(
+    response: Response,
+    coding: VariableCodingData,
+    options?: { onError?: (error: unknown) => void }
+  ): Response {
+    const newResponse: Response = CodingFactory.deepClone(response);
 
     // Check if coding data exists
     if (!coding || (coding.codes?.length ?? 0) === 0) {
@@ -102,6 +108,7 @@ export abstract class CodingFactory {
         shouldSortArray
       );
     } catch (error) {
+      options?.onError?.(error);
       newResponse.status = 'CODING_ERROR';
       return newResponse;
     }
@@ -161,6 +168,7 @@ export abstract class CodingFactory {
         return true;
       });
     } catch (error) {
+      options?.onError?.(error);
       newResponse.status = 'CODING_ERROR';
       return newResponse;
     }

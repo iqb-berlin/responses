@@ -17,6 +17,13 @@ import {
 } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
 import { ToTextFactory } from './to-text-factory';
+import {
+  CONCAT_SUM_VALID_STATES,
+  COPY_SOLVER_VALID_STATES,
+  MANUAL_VALID_STATES,
+  PARTLY_DISPLAYED_STATUSES,
+  VALID_STATES_TO_START_DERIVE_PENDING_CHECK
+} from './constants';
 
 export interface VariableGraphNode {
   id: string;
@@ -27,6 +34,109 @@ export interface VariableGraphNode {
 
 export abstract class CodingSchemeFactory {
   variableCodings: VariableCodingData[] = [];
+
+  private static deepClone<T>(obj: T): T {
+    if (typeof structuredClone === 'function') {
+      return structuredClone(obj);
+    }
+    return JSON.parse(JSON.stringify(obj)) as T;
+  }
+
+  private static groupResponsesBySubform(responses: Response[]): {
+    subformGroups: Record<string, Response[]>;
+    notSubformResponses: Response[];
+  } {
+    const notSubformResponses: Response[] = [];
+    const subformGroups = responses.reduce((acc, r: Response) => {
+      if (r.subform) {
+        acc[r.subform] = acc[r.subform] || [];
+        acc[r.subform].push(r);
+      } else {
+        notSubformResponses.push(r);
+      }
+      return acc;
+    }, {} as Record<string, Response[]>);
+    return { subformGroups, notSubformResponses };
+  }
+
+  private static mapResponseIdsToAlias(
+    responses: Response[],
+    codings: VariableCodingData[]
+  ): Response[] {
+    const codingMap = new Map(
+      codings.map(coding => [coding.id, coding.alias || coding.id])
+    );
+    return responses.map(response => ({
+      ...response,
+      id: codingMap.get(response.id) || response.id
+    }));
+  }
+
+  private static deriveResponse(
+    variableCodings: VariableCodingData[],
+    targetResponse: Response,
+    varCoding: VariableCodingData,
+    sourceIds: string[],
+    responsesList: Response[],
+    options?: { onError?: (error: unknown) => void }
+  ): void {
+    if (targetResponse.status === 'CODING_ERROR') {
+      return;
+    }
+
+    try {
+      const sourceResponses = responsesList.filter(r =>
+        sourceIds.includes(r.id)
+      );
+      const derivedResponse = CodingSchemeFactory.deriveValue(
+        variableCodings,
+        varCoding,
+        sourceResponses
+      );
+
+      targetResponse.status = derivedResponse.status;
+      targetResponse.subform = derivedResponse.subform;
+
+      if (derivedResponse.status === 'VALUE_CHANGED') {
+        targetResponse.value = derivedResponse.value;
+      }
+    } catch (error) {
+      options?.onError?.(error);
+      targetResponse.status = 'DERIVE_ERROR';
+      targetResponse.value = null;
+    }
+  }
+
+  private static processCoding(
+    targetResponse: Response,
+    varCoding: VariableCodingData,
+    options?: { onError?: (error: unknown) => void }
+  ): void {
+    if ((varCoding.codes?.length ?? 0) > 0) {
+      const codedResponse = CodingFactory.code(
+        targetResponse,
+        varCoding,
+        options
+      );
+
+      if (codedResponse.status !== targetResponse.status) {
+        targetResponse.status = codedResponse.status;
+        targetResponse.code = codedResponse.code;
+        targetResponse.score = codedResponse.score;
+      }
+    } else if (varCoding.sourceType === 'BASE') {
+      const takeEmptyAsValid =
+        varCoding.sourceParameters?.processing?.includes(
+          'TAKE_EMPTY_AS_VALID'
+        ) || false;
+
+      if (!takeEmptyAsValid) {
+        targetResponse.status = 'NO_CODING';
+      }
+    } else {
+      targetResponse.status = 'NO_CODING';
+    }
+  }
 
   static getVariableDependencyTree(
     variableCodings: VariableCodingData[]
@@ -150,12 +260,9 @@ export abstract class CodingSchemeFactory {
     if (
       hasPending &&
       sourceResponses.every(r =>
-        [
-          'CODING_INCOMPLETE',
-          'CODING_COMPLETE',
-          'DERIVE_PENDING',
-          'INTENDED_INCOMPLETE'
-        ].includes(r.status)
+        VALID_STATES_TO_START_DERIVE_PENDING_CHECK.includes(
+          r.status as (typeof VALID_STATES_TO_START_DERIVE_PENDING_CHECK)[number]
+        )
       ) &&
       !['MANUAL', 'COPY_VALUE', 'UNIQUE_VALUES', 'SOLVER'].includes(
         coding.sourceType
@@ -176,7 +283,9 @@ export abstract class CodingSchemeFactory {
         r => r.status === sourceResponses[0].status
       );
       const allArePartlyDisplayedStatuses = sourceResponses.every(r =>
-        ['NOT_REACHED', 'DISPLAYED', 'PARTLY_DISPLAYED'].includes(r.status)
+        PARTLY_DISPLAYED_STATUSES.includes(
+          r.status as (typeof PARTLY_DISPLAYED_STATUSES)[number]
+        )
       );
 
       if (allHaveSameStatus) {
@@ -442,30 +551,12 @@ export abstract class CodingSchemeFactory {
     coding: VariableCodingData,
     sourceResponses: Response[]
   ): number {
-    const manualValidStates = [
-      'INVALID',
-      'VALUE_CHANGED',
-      'NO_CODING',
-      'CODING_ERROR',
-      'CODING_COMPLETE',
-      'INTENDED_INCOMPLETE'
-    ];
-
-    const copySolverValidStates = [
-      'VALUE_CHANGED',
-      'NO_CODING',
-      'CODING_INCOMPLETE',
-      'CODING_ERROR',
-      'CODING_COMPLETE',
-      'INTENDED_INCOMPLETE'
-    ];
-
-    const concatSumValidStates = ['CODING_COMPLETE', 'INTENDED_INCOMPLETE'];
-
     switch (coding.sourceType) {
       case 'MANUAL': {
         const isInvalid = (r: Response) =>
-          !manualValidStates.includes(r.status) &&
+          !MANUAL_VALID_STATES.includes(
+            r.status as (typeof MANUAL_VALID_STATES)[number]
+          ) &&
           !(
             (r.status === 'DISPLAYED' &&
               coding.sourceParameters?.processing?.includes(
@@ -484,7 +575,9 @@ export abstract class CodingSchemeFactory {
       case 'UNIQUE_VALUES':
       case 'SOLVER': {
         const isInvalid = (r: Response) =>
-          !copySolverValidStates.includes(r.status);
+          !COPY_SOLVER_VALID_STATES.includes(
+            r.status as (typeof COPY_SOLVER_VALID_STATES)[number]
+          );
         return sourceResponses.filter(isInvalid).length;
       }
 
@@ -492,7 +585,9 @@ export abstract class CodingSchemeFactory {
       case 'SUM_CODE':
       case 'SUM_SCORE': {
         const isInvalid = (r: Response) =>
-          !concatSumValidStates.includes(r.status);
+          !CONCAT_SUM_VALID_STATES.includes(
+            r.status as (typeof CONCAT_SUM_VALID_STATES)[number]
+          );
         return sourceResponses.filter(isInvalid).length;
       }
 
@@ -503,24 +598,14 @@ export abstract class CodingSchemeFactory {
 
   static code(
     unitResponses: Response[],
-    variableCodings: VariableCodingData[]
+    variableCodings: VariableCodingData[],
+    options?: { onError?: (error: unknown) => void }
   ): Response[] {
     // decouple object from caller variable
-    const stringifiedResponses = JSON.stringify(unitResponses);
-    let newResponses: Response[] = JSON.parse(stringifiedResponses);
+    let newResponses: Response[] = CodingSchemeFactory.deepClone(unitResponses);
     let allCodedResponses: Response[] = [];
-    const notSubformResponses: Response[] = [];
-
-    // Group responses into sub-forms
-    const subformGroups = newResponses.reduce((acc, r: Response) => {
-      if (r.subform) {
-        acc[r.subform] = acc[r.subform] || [];
-        acc[r.subform].push(r);
-      } else {
-        notSubformResponses.push(r);
-      }
-      return acc;
-    }, {} as Record<string, Response[]>);
+    const { subformGroups, notSubformResponses } =
+      CodingSchemeFactory.groupResponsesBySubform(newResponses);
 
     // code responses for each subform
     [...Object.values(subformGroups), notSubformResponses].forEach(
@@ -619,6 +704,7 @@ export abstract class CodingSchemeFactory {
           varDependencies =
             CodingSchemeFactory.getVariableDependencyTree(variableCodings);
         } catch (error) {
+          options?.onError?.(error);
           globalDeriveError = true;
           varDependencies = [];
         }
@@ -679,110 +765,32 @@ export abstract class CodingSchemeFactory {
               varNode.sources.length > 0 &&
               validStatesToStartDeriving.includes(targetResponse.status)
             ) {
-              deriveResponse(
+              CodingSchemeFactory.deriveResponse(
+                variableCodings,
                 targetResponse,
                 varCoding,
                 varNode.sources,
-                newResponses
+                newResponses,
+                options
               );
             }
 
             // Process coding logic if the status is "VALUE_CHANGED"
             if (targetResponse.status === 'VALUE_CHANGED') {
-              processCoding(targetResponse, varCoding);
+              CodingSchemeFactory.processCoding(
+                targetResponse,
+                varCoding,
+                options
+              );
             }
           }
-        }
-
-        /**
-         * Handles the derivation of the target response.
-         */
-        function deriveResponse(
-          targetResponse: Response,
-          varCoding: VariableCodingData,
-          sourceIds: string[],
-          responsesList: Response[]
-        ): void {
-          if (targetResponse.status === 'CODING_ERROR') {
-            return;
-          }
-
-          try {
-            // Find the source responses based on source IDs
-            const sourceResponses = responsesList.filter(r =>
-              sourceIds.includes(r.id)
-            );
-            const derivedResponse = CodingSchemeFactory.deriveValue(
-              variableCodings,
-              varCoding,
-              sourceResponses
-            );
-
-            // Update the target response's derived status and subform
-            targetResponse.status = derivedResponse.status;
-            targetResponse.subform = derivedResponse.subform;
-
-            // Update the value if the status after derivation is "VALUE_CHANGED"
-            if (derivedResponse.status === 'VALUE_CHANGED') {
-              targetResponse.value = derivedResponse.value;
-            }
-          } catch (error) {
-            // Handle errors during derivation
-            targetResponse.status = 'DERIVE_ERROR';
-            targetResponse.value = null;
-          }
-        }
-
-        /**
-         * Processes the coding logic for the target response.
-         */
-        function processCoding(
-          targetResponse: Response,
-          varCoding: VariableCodingData
-        ): void {
-          if ((varCoding.codes?.length ?? 0) > 0) {
-            // Perform variable coding if codes are available
-            const codedResponse = CodingFactory.code(targetResponse, varCoding);
-
-            // Update the target response if the status changed after coding
-            if (codedResponse.status !== targetResponse.status) {
-              targetResponse.status = codedResponse.status;
-              targetResponse.code = codedResponse.code;
-              targetResponse.score = codedResponse.score;
-            }
-          } else if (varCoding.sourceType === 'BASE') {
-            const takeEmptyAsValid =
-              varCoding.sourceParameters?.processing?.includes(
-                'TAKE_EMPTY_AS_VALID'
-              ) || false;
-
-            // BASE variables usually have no coding table; in that case we mark them as NO_CODING.
-            // Exception: if TAKE_EMPTY_AS_VALID is set, keep VALUE_CHANGED to indicate the empty value is accepted.
-            if (!takeEmptyAsValid) {
-              targetResponse.status = 'NO_CODING';
-            }
-          } else {
-            // If there are no codes, mark the status as "NO_CODING"
-            targetResponse.status = 'NO_CODING';
-          }
-        }
-
-        // Mapping of responses (ID to Alias)
-        function mapResponseIdsToAlias(
-          responses: Response[],
-          codings: VariableCodingData[]
-        ): Response[] {
-          const codingMap = new Map(
-            codings.map(coding => [coding.id, coding.alias || coding.id])
-          );
-          return responses.map(response => ({
-            ...response,
-            id: codingMap.get(response.id) || response.id
-          }));
         }
 
         // combine responses
-        newResponses = mapResponseIdsToAlias(newResponses, variableCodings);
+        newResponses = CodingSchemeFactory.mapResponseIdsToAlias(
+          newResponses,
+          variableCodings
+        );
         allCodedResponses = [...allCodedResponses, ...newResponses];
       }
     );

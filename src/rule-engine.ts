@@ -259,6 +259,88 @@ function isMatchRule(
   );
 }
 
+function resolveValueArrayPosMember(
+  valueToCheck: TransformedResponseValueType,
+  ruleSet: RuleSet,
+  isValueArray: boolean
+): TransformedResponseValueType | undefined {
+  if (!isValueArray || !Array.isArray(valueToCheck)) {
+    return undefined;
+  }
+
+  if (typeof ruleSet.valueArrayPos === 'number') {
+    if (
+      ruleSet.valueArrayPos >= 0 &&
+      ruleSet.valueArrayPos < valueToCheck.length
+    ) {
+      return valueToCheck[ruleSet.valueArrayPos];
+    }
+    return undefined;
+  }
+
+  if (ruleSet.valueArrayPos === 'SUM') {
+    return valueToCheck
+      .map(v => {
+        if (Array.isArray(v)) {
+          return v
+            .map(s => getValueAsNumber(s as ResponseValueSingleType) || 0)
+            .reduce((a, b) => a + b, 0);
+        }
+        return getValueAsNumber(v as ResponseValueSingleType) || 0;
+      })
+      .reduce((pv, cv) => pv + cv, 0);
+  }
+
+  if (ruleSet.valueArrayPos === 'LENGTH') {
+    return valueToCheck.length;
+  }
+
+  return undefined;
+}
+
+function evaluateRuleSetRules(
+  valueToEvaluate: TransformedResponseValueType,
+  ruleSet: RuleSet,
+  isValueArray: boolean,
+  codingProcessing: ProcessingParameterType[]
+): boolean {
+  if (!ruleSet.ruleOperatorAnd) {
+    return (ruleSet.rules ?? []).some(rule => isMatchRule(valueToEvaluate, rule, isValueArray, codingProcessing)
+    );
+  }
+
+  return (ruleSet.rules ?? []).every(rule => isMatchRule(valueToEvaluate, rule, isValueArray, codingProcessing)
+  );
+}
+
+function evaluateAnyOpen(
+  valueToCheck: TransformedResponseValueType,
+  ruleSet: RuleSet,
+  codingProcessing: ProcessingParameterType[]
+): boolean {
+  if (!Array.isArray(valueToCheck)) return false;
+  if (valueToCheck.length === 0) return false;
+  if (ruleSet.valueArrayPos !== 'ANY_OPEN') return false;
+
+  return valueToCheck.some(value => (ruleSet.rules ?? []).every(rule => isMatchRule(value, rule, false, codingProcessing)
+  )
+  );
+}
+
+function evaluateAny(
+  valueToCheck: TransformedResponseValueType,
+  ruleSet: RuleSet,
+  codingProcessing: ProcessingParameterType[]
+): boolean {
+  if (!Array.isArray(valueToCheck)) return false;
+  if (valueToCheck.length <= 1) return false;
+  if (ruleSet.valueArrayPos !== 'ANY') return false;
+
+  return valueToCheck.every(value => (ruleSet.rules ?? []).every(rule => isMatchRule(value, rule, false, codingProcessing)
+  )
+  );
+}
+
 export function isMatchRuleSet(
   valueToCheck: TransformedResponseValueType,
   ruleSet: RuleSet,
@@ -269,104 +351,34 @@ export function isMatchRuleSet(
     return false;
   }
 
-  let valueMemberToCheck: TransformedResponseValueType | undefined;
-
-  if (isValueArray && Array.isArray(valueToCheck)) {
-    if (typeof ruleSet.valueArrayPos === 'number') {
-      if (
-        ruleSet.valueArrayPos >= 0 &&
-        ruleSet.valueArrayPos < valueToCheck.length
-      ) {
-        valueMemberToCheck = valueToCheck[ruleSet.valueArrayPos];
-      }
-    } else if (ruleSet.valueArrayPos === 'SUM') {
-      valueMemberToCheck = valueToCheck
-        .map(v => {
-          if (Array.isArray(v)) {
-            return v
-              .map(s => getValueAsNumber(s as ResponseValueSingleType) || 0)
-              .reduce((a, b) => a + b, 0);
-          }
-          return getValueAsNumber(v as ResponseValueSingleType) || 0;
-        })
-        .reduce((pv, cv) => pv + cv, 0);
-    } else if (ruleSet.valueArrayPos === 'LENGTH') {
-      valueMemberToCheck = valueToCheck.length;
-    }
-  }
+  const valueMemberToCheck = resolveValueArrayPosMember(
+    valueToCheck,
+    ruleSet,
+    isValueArray
+  );
 
   const valueToEvaluate =
     typeof valueMemberToCheck !== 'undefined' ?
       valueMemberToCheck :
       valueToCheck;
 
-  if (!ruleSet.ruleOperatorAnd) {
-    const oneMatch = (ruleSet.rules ?? []).some(rule => isMatchRule(
-      valueToEvaluate,
-      rule,
-      typeof valueMemberToCheck === 'undefined' && isValueArray,
-      codingProcessing
-    )
-    );
-
-    if (
-      oneMatch &&
-      isValueArray &&
-      Array.isArray(valueToCheck) &&
-      valueToCheck.length > 0 &&
-      ruleSet.valueArrayPos === 'ANY_OPEN'
-    ) {
-      return valueToCheck.some(value => ruleSet.rules.every(rule => isMatchRule(value, rule, false, codingProcessing)
-      )
-      );
-    }
-
-    if (
-      oneMatch &&
-      isValueArray &&
-      Array.isArray(valueToCheck) &&
-      valueToCheck.length > 1 &&
-      ruleSet.valueArrayPos === 'ANY'
-    ) {
-      return valueToCheck.every(value => ruleSet.rules.every(rule => isMatchRule(value, rule, false, codingProcessing)
-      )
-      );
-    }
-
-    return oneMatch;
-  }
-
-  const allMatch = (ruleSet.rules ?? []).every(rule => isMatchRule(
+  const isValueArrayForRules =
+    typeof valueMemberToCheck === 'undefined' && isValueArray;
+  const rulesMatch = evaluateRuleSetRules(
     valueToEvaluate,
-    rule,
-    typeof valueMemberToCheck === 'undefined' && isValueArray,
+    ruleSet,
+    isValueArrayForRules,
     codingProcessing
-  )
   );
 
-  if (
-    allMatch &&
-    isValueArray &&
-    Array.isArray(valueToCheck) &&
-    valueToCheck.length > 0 &&
-    ruleSet.valueArrayPos === 'ANY_OPEN'
-  ) {
-    return valueToCheck.some(value => ruleSet.rules.every(rule => isMatchRule(value, rule, false, codingProcessing)
-    )
-    );
+  if (rulesMatch && isValueArray && Array.isArray(valueToCheck)) {
+    if (ruleSet.valueArrayPos === 'ANY_OPEN' && valueToCheck.length > 0) {
+      return evaluateAnyOpen(valueToCheck, ruleSet, codingProcessing);
+    }
+    if (ruleSet.valueArrayPos === 'ANY' && valueToCheck.length > 1) {
+      return evaluateAny(valueToCheck, ruleSet, codingProcessing);
+    }
   }
 
-  if (
-    allMatch &&
-    isValueArray &&
-    Array.isArray(valueToCheck) &&
-    valueToCheck.length > 1 &&
-    ruleSet.valueArrayPos === 'ANY'
-  ) {
-    return valueToCheck.every(value => ruleSet.rules.every(rule => isMatchRule(value, rule, false, codingProcessing)
-    )
-    );
-  }
-
-  return allMatch;
+  return rulesMatch;
 }
