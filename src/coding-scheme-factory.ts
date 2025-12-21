@@ -18,41 +18,19 @@ import {
 } from './graph/dependency-tree';
 import { deriveValue } from './derive/derive-value';
 import { validateCodingScheme } from './validation/validate-coding-scheme';
+import { groupResponsesBySubform } from './subform/grouping';
+import { mapResponseIdToAlias } from './mapping/alias-mapper';
+import {
+  markEmptyValuesInvalidForBaseUnlessAllowed,
+  normalizeDisplayedToValueChanged,
+  normalizeNotReachedToValueChanged
+} from './normalize/response-status';
+import { removeBaseResponsesShadowedByDerived } from './merge/resolve-derived-conflicts';
 
 export type { VariableGraphNode } from './graph/dependency-tree';
 
 export abstract class CodingSchemeFactory {
   variableCodings: VariableCodingData[] = [];
-
-  private static groupResponsesBySubform(responses: Response[]): {
-    subformGroups: Record<string, Response[]>;
-    notSubformResponses: Response[];
-  } {
-    const notSubformResponses: Response[] = [];
-    const subformGroups = responses.reduce((acc, r: Response) => {
-      if (r.subform) {
-        acc[r.subform] = acc[r.subform] || [];
-        acc[r.subform].push(r);
-      } else {
-        notSubformResponses.push(r);
-      }
-      return acc;
-    }, {} as Record<string, Response[]>);
-    return { subformGroups, notSubformResponses };
-  }
-
-  private static mapResponseIdsToAlias(
-    responses: Response[],
-    codings: VariableCodingData[]
-  ): Response[] {
-    const codingMap = new Map(
-      codings.map(coding => [coding.id, coding.alias || coding.id])
-    );
-    return responses.map(response => ({
-      ...response,
-      id: codingMap.get(response.id) || response.id
-    }));
-  }
 
   private static deriveResponse(
     variableCodings: VariableCodingData[],
@@ -142,7 +120,7 @@ export abstract class CodingSchemeFactory {
     let newResponses: Response[] = deepClone(unitResponses);
     let allCodedResponses: Response[] = [];
     const { subformGroups, notSubformResponses } =
-      CodingSchemeFactory.groupResponsesBySubform(newResponses);
+      groupResponsesBySubform(newResponses);
 
     // code responses for each subform
     [...Object.values(subformGroups), notSubformResponses].forEach(
@@ -157,81 +135,18 @@ export abstract class CodingSchemeFactory {
           [...updatedResponses, ...notSubformResponses] :
           [...updatedResponses];
 
-        // change DISPLAYED to VALUE_CHANGED if requested
-        newResponses
-          .filter(r => r.status === 'DISPLAYED')
-          .forEach(r => {
-            const myCoding = variableCodings.find(c => c.id === r.id);
-            if (
-              myCoding &&
-              myCoding.sourceType === 'BASE' &&
-              myCoding.sourceParameters?.processing &&
-              myCoding.sourceParameters.processing.includes(
-                'TAKE_DISPLAYED_AS_VALUE_CHANGED'
-              )
-            ) {
-              r.status = 'VALUE_CHANGED';
-            }
-          });
-
-        // change NOT_REACHED to VALUE_CHANGED if requested
-        newResponses
-          .filter(r => r.status === 'NOT_REACHED')
-          .forEach(r => {
-            const myCoding = variableCodings.find(c => c.id === r.id);
-
-            if (
-              myCoding?.sourceType === 'BASE' &&
-              myCoding.sourceParameters?.processing?.includes(
-                'TAKE_NOT_REACHED_AS_VALUE_CHANGED'
-              )
-            ) {
-              r.status = 'VALUE_CHANGED';
-            }
-          });
-
-        // Mark the response as 'INVALID' if the value is empty and certain conditions are met
-        newResponses
-          .filter(
-            r =>
-              r.status === 'VALUE_CHANGED' &&
-              CodingFactory.isEmptyValue(r.value)
-          )
-          .forEach(r => {
-            const myCoding = variableCodings.find(
-              coding => coding.id === r.id
-            );
-
-            if (!myCoding) {
-              return;
-            }
-
-            const isBaseType = myCoding.sourceType === 'BASE';
-            const takeEmptyAsValid =
-              myCoding.sourceParameters?.processing?.includes(
-                'TAKE_EMPTY_AS_VALID'
-              ) || false;
-
-            if (isBaseType && !takeEmptyAsValid) {
-              r.status = 'INVALID';
-            }
-          });
-
-        // Remove base variables if a derived variable with the same ID exists
-        const nonBaseCodings = variableCodings.filter(
-          vc => vc.sourceType !== 'BASE'
+        normalizeDisplayedToValueChanged(newResponses, variableCodings);
+        normalizeNotReachedToValueChanged(newResponses, variableCodings);
+        markEmptyValuesInvalidForBaseUnlessAllowed(
+          newResponses,
+          variableCodings
         );
 
-        newResponses = newResponses.filter(response => {
-          const hasDerivedConflict = nonBaseCodings.some(
-            vc =>
-              response.id === vc.id &&
-              !response.code &&
-              !response.score &&
-              response.status !== 'CODING_COMPLETE'
-          );
-          return !hasDerivedConflict;
-        });
+        // Remove base variables if a derived variable with the same ID exists
+        newResponses = removeBaseResponsesShadowedByDerived(
+          newResponses,
+          variableCodings
+        );
 
         // Set up the variable tree
         let varDependencies: VariableGraphNode[] = [];
@@ -324,10 +239,7 @@ export abstract class CodingSchemeFactory {
         }
 
         // combine responses
-        newResponses = CodingSchemeFactory.mapResponseIdsToAlias(
-          newResponses,
-          variableCodings
-        );
+        newResponses = mapResponseIdToAlias(newResponses, variableCodings);
         allCodedResponses = [...allCodedResponses, ...newResponses];
       }
     );
@@ -373,8 +285,7 @@ export abstract class CodingSchemeFactory {
   ): CodingAsText[] {
     return variableCodings.map(coding => {
       const mappedSources = (coding.deriveSources ?? []).map(
-        source =>
-          variableCodings.find(vc => vc.alias === source)?.alias || source
+        source => variableCodings.find(vc => vc.alias === source)?.alias || source
       );
 
       return {
@@ -391,8 +302,7 @@ export abstract class CodingSchemeFactory {
           coding.fragmenting
         ),
         hasManualInstruction: Boolean(coding.manualInstruction),
-        codes: (coding.codes || []).map(code =>
-          ToTextFactory.codeAsText(code, mode)
+        codes: (coding.codes || []).map(code => ToTextFactory.codeAsText(code, mode)
         )
       };
     });
@@ -406,8 +316,7 @@ export abstract class CodingSchemeFactory {
     varAliases: string[],
     variableCodings: VariableCodingData[]
   ): string[] {
-    const getVarBy = (selector: 'id' | 'alias') => (varId: string) =>
-      variableCodings.find(variable => variable[selector] === varId);
+    const getVarBy = (selector: 'id' | 'alias') => (varId: string) => variableCodings.find(variable => variable[selector] === varId);
 
     const getSourceVarAliases = (
       sourceVar: VariableCodingData | undefined

@@ -103,6 +103,137 @@ describe('CodingFactory', () => {
       expect(result.score).toBe(0);
     });
 
+    test('uses matched rule even if an else code exists (else at end)', () => {
+      const coding = baseCoding();
+      coding.codes = [
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH', parameters: ['A'] }]
+            }
+          ]
+        },
+        {
+          id: 9,
+          score: 0,
+          label: '',
+          type: 'RESIDUAL_AUTO',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: []
+        }
+      ];
+
+      const result = CodingFactory.code(baseResponse('A'), coding);
+      expect(result.status).toBe('CODING_COMPLETE');
+      expect(result.code).toBe(1);
+      expect(result.score).toBe(1);
+    });
+
+    test('uses matched rule even if else code comes first (else at beginning)', () => {
+      const coding = baseCoding();
+      coding.codes = [
+        {
+          id: 9,
+          score: 0,
+          label: '',
+          type: 'RESIDUAL_AUTO',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: []
+        },
+        {
+          id: 2,
+          score: 2,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH', parameters: ['A'] }]
+            }
+          ]
+        }
+      ];
+
+      const result = CodingFactory.code(baseResponse('A'), coding);
+      expect(result.status).toBe('CODING_COMPLETE');
+      expect(result.code).toBe(2);
+      expect(result.score).toBe(2);
+    });
+
+    test('applies else code INTENDED_INCOMPLETE when no rules match', () => {
+      const coding = baseCoding();
+      coding.codes = [
+        {
+          id: 7,
+          score: 0,
+          label: '',
+          type: 'INTENDED_INCOMPLETE',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: []
+        }
+      ];
+
+      const result = CodingFactory.code(baseResponse('X'), coding);
+      expect(result.status).toBe('INTENDED_INCOMPLETE');
+      expect(result.code).toBe(7);
+      expect(result.score).toBe(0);
+    });
+
+    test('does not treat RESIDUAL (without _AUTO) as else fallback', () => {
+      const coding = baseCoding();
+      coding.codes = [
+        {
+          id: 9,
+          score: 0,
+          label: '',
+          type: 'RESIDUAL',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: []
+        }
+      ];
+
+      const result = CodingFactory.code(baseResponse('B'), coding);
+      expect(result.status).toBe('CODING_INCOMPLETE');
+    });
+
+    test('sets status INVALID when a matched code id is the string INVALID', () => {
+      const coding = baseCoding();
+      coding.codes = [
+        {
+          id: 'INVALID',
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH', parameters: ['A'] }]
+            }
+          ]
+        }
+      ];
+
+      const result = CodingFactory.code(baseResponse('A'), coding);
+      expect(result.status).toBe('INVALID');
+      expect(result.code).toBe(0);
+      expect(result.score).toBe(0);
+    });
+
     test('handles else code INVALID', () => {
       const coding = baseCoding();
       coding.codes = [
