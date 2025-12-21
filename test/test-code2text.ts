@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /* eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import fs from 'fs';
-// @ts-ignore
-import { CodingSchemeFactory } from "../src";
+import { VariableCodingData } from '@iqbspecs/coding-scheme/coding-scheme.interface';
+import { CodingSchemeFactory } from '../src';
 
 const ERROR_COLOR = '\x1b[0;31m';
 const WARNING_COLOR = '\x1b[0;33m';
@@ -16,13 +16,15 @@ function logError(message: string, errorDetails?: Error): void {
   if (errorDetails) console.error(errorDetails);
 }
 
-function processCodings(codingSchemeData: any): void {
-  const codingTexts = CodingSchemeFactory.asText(codingSchemeData.variableCodings,'SIMPLE');
+function processCodings(codingSchemeData: unknown): void {
+  const variableCodings = (
+    codingSchemeData as { variableCodings: VariableCodingData[] }
+  ).variableCodings;
+  const codingTexts = CodingSchemeFactory.asText(variableCodings, 'SIMPLE');
   codingTexts?.forEach(({ codes }) => {
     codes?.forEach(({ ruleSetDescriptions }) => {
       console.log('\t', ruleSetDescriptions);
-      ruleSetDescriptions?.forEach(description =>
-        console.log(`\t\t${WARNING_COLOR}>>>${RESET_COLOR} ${description}`)
+      ruleSetDescriptions?.forEach(description => console.log(`\t\t${WARNING_COLOR}>>>${RESET_COLOR} ${description}`)
       );
     });
   });

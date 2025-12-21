@@ -5,11 +5,14 @@
   "version": "4.0.2",
   "description": "Automatic coding.",
   "scripts": {
+    "test": "jest",
     "test_coding": "jest test/coding",
-    "test_coding2text": "cd test && ts-node test-code2text case2",
+    "test:coverage": "jest --coverage",
+    "test_coding2text": "cd test && ts-node test-code2text case1",
     "test_getBaseVarsList": "cd test && ts-node test-getBaseVarsList get-base-vars-case",
     "prepare_publish": "rm -rf dist/* && tsc --module commonjs && cp ./package_npm.json ./dist/package.json && cp ./README.md ./dist",
-    "npm_publish": "cd dist && npm publish --access public"
+    "npm_publish": "cd dist && npm publish --access public",
+    "lint": "eslint \"**/*.ts\""
   },
   "repository": {
     "type": "git",
@@ -25,7 +28,12 @@
         "files": [
           "*.ts"
         ],
-        "extends": "@iqb/eslint-config"
+        "extends": "@iqb/eslint-config",
+        "parserOptions": {
+          "project": [
+            "./tsconfig.eslint.json"
+          ]
+        }
       },
       {
         "files": [

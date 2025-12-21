@@ -11,8 +11,8 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "lib": ["es2015", "dom"],
-    "rootDir": "src"
+    "rootDir": ".."
   },
-  "include": ["src", "test", "."],
-  "exclude": ["node_modules", "dist", "test/**"]
+  "include": ["./**/*.ts", "../src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
