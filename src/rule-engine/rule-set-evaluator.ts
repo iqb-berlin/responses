@@ -35,7 +35,7 @@ function evaluateAnyOpen(
   );
 }
 
-function evaluateAny(
+function evaluateAllMembers(
   valueToCheck: TransformedResponseValueType,
   ruleSet: RuleSet,
   codingProcessing: ProcessingParameterType[]
@@ -84,7 +84,7 @@ export function isMatchRuleSet(
       return evaluateAnyOpen(valueToCheck, ruleSet, codingProcessing);
     }
     if (ruleSet.valueArrayPos === 'ANY' && valueToCheck.length > 1) {
-      return evaluateAny(valueToCheck, ruleSet, codingProcessing);
+      return evaluateAllMembers(valueToCheck, ruleSet, codingProcessing);
     }
   }
 

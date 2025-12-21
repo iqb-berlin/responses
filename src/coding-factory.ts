@@ -110,7 +110,7 @@ export abstract class CodingFactory {
 
     // Proceed with coding if no transformation error occurred
     let hasElse = false;
-    let elseCode: unknown = 0;
+    let elseCode: number | string = 0;
     let elseScore = 0;
     let elseType: string | undefined;
     let changed = false;
@@ -127,7 +127,7 @@ export abstract class CodingFactory {
           ['RESIDUAL_AUTO', 'INTENDED_INCOMPLETE'].includes(codeType)
         ) {
           hasElse = true;
-          elseCode = code.id;
+          elseCode = code.id as number | string;
           elseType = codeType;
           elseScore = code.score || 0;
           return false;

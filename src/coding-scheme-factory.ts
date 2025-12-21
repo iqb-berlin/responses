@@ -36,6 +36,71 @@ export type { VariableGraphNode } from './graph/dependency-tree';
 export abstract class CodingSchemeFactory {
   variableCodings: VariableCodingData[] = [];
 
+  private static buildCodingPipeline(options?: {
+    onError?: (error: unknown) => void;
+  }): Array<
+    (ctx: {
+      responses: Response[];
+      variableCodings: VariableCodingData[];
+      notSubformResponses: Response[];
+      allResponses: Response[];
+    }) => {
+      responses: Response[];
+      variableCodings: VariableCodingData[];
+      notSubformResponses: Response[];
+      allResponses: Response[];
+    }
+    > {
+    return [
+      ctx => ({
+        ...ctx,
+        responses: CodingSchemeFactory.prepareResponsesForGroup(
+          ctx.allResponses,
+          ctx.variableCodings,
+          ctx.notSubformResponses
+        )
+      }),
+      ctx => {
+        CodingSchemeFactory.normalizeStatuses(
+          ctx.responses,
+          ctx.variableCodings
+        );
+        return ctx;
+      },
+      ctx => ({
+        ...ctx,
+        responses: removeBaseResponsesShadowedByDerived(
+          ctx.responses,
+          ctx.variableCodings
+        )
+      }),
+      ctx => {
+        const { varDependencies, globalDeriveError } =
+          CodingSchemeFactory.buildDependencyPlan(ctx.variableCodings, options);
+
+        const resolvedDependencies = CodingSchemeFactory.ensureResponsesExist(
+          ctx.responses,
+          ctx.variableCodings,
+          varDependencies,
+          globalDeriveError
+        );
+
+        CodingSchemeFactory.applyDerivationsAndCoding(
+          ctx.responses,
+          ctx.variableCodings,
+          resolvedDependencies,
+          options
+        );
+
+        return ctx;
+      },
+      ctx => ({
+        ...ctx,
+        responses: mapResponseIdToAlias(ctx.responses, ctx.variableCodings)
+      })
+    ];
+  }
+
   private static prepareResponsesForGroup(
     groupResponses: Response[],
     variableCodings: VariableCodingData[],
@@ -281,43 +346,21 @@ export abstract class CodingSchemeFactory {
     const { subformGroups, notSubformResponses } =
       groupResponsesBySubform(newResponses);
 
+    const pipeline = CodingSchemeFactory.buildCodingPipeline(options);
+
     // code responses for each subform
     [...Object.values(subformGroups), notSubformResponses].forEach(
       allResponses => {
-        newResponses = CodingSchemeFactory.prepareResponsesForGroup(
-          allResponses,
+        const initialCtx = {
+          responses: newResponses,
           variableCodings,
-          notSubformResponses
-        );
+          notSubformResponses,
+          allResponses
+        };
 
-        CodingSchemeFactory.normalizeStatuses(newResponses, variableCodings);
-
-        // Remove base variables if a derived variable with the same ID exists
-        newResponses = removeBaseResponsesShadowedByDerived(
-          newResponses,
-          variableCodings
-        );
-
-        const { varDependencies, globalDeriveError } =
-          CodingSchemeFactory.buildDependencyPlan(variableCodings, options);
-
-        const resolvedDependencies = CodingSchemeFactory.ensureResponsesExist(
-          newResponses,
-          variableCodings,
-          varDependencies,
-          globalDeriveError
-        );
-
-        CodingSchemeFactory.applyDerivationsAndCoding(
-          newResponses,
-          variableCodings,
-          resolvedDependencies,
-          options
-        );
-
-        // combine responses
-        newResponses = mapResponseIdToAlias(newResponses, variableCodings);
-        allCodedResponses = [...allCodedResponses, ...newResponses];
+        const finalCtx = pipeline.reduce((ctx, step) => step(ctx), initialCtx);
+        newResponses = finalCtx.responses;
+        allCodedResponses = [...allCodedResponses, ...finalCtx.responses];
       }
     );
 
