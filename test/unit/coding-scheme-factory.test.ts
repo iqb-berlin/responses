@@ -195,6 +195,33 @@ describe('CodingSchemeFactory', () => {
         problems.some(p => p.type === 'SOURCE_MISSING' && p.breaking)
       ).toBe(true);
     });
+
+    test('detects INVALID_SOURCE if BASE variable points to VarInfo of type no-value', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'no-value' }
+      ] as unknown as VariableInfo[];
+      const coding = CodingFactory.createCodingVariable('v1');
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
+      ).toBe(true);
+    });
+
+    test('detects INVALID_SOURCE if BASE_NO_VALUE variable points to VarInfo not of type no-value', () => {
+      const coding: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('v1'),
+        sourceType: 'BASE_NO_VALUE'
+      } as VariableCodingData;
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
+      ).toBe(true);
+    });
   });
 
   describe('code', () => {

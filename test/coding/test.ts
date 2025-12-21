@@ -92,6 +92,7 @@ function testOneFolder(path: string, label: string) {
           );
         });
       } else {
+        fs.writeFileSync(codingToTextFilename, codingToTextStringified, 'utf8');
         test('as text file exists', () => {
           expect(fs.existsSync(codingToTextFilename)).toBe(true);
         });

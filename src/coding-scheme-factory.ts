@@ -820,7 +820,10 @@ export abstract class CodingSchemeFactory {
     baseVariables: VariableInfo[],
     variableCodings: VariableCodingData[]
   ): CodingSchemeProblem[] {
-    // todo: check against VarInfo
+    const baseVarById = new Map<string, VariableInfo>();
+    baseVariables.forEach(bv => {
+      if (bv?.id) baseVarById.set(bv.id, bv);
+    });
     const problems: CodingSchemeProblem[] = [];
     const allDerivedVariableIds: string[] = variableCodings
       .filter(
@@ -840,6 +843,33 @@ export abstract class CodingSchemeFactory {
       });
     variableCodings.forEach(c => {
       if (c.sourceType === 'BASE') {
+        const varInfo = baseVarById.get(c.id);
+        if (varInfo?.type === 'no-value') {
+          problems.push({
+            type: 'INVALID_SOURCE',
+            breaking: true,
+            variableId: c.alias || c.id,
+            variableLabel: c.label || ''
+          });
+        }
+        if (allBaseVariableInfoIds.indexOf(c.id) < 0) {
+          problems.push({
+            type: 'SOURCE_MISSING',
+            breaking: true,
+            variableId: c.alias || c.id,
+            variableLabel: c.label || ''
+          });
+        }
+      } else if (c.sourceType === 'BASE_NO_VALUE') {
+        const varInfo = baseVarById.get(c.id);
+        if (varInfo && varInfo.type !== 'no-value') {
+          problems.push({
+            type: 'INVALID_SOURCE',
+            breaking: true,
+            variableId: c.alias || c.id,
+            variableLabel: c.label || ''
+          });
+        }
         if (allBaseVariableInfoIds.indexOf(c.id) < 0) {
           problems.push({
             type: 'SOURCE_MISSING',
@@ -887,7 +917,7 @@ export abstract class CodingSchemeFactory {
             });
           }
         });
-      } else if (c.sourceType !== 'BASE_NO_VALUE') {
+      } else {
         problems.push({
           type: 'SOURCE_MISSING',
           breaking: true,
@@ -903,7 +933,6 @@ export abstract class CodingSchemeFactory {
               const parameterCount = r.parameters ? r.parameters.length : 0;
               const expectedParameterCount = RuleMethodParameterCount[r.method];
 
-              // Check if there is a parameter count mismatch.
               const isMismatch =
                 expectedParameterCount < 0 ?
                   parameterCount < 1 :
