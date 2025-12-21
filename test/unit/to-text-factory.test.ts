@@ -2,7 +2,7 @@ import {
   ProcessingParameterType,
   SourceType,
   VariableSourceParameters
-} from '@iqbspecs/coding-scheme';
+} from '@iqbspecs/coding-scheme/coding-scheme.interface';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
 import { ToTextFactory } from '../../src';
 

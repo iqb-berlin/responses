@@ -4,7 +4,7 @@ import {
   CodeData,
   SourceProcessingType,
   VariableCodingData
-} from '@iqbspecs/coding-scheme';
+} from '@iqbspecs/coding-scheme/coding-scheme.interface';
 import { CodingFactory, CodingSchemeFactory } from '../../src';
 
 describe('CodingSchemeFactory', () => {
