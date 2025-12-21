@@ -703,8 +703,8 @@ export abstract class CodingSchemeFactory {
           sourceIds: string[],
           responsesList: Response[]
         ): void {
-          if (varCoding.sourceParameters?.processing?.includes('NO_CODING')) {
-            return; // Skip derivation if the "NO_CODING" process is set
+          if (targetResponse.status === 'CODING_ERROR') {
+            return;
           }
 
           try {
