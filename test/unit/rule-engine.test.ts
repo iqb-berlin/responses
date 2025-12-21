@@ -43,6 +43,13 @@ describe('rule-engine', () => {
         expected: true
       },
       {
+        title:
+          'MATCH_REGEX with invalid regex does not throw and returns false',
+        value: 'AbC',
+        rule: { method: 'MATCH_REGEX', parameters: ['['] } as CodingRule,
+        expected: false
+      },
+      {
         title: 'NUMERIC_MATCH matches numeric-like string',
         value: '01',
         rule: { method: 'NUMERIC_MATCH', parameters: ['1'] } as CodingRule,

@@ -41,8 +41,12 @@ function findStringRegEx(
 ): boolean {
   const allStrings = parameters.flatMap(p => p.split(/\r?\n/));
   return allStrings.some(s => {
-    const regEx = new RegExp(s, addCaseIgnoreFlag ? 'i' : undefined);
-    return regEx.test(value);
+    try {
+      const regEx = new RegExp(s, addCaseIgnoreFlag ? 'i' : undefined);
+      return regEx.test(value);
+    } catch (e) {
+      return false;
+    }
   });
 }
 
@@ -309,6 +313,18 @@ export function isMatchRuleSet(
       oneMatch &&
       isValueArray &&
       Array.isArray(valueToCheck) &&
+      valueToCheck.length > 0 &&
+      ruleSet.valueArrayPos === 'ANY_OPEN'
+    ) {
+      return valueToCheck.some(value => ruleSet.rules.every(rule => isMatchRule(value, rule, false, codingProcessing)
+      )
+      );
+    }
+
+    if (
+      oneMatch &&
+      isValueArray &&
+      Array.isArray(valueToCheck) &&
       valueToCheck.length > 1 &&
       ruleSet.valueArrayPos === 'ANY'
     ) {
@@ -327,6 +343,18 @@ export function isMatchRuleSet(
     codingProcessing
   )
   );
+
+  if (
+    allMatch &&
+    isValueArray &&
+    Array.isArray(valueToCheck) &&
+    valueToCheck.length > 0 &&
+    ruleSet.valueArrayPos === 'ANY_OPEN'
+  ) {
+    return valueToCheck.some(value => ruleSet.rules.every(rule => isMatchRule(value, rule, false, codingProcessing)
+    )
+    );
+  }
 
   if (
     allMatch &&

@@ -823,6 +823,26 @@ export abstract class CodingSchemeFactory {
     const baseVarById = new Map<string, VariableInfo>();
     const problems: CodingSchemeProblem[] = [];
 
+    const pushRuleParameterMismatch = (
+      variableId: string,
+      variableLabel: string,
+      code: string
+    ) => {
+      problems.push({
+        type: 'RULE_PARAMETER_COUNT_MISMATCH',
+        breaking: true,
+        variableId,
+        variableLabel,
+        code
+      });
+    };
+
+    const isFiniteNumberString = (s: unknown): boolean => {
+      if (typeof s !== 'string') return false;
+      const n = Number.parseFloat(s);
+      return Number.isFinite(n);
+    };
+
     const pushInvalidSourceProblem = (
       variableId: string,
       variableLabel: string
@@ -978,6 +998,31 @@ export abstract class CodingSchemeFactory {
       if ((c.codes?.length ?? 0) > 0) {
         c.codes?.forEach(code => {
           code.ruleSets?.forEach(rs => {
+            // Validate ruleSet.valueArrayPos early (so evaluation does not behave unexpectedly)
+            const valueArrayPos = rs.valueArrayPos;
+            const isAllowedValueArrayPos =
+              typeof valueArrayPos === 'undefined' ||
+              typeof valueArrayPos === 'number' ||
+              ['ANY', 'ANY_OPEN', 'SUM', 'LENGTH'].includes(
+                String(valueArrayPos)
+              );
+
+            if (!isAllowedValueArrayPos) {
+              pushRuleParameterMismatch(
+                c.alias || c.id,
+                c.label || '',
+                code.id ? code.id.toString(10) : 'null'
+              );
+            }
+
+            if (typeof valueArrayPos === 'number' && valueArrayPos < 0) {
+              pushRuleParameterMismatch(
+                c.alias || c.id,
+                c.label || '',
+                code.id ? code.id.toString(10) : 'null'
+              );
+            }
+
             rs.rules.forEach(r => {
               const parameterCount = r.parameters ? r.parameters.length : 0;
               const expectedParameterCount = RuleMethodParameterCount[r.method];
@@ -988,13 +1033,75 @@ export abstract class CodingSchemeFactory {
                   parameterCount !== expectedParameterCount;
 
               if (isMismatch) {
-                problems.push({
-                  type: 'RULE_PARAMETER_COUNT_MISMATCH',
-                  breaking: true,
-                  variableId: c.alias || c.id,
-                  code: code.id ? code.id.toString(10) : 'null',
-                  variableLabel: c.label || ''
+                pushRuleParameterMismatch(
+                  c.alias || c.id,
+                  c.label || '',
+                  code.id ? code.id.toString(10) : 'null'
+                );
+                return;
+              }
+
+              // Semantic validation (reusing RULE_PARAMETER_COUNT_MISMATCH as a generic “rule invalid” breaking problem)
+              const params = r.parameters ?? [];
+
+              if (r.method === 'MATCH_REGEX') {
+                const patterns = params.flatMap(p => p.split(/\r?\n/));
+                patterns.forEach(p => {
+                  try {
+                    // eslint-disable-next-line no-new
+                    new RegExp(p);
+                  } catch (e) {
+                    pushRuleParameterMismatch(
+                      c.alias || c.id,
+                      c.label || '',
+                      code.id ? code.id.toString(10) : 'null'
+                    );
+                  }
                 });
+              }
+
+              if (
+                [
+                  'NUMERIC_MATCH',
+                  'NUMERIC_LESS_THAN',
+                  'NUMERIC_MORE_THAN',
+                  'NUMERIC_MAX',
+                  'NUMERIC_MIN'
+                ].includes(r.method)
+              ) {
+                const values = params.flatMap(p => p.split(/\r?\n/));
+                if (values.some(v => !isFiniteNumberString(v))) {
+                  pushRuleParameterMismatch(
+                    c.alias || c.id,
+                    c.label || '',
+                    code.id ? code.id.toString(10) : 'null'
+                  );
+                }
+              }
+
+              if (
+                r.method === 'NUMERIC_RANGE' ||
+                r.method === 'NUMERIC_FULL_RANGE'
+              ) {
+                const ll = params[0];
+                const ul = params[1];
+                if (!isFiniteNumberString(ll) || !isFiniteNumberString(ul)) {
+                  pushRuleParameterMismatch(
+                    c.alias || c.id,
+                    c.label || '',
+                    code.id ? code.id.toString(10) : 'null'
+                  );
+                } else {
+                  const llNum = Number.parseFloat(ll);
+                  const ulNum = Number.parseFloat(ul);
+                  if (llNum > ulNum) {
+                    pushRuleParameterMismatch(
+                      c.alias || c.id,
+                      c.label || '',
+                      code.id ? code.id.toString(10) : 'null'
+                    );
+                  }
+                }
               }
             });
           });
