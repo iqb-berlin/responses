@@ -36,11 +36,11 @@ export const amountFalseStates = (
         r.status as (typeof MANUAL_VALID_STATES)[number]
       ) &&
         !(
-          (r.status === 'DISPLAYED' &&
+          (r.status === CODING_SCHEME_STATUS.DISPLAYED &&
             coding.sourceParameters?.processing?.includes(
               'TAKE_DISPLAYED_AS_VALUE_CHANGED'
             )) ||
-          (r.status === 'NOT_REACHED' &&
+          (r.status === CODING_SCHEME_STATUS.NOT_REACHED &&
             coding.sourceParameters?.processing?.includes(
               'TAKE_NOT_REACHED_AS_VALUE_CHANGED'
             ))

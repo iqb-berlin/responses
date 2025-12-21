@@ -187,6 +187,10 @@ export abstract class CodingSchemeFactory {
     varDependencies: VariableGraphNode[],
     options?: { onError?: (error: unknown) => void }
   ): void {
+    const responseById = new Map(responses.map(r => [r.id, r] as const));
+    const codingById = new Map(
+      variableCodings.map(vc => [vc.id, vc] as const)
+    );
     const maxVarLevel = Math.max(0, ...varDependencies.map(n => n.level));
 
     for (let level = 0; level <= maxVarLevel; level++) {
@@ -196,8 +200,8 @@ export abstract class CodingSchemeFactory {
 
       // eslint-disable-next-line no-restricted-syntax
       for (const varNode of currentLevelNodes) {
-        const targetResponse = responses.find(r => r.id === varNode.id);
-        const varCoding = variableCodings.find(vc => vc.id === varNode.id);
+        const targetResponse = responseById.get(varNode.id);
+        const varCoding = codingById.get(varNode.id);
 
         if (!targetResponse || !varCoding) {
           break;
@@ -215,6 +219,8 @@ export abstract class CodingSchemeFactory {
             responses,
             options
           );
+
+          responseById.set(targetResponse.id, targetResponse);
         }
 
         if (targetResponse.status === CODING_SCHEME_STATUS.VALUE_CHANGED) {
