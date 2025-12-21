@@ -102,6 +102,15 @@ describe('rule-engine', () => {
       expected: boolean;
     }>([
       {
+        title: 'returns false if rules are missing/empty',
+        valueToCheck: 'A',
+        isValueArray: false,
+        ruleSet: {
+          ruleOperatorAnd: false
+        } as RuleSet,
+        expected: false
+      },
+      {
         title: 'OR rules: at least one matches',
         valueToCheck: 'A',
         isValueArray: false,
@@ -128,6 +137,17 @@ describe('rule-engine', () => {
         expected: true
       },
       {
+        title:
+          'isValueArray=true with empty array checks empty-string against rules',
+        valueToCheck: [],
+        isValueArray: true,
+        ruleSet: {
+          ruleOperatorAnd: false,
+          rules: [{ method: 'IS_EMPTY', parameters: [] }]
+        } as RuleSet,
+        expected: true
+      },
+      {
         title: 'valueArrayPos=LENGTH compares array length',
         valueToCheck: ['a', 'b', 'c'],
         isValueArray: true,
@@ -146,6 +166,90 @@ describe('rule-engine', () => {
           valueArrayPos: 'SUM',
           ruleOperatorAnd: false,
           rules: [{ method: 'NUMERIC_MATCH', parameters: ['6'] }]
+        } as RuleSet,
+        expected: true
+      },
+      {
+        title: 'valueArrayPos=SUM also sums nested arrays of members',
+        valueToCheck: [['1', '2'], ['3']],
+        isValueArray: true,
+        ruleSet: {
+          valueArrayPos: 'SUM',
+          ruleOperatorAnd: false,
+          rules: [{ method: 'NUMERIC_MATCH', parameters: ['6'] }]
+        } as RuleSet,
+        expected: true
+      },
+      {
+        title:
+          'numeric valueArrayPos out of range yields undefined and evaluates original array',
+        valueToCheck: ['A'],
+        isValueArray: true,
+        ruleSet: {
+          valueArrayPos: 5,
+          ruleOperatorAnd: false,
+          rules: [{ method: 'MATCH', parameters: ['A'] }]
+        } as RuleSet,
+        expected: true
+      },
+      {
+        title: 'ANY_OPEN requires at least one array member to match all rules',
+        valueToCheck: ['A', 'B'],
+        isValueArray: true,
+        ruleSet: {
+          valueArrayPos: 'ANY_OPEN',
+          ruleOperatorAnd: false,
+          rules: [{ method: 'MATCH', parameters: ['B'] }]
+        } as RuleSet,
+        expected: true
+      },
+      {
+        title:
+          'ANY requires every array member to match all rules (length > 1)',
+        valueToCheck: ['A', 'B'],
+        isValueArray: true,
+        ruleSet: {
+          valueArrayPos: 'ANY',
+          ruleOperatorAnd: false,
+          rules: [{ method: 'MATCH_REGEX', parameters: ['^[AB]$'] }]
+        } as RuleSet,
+        expected: true
+      },
+      {
+        title:
+          'nested arrays with fragment undefined match any fragment in any member',
+        valueToCheck: [
+          ['A', 'B'],
+          ['C', 'D']
+        ],
+        isValueArray: true,
+        ruleSet: {
+          ruleOperatorAnd: false,
+          rules: [{ method: 'MATCH', parameters: ['D'] }]
+        } as RuleSet,
+        expected: true
+      },
+      {
+        title: 'nested arrays with fragment selects a specific fragment index',
+        valueToCheck: [
+          ['A', 'B'],
+          ['C', 'D']
+        ],
+        isValueArray: true,
+        ruleSet: {
+          ruleOperatorAnd: false,
+          rules: [{ method: 'MATCH', parameters: ['B'], fragment: 1 }]
+        } as RuleSet,
+        expected: true
+      },
+      {
+        title:
+          'array with isValueArray=false and fragment selects a single element',
+        valueToCheck: ['A', 'B'],
+        isValueArray: false,
+        ruleSet: {
+          ruleOperatorAnd: false,
+          rules: [{ method: 'MATCH', parameters: ['B'], fragment: 1 }]
         } as RuleSet,
         expected: true
       }

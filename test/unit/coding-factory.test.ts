@@ -356,5 +356,107 @@ describe('CodingFactory', () => {
       expect(result.status).toBe('CODING_COMPLETE');
       expect(result.code).toBe(8);
     });
+
+    test('returns CODING_ERROR if fragmenting regex is invalid', () => {
+      const coding = baseCoding();
+      coding.fragmenting = '(';
+      coding.codes = [
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'IS_EMPTY' }]
+            }
+          ]
+        }
+      ];
+
+      const onError = jest.fn();
+      const result = CodingFactory.code(baseResponse('x'), coding, { onError });
+      expect(result.status).toBe('CODING_ERROR');
+      expect(onError).toHaveBeenCalled();
+    });
+
+    test('invalid regexp in MATCH_REGEX does not throw and simply results in no match', () => {
+      const coding = baseCoding();
+      coding.codes = [
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH_REGEX', parameters: ['['] }]
+            }
+          ]
+        }
+      ];
+
+      const onError = jest.fn();
+      const result = CodingFactory.code(baseResponse('x'), coding, { onError });
+      expect(result.status).toBe('CODING_INCOMPLETE');
+      expect(onError).not.toHaveBeenCalled();
+    });
+
+    test('returns CODING_ERROR if rule evaluation throws (and calls onError)', () => {
+      const coding = baseCoding();
+
+      const badCode = {
+        id: 1,
+        score: 1,
+        label: '',
+        type: 'FULL_CREDIT',
+        manualInstruction: '',
+        ruleSetOperatorAnd: false
+      } as unknown as NonNullable<VariableCodingData['codes']>[number];
+
+      Object.defineProperty(badCode, 'ruleSets', {
+        get: () => {
+          throw new Error('boom');
+        }
+      });
+
+      coding.codes = [badCode];
+
+      const onError = jest.fn();
+      const result = CodingFactory.code(baseResponse('A'), coding, { onError });
+      expect(result.status).toBe('CODING_ERROR');
+      expect(onError).toHaveBeenCalled();
+    });
+
+    test('sets status INTENDED_INCOMPLETE when a matched code id is INTENDED_INCOMPLETE', () => {
+      const coding = baseCoding();
+      coding.codes = [
+        {
+          id: 'INTENDED_INCOMPLETE',
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH', parameters: ['A'] }]
+            }
+          ]
+        }
+      ];
+
+      const result = CodingFactory.code(baseResponse('A'), coding);
+      expect(result.status).toBe('INTENDED_INCOMPLETE');
+      expect(result.code).toBe(0);
+      expect(result.score).toBe(0);
+    });
   });
 });

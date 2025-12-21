@@ -2,8 +2,7 @@
 /* eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import fs from 'fs';
 import { CodingScheme } from '@iqbspecs/coding-scheme';
-import { CodingSchemeFactory } from '../src';
-import { CodingSchemeTextFactory } from '../src';
+import { CodingSchemeFactory, CodingSchemeTextFactory } from '../src';
 
 const sampleFolder = `${__dirname}/sample_data/${process.argv[2]}`;
 let codings: CodingScheme;

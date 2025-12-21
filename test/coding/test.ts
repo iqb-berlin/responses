@@ -1,7 +1,6 @@
 import fs from 'fs';
 import { CodingScheme } from '@iqbspecs/coding-scheme';
-import { CodingSchemeFactory } from '../../src';
-import { CodingSchemeTextFactory } from '../../src';
+import { CodingSchemeFactory, CodingSchemeTextFactory } from '../../src';
 
 const folder = process.env.FOLDER;
 const regexInput = /^(.+)_input.json$/;

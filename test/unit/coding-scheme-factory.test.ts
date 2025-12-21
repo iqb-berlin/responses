@@ -8,6 +8,12 @@ import {
 import { CodingFactory, CodingSchemeFactory } from '../../src';
 
 describe('CodingSchemeFactory', () => {
+  test('can be subclassed (covers instance property initialization)', () => {
+    class TestFactory extends CodingSchemeFactory {}
+    const f = new TestFactory();
+    expect(f.variableCodings).toEqual([]);
+  });
+
   describe('getVariableDependencyTree', () => {
     test('orders derived variables by dependency level', () => {
       const v1 = CodingFactory.createCodingVariable('v1');
@@ -358,6 +364,191 @@ describe('CodingSchemeFactory', () => {
         problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
       ).toBe(true);
     });
+
+    test('detects MORE_THAN_ONE_SOURCE for COPY_VALUE with multiple sources', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1' },
+        { id: 'v2' }
+      ] as unknown as VariableInfo[];
+
+      const coding: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d'),
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['v1', 'v2'],
+        codes: []
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(problems.some(p => p.type === 'MORE_THAN_ONE_SOURCE')).toBe(
+        true
+      );
+      expect(
+        problems.some(p => p.type === 'MORE_THAN_ONE_SOURCE' && !p.breaking)
+      ).toBe(true);
+    });
+
+    test('detects VALUE_COPY_NOT_FROM_BASE when COPY_VALUE references derived var', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1' }
+      ] as unknown as VariableInfo[];
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SUM_SCORE',
+        deriveSources: ['v1', 'v1'],
+        codes: []
+      } as VariableCodingData;
+
+      const copy: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d2'),
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['d1'],
+        codes: []
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [derived, copy]);
+      expect(problems.some(p => p.type === 'VALUE_COPY_NOT_FROM_BASE')).toBe(
+        true
+      );
+    });
+
+    test('detects ONLY_ONE_SOURCE for non-COPY derived variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1' }
+      ] as unknown as VariableInfo[];
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d'),
+        sourceType: 'SUM_SCORE',
+        deriveSources: ['v1'],
+        codes: []
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [derived]);
+      expect(problems.some(p => p.type === 'ONLY_ONE_SOURCE')).toBe(true);
+      expect(
+        problems.some(p => p.type === 'ONLY_ONE_SOURCE' && !p.breaking)
+      ).toBe(true);
+    });
+
+    test('detects RULE_PARAMETER_COUNT_MISMATCH for invalid valueArrayPos string and negative numeric', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              valueArrayPos: 'NOPE',
+              ruleOperatorAnd: false,
+              rules: [{ method: 'IS_EMPTY' }]
+            }
+          ]
+        },
+        {
+          id: 2,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              valueArrayPos: -1,
+              ruleOperatorAnd: false,
+              rules: [{ method: 'IS_EMPTY' }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_COUNT_MISMATCH' && p.breaking
+        )
+      ).toBe(true);
+    });
+
+    test('detects INVALID_SOURCE for duplicate base variable ids in var info list', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1' },
+        { id: 'v1' }
+      ] as unknown as VariableInfo[];
+
+      const problems = CodingSchemeFactory.validate(baseVars, []);
+      expect(
+        problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
+      ).toBe(true);
+    });
+
+    test('emits VACANT for non-BASE_NO_VALUE variable with no codes and not copied', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1' }
+      ] as unknown as VariableInfo[];
+
+      const v1 = CodingFactory.createCodingVariable('v1');
+      v1.codes = [];
+      v1.sourceParameters = { processing: [] };
+
+      const problems = CodingSchemeFactory.validate(baseVars, [v1]);
+      expect(problems.some(p => p.type === 'VACANT')).toBe(true);
+    });
+  });
+
+  describe('getBaseVarsList', () => {
+    test('returns base variable aliases required for a derived variable (recursive) and de-duplicates', () => {
+      const base1: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('ID_1'),
+        alias: 'B1',
+        sourceType: 'BASE',
+        sourceParameters: { processing: [] },
+        codes: []
+      } as VariableCodingData;
+
+      const base2: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('ID_2'),
+        alias: 'B2',
+        sourceType: 'BASE',
+        sourceParameters: { processing: [] },
+        codes: []
+      } as VariableCodingData;
+
+      const d1: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('D1'),
+        alias: 'D1',
+        sourceType: 'SUM_SCORE',
+        deriveSources: ['ID_1', 'ID_2'],
+        codes: []
+      } as VariableCodingData;
+
+      const d2: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('D2'),
+        alias: 'D2',
+        sourceType: 'SUM_SCORE',
+        deriveSources: ['D1', 'ID_1'],
+        codes: []
+      } as VariableCodingData;
+
+      const list = CodingSchemeFactory.getBaseVarsList(
+        ['D2'],
+        [base1, base2, d1, d2]
+      );
+      expect(new Set(list)).toEqual(new Set(['B1', 'B2']));
+    });
+
+    test('returns empty list for unknown aliases', () => {
+      const list = CodingSchemeFactory.getBaseVarsList([], []);
+      expect(list).toEqual([]);
+    });
   });
 
   describe('code', () => {
@@ -465,6 +656,95 @@ describe('CodingSchemeFactory', () => {
       // should keep only one v1 response (the derived placeholder/response, not the original base one)
       const v1Responses = coded.filter(r => r.id === 'v1');
       expect(v1Responses).toHaveLength(1);
+    });
+
+    test('handles derivation errors by calling onError and setting DERIVE_ERROR', () => {
+      const base1: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('base1'),
+        sourceType: 'BASE',
+        sourceParameters: { processing: ['TAKE_EMPTY_AS_VALID'] },
+        codes: []
+      } as VariableCodingData;
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['base1'],
+        sourceParameters: { processing: [] },
+        codes: []
+      } as VariableCodingData;
+
+      const circularValue: unknown = {};
+      (circularValue as { self?: unknown }).self = circularValue;
+
+      const onError = jest.fn();
+      const coded = CodingSchemeFactory.code(
+        [
+          {
+            id: 'base1',
+            value: circularValue as never,
+            status: 'VALUE_CHANGED'
+          } as Response
+        ],
+        [base1, derived],
+        { onError }
+      );
+
+      expect(coded.find(r => r.id === 'd1')?.status).toBe('DERIVE_ERROR');
+      expect(onError).toHaveBeenCalled();
+    });
+
+    test('breaks out of dependency evaluation when a dependency has no response (BASE_NO_VALUE)', () => {
+      const baseNoValue: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('nv1'),
+        sourceType: 'BASE_NO_VALUE',
+        codes: []
+      } as VariableCodingData;
+
+      const base: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('b1'),
+        sourceType: 'BASE',
+        sourceParameters: { processing: [] },
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'b1', value: 1, status: 'VALUE_CHANGED' } as Response],
+        [baseNoValue, base]
+      );
+
+      expect(coded.some(r => r.id === 'b1')).toBe(true);
+    });
+
+    test('breaks out of derivation loop when a dependency node has no response', () => {
+      const responses: Response[] = [
+        { id: 'b1', value: 1, status: 'VALUE_CHANGED' } as Response
+      ];
+
+      const base: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('b1'),
+        sourceType: 'BASE',
+        sourceParameters: { processing: [] },
+        codes: []
+      } as VariableCodingData;
+
+      // Create a dependency node for an id that has no response/coding.
+      const deps = [
+        {
+          id: 'missing',
+          level: 0,
+          sources: [],
+          page: ''
+        }
+      ];
+
+      // Call the private method via any-cast to cover the defensive break branch.
+      expect(() => (
+        CodingSchemeFactory as unknown as {
+          applyDerivationsAndCoding: (...args: unknown[]) => void;
+        }
+      ).applyDerivationsAndCoding(responses, [base], deps, {})
+      ).not.toThrow();
     });
   });
 });

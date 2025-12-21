@@ -32,6 +32,15 @@ describe('ToTextFactory', () => {
       );
       expect(text).toBe('Kopie, aber keine Quelle angegeben');
     });
+
+    test('unknown source type returns fallback', () => {
+      const text = ToTextFactory.sourceAsText(
+        'x',
+        '__UNKNOWN__' as unknown as SourceType,
+        []
+      );
+      expect(text).toBe('Unbekannte Quelle');
+    });
   });
 
   describe('processingAsText', () => {
@@ -238,6 +247,91 @@ describe('ToTextFactory', () => {
         .ruleSetDescriptions[0];
       expect(text).toContain('a');
       expect(text).toContain('ODER');
+    });
+
+    test('SIMPLE does not insert connector before MATCH_REGEX', () => {
+      const code: CodeData = {
+        id: 1,
+        score: 0,
+        type: 'UNSET',
+        label: 'X',
+        ruleSetOperatorAnd: false,
+        ruleSets: [
+          {
+            ruleOperatorAnd: false,
+            rules: [
+              { method: 'IS_EMPTY' },
+              { method: 'MATCH_REGEX', parameters: ['a'] }
+            ]
+          }
+        ]
+      } as unknown as CodeData;
+
+      const text = ToTextFactory.codeAsText(code, 'SIMPLE')
+        .ruleSetDescriptions[0];
+      expect(text).not.toContain('\n\nODER\n\n');
+      expect(text).toContain('Leerer Wert');
+    });
+
+    test('EXTENDED reports unknown rule method', () => {
+      const code: CodeData = {
+        id: 1,
+        score: 0,
+        type: 'UNSET',
+        label: 'X',
+        ruleSetOperatorAnd: false,
+        ruleSets: [
+          {
+            ruleOperatorAnd: false,
+            rules: [{ method: '__UNKNOWN__' }]
+          }
+        ]
+      } as unknown as CodeData;
+
+      const text = ToTextFactory.codeAsText(code, 'EXTENDED')
+        .ruleSetDescriptions[0];
+      expect(text).toContain("Problem: unbekannte Regel '__UNKNOWN__'");
+    });
+
+    test('EXTENDED numeric single-value rule reports wrong parameter count', () => {
+      const code: CodeData = {
+        id: 1,
+        score: 0,
+        type: 'UNSET',
+        label: 'X',
+        ruleSetOperatorAnd: false,
+        ruleSets: [
+          {
+            ruleOperatorAnd: false,
+            rules: [{ method: 'NUMERIC_MIN', parameters: [1, 2] }]
+          }
+        ]
+      } as unknown as CodeData;
+
+      const text = ToTextFactory.codeAsText(code, 'EXTENDED')
+        .ruleSetDescriptions[0];
+      expect(text).toContain('FALSCHE PARAMETERZAHL');
+    });
+
+    test('EXTENDED appends numeric array position as A<number>', () => {
+      const code: CodeData = {
+        id: 1,
+        score: 0,
+        type: 'UNSET',
+        label: 'X',
+        ruleSetOperatorAnd: false,
+        ruleSets: [
+          {
+            ruleOperatorAnd: false,
+            valueArrayPos: 0,
+            rules: [{ method: 'IS_EMPTY' }]
+          }
+        ]
+      } as unknown as CodeData;
+
+      const text = ToTextFactory.codeAsText(code, 'EXTENDED')
+        .ruleSetDescriptions[0];
+      expect(text).toContain('(A1)');
     });
   });
 });
