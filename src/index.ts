@@ -3,6 +3,7 @@ export * from './constants';
 export * from './variable-list';
 export * from './coding-scheme-factory';
 export * from './to-text-factory';
+export * from './presentation';
 export * from './coding-factory';
 
 export {
@@ -17,3 +18,5 @@ export {
   ToTextFactory as CodingTextRenderer,
   ToTextFactory as CodingFormatter
 } from './to-text-factory';
+
+export { CodingSchemeTextFactory as CodingSchemeTextRenderer } from './presentation';

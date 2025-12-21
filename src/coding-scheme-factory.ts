@@ -4,13 +4,8 @@ import {
   VariableCodingData
 } from '@iqbspecs/coding-scheme';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
-import {
-  CodingAsText,
-  CodingToTextMode,
-  CodingSchemeProblem
-} from './coding-interfaces';
+import { CodingSchemeProblem } from './coding-interfaces';
 import { CodingFactory } from './coding-factory';
-import { ToTextFactory } from './to-text-factory';
 import { deepClone } from './utils/deep-clone';
 import { CODING_SCHEME_STATUS } from './constants';
 import {
@@ -382,35 +377,6 @@ export abstract class CodingSchemeFactory {
     variableCodings: VariableCodingData[]
   ): CodingSchemeProblem[] {
     return validateCodingScheme(baseVariables, variableCodings);
-  }
-
-  static asText(
-    variableCodings: VariableCodingData[],
-    mode: CodingToTextMode = 'EXTENDED'
-  ): CodingAsText[] {
-    return variableCodings.map(coding => {
-      const mappedSources = (coding.deriveSources ?? []).map(
-        source => variableCodings.find(vc => vc.alias === source)?.alias || source
-      );
-
-      return {
-        id: coding.alias || coding.id,
-        label: coding.label || '',
-        source: ToTextFactory.sourceAsText(
-          coding.alias || coding.id,
-          coding.sourceType,
-          mappedSources,
-          coding.sourceParameters
-        ),
-        processing: ToTextFactory.processingAsText(
-          coding.processing || [],
-          coding.fragmenting
-        ),
-        hasManualInstruction: Boolean(coding.manualInstruction),
-        codes: (coding.codes || []).map(code => ToTextFactory.codeAsText(code, mode)
-        )
-      };
-    });
   }
 
   /**

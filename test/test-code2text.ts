@@ -2,7 +2,7 @@
 /* eslint no-console: ["error", { allow: ["warn", "error", "log"] }] */
 import fs from 'fs';
 import { VariableCodingData } from '@iqbspecs/coding-scheme';
-import { CodingSchemeFactory } from '../src';
+import { CodingSchemeTextFactory } from '../src';
 
 const ERROR_COLOR = '\x1b[0;31m';
 const WARNING_COLOR = '\x1b[0;33m';
@@ -20,7 +20,7 @@ function processCodings(codingSchemeData: unknown): void {
   const variableCodings = (
     codingSchemeData as { variableCodings: VariableCodingData[] }
   ).variableCodings;
-  const codingTexts = CodingSchemeFactory.asText(variableCodings, 'SIMPLE');
+  const codingTexts = CodingSchemeTextFactory.asText(variableCodings, 'SIMPLE');
   codingTexts?.forEach(({ codes }) => {
     codes?.forEach(({ ruleSetDescriptions }) => {
       console.log('\t', ruleSetDescriptions);

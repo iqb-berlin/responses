@@ -3,6 +3,7 @@
 import fs from 'fs';
 import { CodingScheme } from '@iqbspecs/coding-scheme';
 import { CodingSchemeFactory } from '../src';
+import { CodingSchemeTextFactory } from '../src';
 
 const sampleFolder = `${__dirname}/sample_data/${process.argv[2]}`;
 let codings: CodingScheme;
@@ -50,7 +51,7 @@ const compareArrays = (a: Array<string>, b: Array<string>) => {
   return JSON.stringify(a) === JSON.stringify(b);
 };
 
-CodingSchemeFactory.asText(codings.variableCodings, 'EXTENDED');
+CodingSchemeTextFactory.asText(codings.variableCodings, 'EXTENDED');
 
 expectations.forEach(expectation => {
   const baseVarList = CodingSchemeFactory.getBaseVarsList(

@@ -1,4 +1,5 @@
 import {
+  CodeData,
   ProcessingParameterType,
   SourceType,
   VariableSourceParameters
@@ -87,6 +88,156 @@ describe('ToTextFactory', () => {
       );
       expect(lines.join('\n')).toContain('geschlossenes Format');
       expect(lines.join('\n')).toContain('Variable ist auf Seite "P1"');
+    });
+  });
+
+  describe('codeAsText', () => {
+    test('uses type label mapping and uppercases in SIMPLE mode', () => {
+      const code: CodeData = {
+        id: 1,
+        score: 2,
+        type: 'FULL_CREDIT',
+        ruleSetOperatorAnd: true,
+        manualInstruction: '',
+        ruleSets: [
+          {
+            ruleOperatorAnd: true,
+            rules: [{ method: 'IS_EMPTY' }]
+          }
+        ]
+      } as unknown as CodeData;
+
+      const textSimple = ToTextFactory.codeAsText(code, 'SIMPLE');
+      expect(textSimple.label).toBe('RICHTIG');
+
+      const textExtended = ToTextFactory.codeAsText(code, 'EXTENDED');
+      expect(textExtended.label).toBe('richtig');
+    });
+
+    test('EXTENDED includes rule set prefix when multiple ruleSets exist', () => {
+      const code: CodeData = {
+        id: 1,
+        score: 0,
+        type: 'UNSET',
+        label: 'X',
+        ruleSetOperatorAnd: false,
+        ruleSets: [
+          { ruleOperatorAnd: true, rules: [{ method: 'IS_NULL' }] },
+          { ruleOperatorAnd: true, rules: [{ method: 'IS_EMPTY' }] }
+        ]
+      } as unknown as CodeData;
+
+      const asText = ToTextFactory.codeAsText(code, 'EXTENDED');
+      expect(asText.ruleSetDescriptions[0]).toContain('Regelset 1:');
+      expect(asText.ruleSetDescriptions[1]).toContain('Regelset 2:');
+    });
+
+    test('EXTENDED renders numeric range and validates order', () => {
+      const ok: CodeData = {
+        id: 1,
+        score: 0,
+        type: 'UNSET',
+        label: 'X',
+        ruleSetOperatorAnd: true,
+        ruleSets: [
+          {
+            ruleOperatorAnd: true,
+            rules: [{ method: 'NUMERIC_RANGE', parameters: [1, 3] }]
+          }
+        ]
+      } as unknown as CodeData;
+      const okText = ToTextFactory.codeAsText(ok, 'EXTENDED')
+        .ruleSetDescriptions[0];
+      expect(okText).toContain("Wert größer als '1'");
+      expect(okText).toContain("Wert ist maximal '3'");
+
+      const invalid: CodeData = {
+        id: 1,
+        score: 0,
+        type: 'UNSET',
+        label: 'X',
+        ruleSetOperatorAnd: true,
+        ruleSets: [
+          {
+            ruleOperatorAnd: true,
+            rules: [{ method: 'NUMERIC_RANGE', parameters: [3, 3] }]
+          }
+        ]
+      } as unknown as CodeData;
+      const invalidText = ToTextFactory.codeAsText(invalid, 'EXTENDED')
+        .ruleSetDescriptions[0];
+      expect(invalidText).toContain('VERGLEICHSWERTE UNGÜLTIG');
+    });
+
+    test('special code types ignore rules and return fixed text', () => {
+      const residual: CodeData = {
+        id: 1,
+        score: 0,
+        type: 'RESIDUAL',
+        ruleSetOperatorAnd: true,
+        ruleSets: [{ ruleOperatorAnd: true, rules: [{ method: 'IS_EMPTY' }] }]
+      } as unknown as CodeData;
+      expect(
+        ToTextFactory.codeAsText(residual, 'EXTENDED').ruleSetDescriptions[0]
+      ).toContain('Alle anderen Antworten.');
+
+      const intendedIncomplete: CodeData = {
+        id: 1,
+        score: 0,
+        type: 'INTENDED_INCOMPLETE',
+        ruleSetOperatorAnd: true,
+        ruleSets: [{ ruleOperatorAnd: true, rules: [{ method: 'IS_EMPTY' }] }]
+      } as unknown as CodeData;
+      expect(
+        ToTextFactory.codeAsText(intendedIncomplete, 'EXTENDED')
+          .ruleSetDescriptions[0]
+      ).toContain('Kodierung soll unvollständig sein.');
+    });
+
+    test('EXTENDED appends connect and array position text', () => {
+      const code: CodeData = {
+        id: 1,
+        score: 0,
+        type: 'UNSET',
+        label: 'X',
+        ruleSetOperatorAnd: true,
+        ruleSets: [
+          {
+            ruleOperatorAnd: true,
+            valueArrayPos: 'SUM',
+            rules: [{ method: 'IS_EMPTY' }, { method: 'IS_NULL' }]
+          }
+        ]
+      } as unknown as CodeData;
+
+      const text = ToTextFactory.codeAsText(code, 'EXTENDED')
+        .ruleSetDescriptions[0];
+      expect(text).toContain('UND-Verknüpfung');
+      expect(text).toContain('A S');
+    });
+
+    test('SIMPLE inserts connectors between non-MATCH_REGEX rules', () => {
+      const code: CodeData = {
+        id: 1,
+        score: 0,
+        type: 'UNSET',
+        label: 'X',
+        ruleSetOperatorAnd: false,
+        ruleSets: [
+          {
+            ruleOperatorAnd: false,
+            rules: [
+              { method: 'MATCH', parameters: ['a\nb'] },
+              { method: 'IS_EMPTY' }
+            ]
+          }
+        ]
+      } as unknown as CodeData;
+
+      const text = ToTextFactory.codeAsText(code, 'SIMPLE')
+        .ruleSetDescriptions[0];
+      expect(text).toContain('a');
+      expect(text).toContain('ODER');
     });
   });
 });
