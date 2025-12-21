@@ -1,0 +1,17 @@
+[
+  {
+    "id": "b1",
+    "status": "NO_CODING",
+    "value": 1
+  },
+  {
+    "id": "d1",
+    "value": null,
+    "status": "DERIVE_ERROR"
+  },
+  {
+    "id": "d2",
+    "value": null,
+    "status": "DERIVE_ERROR"
+  }
+]

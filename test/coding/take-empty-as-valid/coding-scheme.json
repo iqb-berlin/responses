@@ -1,0 +1,21 @@
+{
+  "variableCodings": [
+    {
+      "id": "b1",
+      "alias": "b1",
+      "label": "",
+      "sourceType": "BASE",
+      "sourceParameters": {
+        "solverExpression": "",
+        "processing": ["TAKE_EMPTY_AS_VALID"]
+      },
+      "deriveSources": [],
+      "processing": [],
+      "fragmenting": "",
+      "manualInstruction": "",
+      "codeModel": "NONE",
+      "codes": []
+    }
+  ],
+  "version": "3.0"
+}
