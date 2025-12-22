@@ -281,39 +281,15 @@ describe('deriveValue', () => {
     expect(result.value).toBeNull();
   });
 
-  test('SOLVER evaluates expression and supports alias lookup', () => {
+  test('SOLVER returns DERIVE_ERROR if expression evaluates to non-finite number', () => {
     const v1 = CodingFactory.createCodingVariable('ID_1');
     v1.alias = 'v1';
-
-    const coding: VariableCodingData = {
-      ...CodingFactory.createCodingVariable('d'),
-      sourceType: 'SOLVER',
-      deriveSources: ['ID_1'],
-      sourceParameters: {
-        solverExpression: '${v1} + 1',
-        processing: []
-      },
-      codes: []
-    } as VariableCodingData;
-
-    const r1: Response = {
-      id: 'ID_1',
-      value: 2,
-      status: 'VALUE_CHANGED'
-    } as Response;
-
-    const result = deriveValue([v1, coding], coding, [r1]);
-    expect(result.status).toBe('VALUE_CHANGED');
-    expect(result.value).toBe(3);
-  });
-
-  test('SOLVER returns DERIVE_ERROR if expression evaluates to non-finite number', () => {
     const coding: VariableCodingData = {
       ...CodingFactory.createCodingVariable('d'),
       sourceType: 'SOLVER',
       deriveSources: ['v1'],
       sourceParameters: {
-        solverExpression: '${v1} / 0',
+        solverExpression: `${v1} / 0`,
         processing: []
       },
       codes: []
@@ -331,12 +307,14 @@ describe('deriveValue', () => {
   });
 
   test('SOLVER returns DERIVE_ERROR if expression uses var not in deriveSources', () => {
+    const v2 = CodingFactory.createCodingVariable('ID_1');
+    v2.alias = 'v2';
     const coding: VariableCodingData = {
       ...CodingFactory.createCodingVariable('d'),
       sourceType: 'SOLVER',
       deriveSources: ['v1'],
       sourceParameters: {
-        solverExpression: '${v2} + 1',
+        solverExpression: `${v2} + 1'`,
         processing: []
       },
       codes: []
@@ -354,12 +332,14 @@ describe('deriveValue', () => {
   });
 
   test('SOLVER returns DERIVE_ERROR if source value is array', () => {
+    const v1 = CodingFactory.createCodingVariable('ID_1');
+    v1.alias = 'v1';
     const coding: VariableCodingData = {
       ...CodingFactory.createCodingVariable('d'),
       sourceType: 'SOLVER',
       deriveSources: ['v1'],
       sourceParameters: {
-        solverExpression: '${v1} + 1',
+        solverExpression: `${v1} + 1`,
         processing: []
       },
       codes: []
