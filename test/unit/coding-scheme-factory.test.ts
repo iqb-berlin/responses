@@ -6,6 +6,8 @@ import {
   VariableCodingData
 } from '@iqbspecs/coding-scheme';
 import { CodingFactory, CodingSchemeFactory } from '../../src';
+import { executeDependencyPlan } from '../../src/derive/dependency-plan';
+import { applyDerivationsAndCoding } from '../../src/derive/derivation-traversal';
 
 describe('CodingSchemeFactory', () => {
   test('can be subclassed (covers instance property initialization)', () => {
@@ -694,7 +696,7 @@ describe('CodingSchemeFactory', () => {
       expect(onError).toHaveBeenCalled();
     });
 
-    test('breaks out of dependency evaluation when a dependency has no response (BASE_NO_VALUE)', () => {
+    test('skips dependency evaluation when a dependency has no response (BASE_NO_VALUE)', () => {
       const baseNoValue: VariableCodingData = {
         ...CodingFactory.createCodingVariable('nv1'),
         sourceType: 'BASE_NO_VALUE',
@@ -716,7 +718,7 @@ describe('CodingSchemeFactory', () => {
       expect(coded.some(r => r.id === 'b1')).toBe(true);
     });
 
-    test('breaks out of derivation loop when a dependency node has no response', () => {
+    test('skips a dependency node when it has no response', () => {
       const responses: Response[] = [
         { id: 'b1', value: 1, status: 'VALUE_CHANGED' } as Response
       ];
@@ -738,12 +740,14 @@ describe('CodingSchemeFactory', () => {
         }
       ];
 
-      // Call the private method via any-cast to cover the defensive break branch.
-      expect(() => (
-        CodingSchemeFactory as unknown as {
-          applyDerivationsAndCoding: (...args: unknown[]) => void;
-        }
-      ).applyDerivationsAndCoding(responses, [base], deps, {})
+      // Exercise dependency execution defensively when a node has no matching response/coding.
+      expect(() => executeDependencyPlan(
+        responses,
+        [base],
+        { varDependencies: deps, globalDeriveError: false },
+        applyDerivationsAndCoding,
+        {}
+      )
       ).not.toThrow();
     });
   });

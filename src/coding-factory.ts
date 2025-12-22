@@ -151,7 +151,8 @@ export abstract class CodingFactory {
         const { id, score } = code;
         const idAsString = String(id);
         const isInvalidOrIncomplete =
-          idAsString === CODING_SCHEME_STATUS.INVALID || idAsString === CODING_SCHEME_STATUS.INTENDED_INCOMPLETE;
+          idAsString === CODING_SCHEME_STATUS.INVALID ||
+          idAsString === CODING_SCHEME_STATUS.INTENDED_INCOMPLETE;
 
         newResponse.status = isInvalidOrIncomplete ?
           (idAsString as 'INVALID' | 'INTENDED_INCOMPLETE') :
@@ -173,7 +174,7 @@ export abstract class CodingFactory {
       if (hasElse) {
         if (elseType === CODING_SCHEME_STATUS.INTENDED_INCOMPLETE) {
           newResponse.status = CODING_SCHEME_STATUS.INTENDED_INCOMPLETE;
-          newResponse.code = typeof elseCode === 'number' ? elseCode : 0;
+          newResponse.code = elseCode;
           newResponse.score = elseScore;
         } else if (String(elseCode) === CODING_SCHEME_STATUS.INVALID) {
           newResponse.status = CODING_SCHEME_STATUS.INVALID;
@@ -181,7 +182,7 @@ export abstract class CodingFactory {
           newResponse.score = 0;
         } else {
           newResponse.status = CODING_SCHEME_STATUS.CODING_COMPLETE;
-          newResponse.code = typeof elseCode === 'number' ? elseCode : 0;
+          newResponse.code = elseCode;
           newResponse.score = elseScore;
         }
       } else {
