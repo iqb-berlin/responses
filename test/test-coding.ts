@@ -5,6 +5,7 @@ import path from 'path';
 import { Response } from '@iqbspecs/response/response.interface';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
 import { VariableCodingData } from '@iqbspecs/coding-scheme';
+
 import { CodingSchemeFactory } from '../src';
 
 const sampleFolder = path.resolve(__dirname, 'sample_data', process.argv[2]);
