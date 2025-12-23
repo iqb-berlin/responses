@@ -12,7 +12,8 @@
     "test_getBaseVarsList": "cd test && ts-node test-getBaseVarsList get-base-vars-case",
     "prepare_publish": "rm -rf dist/* && tsc --module commonjs && cp ./package_npm.json ./dist/package.json && cp ./README.md ./dist",
     "npm_publish": "cd dist && npm publish --access public",
-    "lint": "eslint \"**/*.ts\""
+    "lint": "eslint \"**/*.ts\"",
+    "lint:fix": "eslint \"**/*.ts\" --fix"
   },
   "repository": {
     "type": "git",

@@ -2,8 +2,8 @@ import { evaluate } from 'mathjs';
 import { Response } from '@iqbspecs/response/response.interface';
 import { DeriveConcatDelimiter, validStatesForDerivingValue, VariableCodingData } from '@iqbspecs/coding-scheme';
 import {
-  CONCAT_SUM_VALID_STATES,
   CODING_SCHEME_STATUS,
+  CONCAT_SUM_VALID_STATES,
   COPY_SOLVER_VALID_STATES,
   MANUAL_VALID_STATES,
   PARTLY_DISPLAYED_STATUSES,
@@ -22,7 +22,8 @@ const deriveErrorResponse = (coding: VariableCodingData, subform: string | undef
 export const amountFalseStates = (coding: VariableCodingData, sourceResponses: Response[]): number => {
   switch (coding.sourceType) {
     case 'MANUAL': {
-      const isInvalid = (r: Response) => !MANUAL_VALID_STATES.includes(r.status as (typeof MANUAL_VALID_STATES)[number]) &&
+      const isInvalid = (r: Response) => !MANUAL_VALID_STATES
+        .includes(r.status as (typeof MANUAL_VALID_STATES)[number]) &&
         !(
           (r.status === CODING_SCHEME_STATUS.DISPLAYED &&
             coding.sourceParameters?.processing?.includes('TAKE_DISPLAYED_AS_VALUE_CHANGED')) ||
@@ -36,14 +37,16 @@ export const amountFalseStates = (coding: VariableCodingData, sourceResponses: R
     case 'COPY_VALUE':
     case 'UNIQUE_VALUES':
     case 'SOLVER': {
-      const isInvalid = (r: Response) => !COPY_SOLVER_VALID_STATES.includes(r.status as (typeof COPY_SOLVER_VALID_STATES)[number]);
+      const isInvalid = (r: Response) => !COPY_SOLVER_VALID_STATES
+        .includes(r.status as (typeof COPY_SOLVER_VALID_STATES)[number]);
       return sourceResponses.filter(isInvalid).length;
     }
 
     case 'CONCAT_CODE':
     case 'SUM_CODE':
     case 'SUM_SCORE': {
-      const isInvalid = (r: Response) => !CONCAT_SUM_VALID_STATES.includes(r.status as (typeof CONCAT_SUM_VALID_STATES)[number]);
+      const isInvalid = (r: Response) => !CONCAT_SUM_VALID_STATES
+        .includes(r.status as (typeof CONCAT_SUM_VALID_STATES)[number]);
       return sourceResponses.filter(isInvalid).length;
     }
 
@@ -325,8 +328,9 @@ export const deriveValue = (
 
   if (sourceResponses.length >= falseStates && falseStates > 0) {
     const allHaveSameStatus = sourceResponses.every(r => r.status === sourceResponses[0].status);
-    const allArePartlyDisplayedStatuses = sourceResponses.every(r => PARTLY_DISPLAYED_STATUSES.includes(r.status as (typeof PARTLY_DISPLAYED_STATUSES)[number])
-    );
+    const allArePartlyDisplayedStatuses = sourceResponses
+      .every(r => PARTLY_DISPLAYED_STATUSES.includes(r.status as (typeof PARTLY_DISPLAYED_STATUSES)[number])
+      );
 
     if (allHaveSameStatus) {
       return <Response>{
