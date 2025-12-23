@@ -3,23 +3,13 @@ import { VariableCodingData } from '@iqbspecs/coding-scheme';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
 import { CodingSchemeProblem } from './coding-interfaces';
 import { deepClone } from './utils/deep-clone';
-import {
-  getVariableDependencyTree,
-  type VariableGraphNode
-} from './graph/dependency-tree';
+import { getVariableDependencyTree, type VariableGraphNode } from './graph/dependency-tree';
 import { deriveValue } from './derive/derive-value';
-import {
-  buildDependencyPlan,
-  ensureResponsesExist,
-  executeDependencyPlan
-} from './derive/dependency-plan';
+import { buildDependencyPlan, ensureResponsesExist, executeDependencyPlan } from './derive/dependency-plan';
 import { applyDerivationsAndCoding } from './derive/derivation-traversal';
 import { validateCodingScheme } from './validation/validate-coding-scheme';
 import { groupResponsesBySubform } from './subform/grouping';
-import {
-  mapResponseAliasToId,
-  mapResponseIdToAlias
-} from './mapping/alias-mapper';
+import { mapResponseAliasToId, mapResponseIdToAlias } from './mapping/alias-mapper';
 import {
   markEmptyValuesInvalidForBaseUnlessAllowed,
   normalizeDisplayedToValueChanged,
@@ -33,21 +23,19 @@ export type { VariableGraphNode } from './graph/dependency-tree';
 export abstract class CodingSchemeFactory {
   variableCodings: VariableCodingData[] = [];
 
-  private static buildCodingPipeline(options?: {
-    onError?: (error: unknown) => void;
-  }): Array<
-    (ctx: {
-      responses: Response[];
-      variableCodings: VariableCodingData[];
-      notSubformResponses: Response[];
-      allResponses: Response[];
-    }) => {
-      responses: Response[];
-      variableCodings: VariableCodingData[];
-      notSubformResponses: Response[];
-      allResponses: Response[];
-    }
-    > {
+  private static buildCodingPipeline(options?: { onError?: (error: unknown) => void }): Array<
+  (ctx: {
+    responses: Response[];
+    variableCodings: VariableCodingData[];
+    notSubformResponses: Response[];
+    allResponses: Response[];
+  }) => {
+    responses: Response[];
+    variableCodings: VariableCodingData[];
+    notSubformResponses: Response[];
+    allResponses: Response[];
+  }
+  > {
     return [
       ctx => ({
         ...ctx,
@@ -59,30 +47,16 @@ export abstract class CodingSchemeFactory {
       }),
       ctx => ({
         ...ctx,
-        responses: CodingSchemeFactory.normalizeStatuses(
-          ctx.responses,
-          ctx.variableCodings
-        )
+        responses: CodingSchemeFactory.normalizeStatuses(ctx.responses, ctx.variableCodings)
       }),
       ctx => ({
         ...ctx,
-        responses: removeBaseResponsesShadowedByDerived(
-          ctx.responses,
-          ctx.variableCodings
-        )
+        responses: removeBaseResponsesShadowedByDerived(ctx.responses, ctx.variableCodings)
       }),
       ctx => {
-        const plan = buildDependencyPlan(
-          ctx.variableCodings,
-          CodingSchemeFactory.getVariableDependencyTree,
-          options
-        );
+        const plan = buildDependencyPlan(ctx.variableCodings, CodingSchemeFactory.getVariableDependencyTree, options);
 
-        const prepared = ensureResponsesExist(
-          ctx.responses,
-          ctx.variableCodings,
-          plan
-        );
+        const prepared = ensureResponsesExist(ctx.responses, ctx.variableCodings, plan);
 
         const executed = executeDependencyPlan(
           prepared.responses,
@@ -109,21 +83,13 @@ export abstract class CodingSchemeFactory {
     variableCodings: VariableCodingData[],
     notSubformResponses: Response[]
   ): Response[] {
-    const updatedResponses = mapResponseAliasToId(
-      groupResponses,
-      variableCodings
-    );
+    const updatedResponses = mapResponseAliasToId(groupResponses, variableCodings);
 
     const isSubformGroup = groupResponses.every(r => r.subform !== undefined);
-    return isSubformGroup ?
-      [...updatedResponses, ...notSubformResponses] :
-      [...updatedResponses];
+    return isSubformGroup ? [...updatedResponses, ...notSubformResponses] : [...updatedResponses];
   }
 
-  private static normalizeStatuses(
-    responses: Response[],
-    variableCodings: VariableCodingData[]
-  ): Response[] {
+  private static normalizeStatuses(responses: Response[], variableCodings: VariableCodingData[]): Response[] {
     const normalized = [...responses];
     normalizeDisplayedToValueChanged(normalized, variableCodings);
     normalizeNotReachedToValueChanged(normalized, variableCodings);
@@ -131,9 +97,7 @@ export abstract class CodingSchemeFactory {
     return normalized;
   }
 
-  static getVariableDependencyTree(
-    variableCodings: VariableCodingData[]
-  ): VariableGraphNode[] {
+  static getVariableDependencyTree(variableCodings: VariableCodingData[]): VariableGraphNode[] {
     return getVariableDependencyTree(variableCodings);
   }
 
@@ -153,63 +117,47 @@ export abstract class CodingSchemeFactory {
     // decouple object from caller variable
     let newResponses: Response[] = deepClone(unitResponses);
     let allCodedResponses: Response[] = [];
-    const { subformGroups, notSubformResponses } =
-      groupResponsesBySubform(newResponses);
+    const { subformGroups, notSubformResponses } = groupResponsesBySubform(newResponses);
 
     const pipeline = CodingSchemeFactory.buildCodingPipeline(options);
 
     // code responses for each subform
-    [...Object.values(subformGroups), notSubformResponses].forEach(
-      allResponses => {
-        const initialCtx = {
-          responses: newResponses,
-          variableCodings,
-          notSubformResponses,
-          allResponses
-        };
+    [...Object.values(subformGroups), notSubformResponses].forEach(allResponses => {
+      const initialCtx = {
+        responses: newResponses,
+        variableCodings,
+        notSubformResponses,
+        allResponses
+      };
 
-        const finalCtx = pipeline.reduce((ctx, step) => step(ctx), initialCtx);
-        newResponses = finalCtx.responses;
-        allCodedResponses = [...allCodedResponses, ...finalCtx.responses];
-      }
-    );
+      const finalCtx = pipeline.reduce((ctx, step) => step(ctx), initialCtx);
+      newResponses = finalCtx.responses;
+      allCodedResponses = [...allCodedResponses, ...finalCtx.responses];
+    });
 
-    return finalizeAndDeduplicateResponses(
-      allCodedResponses,
-      subformGroups,
-      variableCodings
-    );
+    return finalizeAndDeduplicateResponses(allCodedResponses, subformGroups, variableCodings);
   }
 
-  static validate(
-    baseVariables: VariableInfo[],
-    variableCodings: VariableCodingData[]
-  ): CodingSchemeProblem[] {
+  static validate(baseVariables: VariableInfo[], variableCodings: VariableCodingData[]): CodingSchemeProblem[] {
     return validateCodingScheme(baseVariables, variableCodings);
   }
 
-  static getBaseVarsList(
-    varAliases: string[],
-    variableCodings: VariableCodingData[]
-  ): string[] {
-    const getVarBy = (selector: 'id' | 'alias') => (varId: string) => {
-      const findVariable = (variable: VariableCodingData) => variable[selector] === varId;
-      return variableCodings.find(findVariable);
-    };
+  static getBaseVarsList(varAliases: string[], variableCodings: VariableCodingData[]): string[] {
+    const codingById = new Map(variableCodings.map(vc => [vc.id, vc] as const));
+    const codingByAlias = new Map(
+      variableCodings.filter(vc => Boolean(vc.alias)).map(vc => [vc.alias as string, vc] as const)
+    );
 
-    const getSourceVarAliases = (
-      sourceVar: VariableCodingData | undefined
-    ): string[] => {
+    const getByAlias = (alias: string): VariableCodingData | undefined => codingByAlias.get(alias);
+    const getById = (id: string): VariableCodingData | undefined => codingById.get(id);
+
+    const getSourceVarAliases = (sourceVar: VariableCodingData | undefined): string[] => {
       if (!sourceVar) return [];
       if (sourceVar.sourceType === 'BASE') return [sourceVar.alias || sourceVar.id];
-      return (sourceVar.deriveSources ?? [])
-        .map(getVarBy('id'))
-        .flatMap(getSourceVarAliases);
+      return (sourceVar.deriveSources ?? []).map(getById).flatMap(getSourceVarAliases);
     };
 
-    const baseVarAliases = varAliases
-      .map(getVarBy('alias'))
-      .flatMap(getSourceVarAliases);
+    const baseVarAliases = varAliases.map(getByAlias).flatMap(getSourceVarAliases);
     return [...new Set(baseVarAliases)];
   }
 }

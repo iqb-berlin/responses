@@ -22,16 +22,6 @@ The package exports (among others):
 - **Rendering / formatting**
   - `ToTextFactory` (also exported as `CodingTextRenderer` / `CodingFormatter`)
   - `CodingSchemeTextFactory` (also exported as `CodingSchemeTextRenderer`)
-- **Constants**
-
-  - `CODING_SCHEME_STATUS`
-  - `MANUAL_VALID_STATES`
-  - `COPY_SOLVER_VALID_STATES`
-  - `CONCAT_SUM_VALID_STATES`
-  - `PARTLY_DISPLAYED_STATUSES`
-  - `DERIVE_PENDING_STATUSES`
-  - `VALID_STATES_TO_START_DERIVE_PENDING_CHECK`
-
 - **Utilities**
   - `VariableList`
 
@@ -78,7 +68,7 @@ In many consuming applications variables are addressed by **alias**, while inter
 
 ### Status and error handling
 
-- The canonical status strings are in `CODING_SCHEME_STATUS`.
+- Status strings are defined by the `@iqbspecs/response` / `@iqbspecs/coding-scheme` specs and are used throughout this package.
 - Typical flow for base variables is:
   - `VALUE_CHANGED` -> `CODING_COMPLETE` / `CODING_INCOMPLETE` / `NO_CODING`
 - For derived variables:
@@ -109,8 +99,7 @@ const responses: Response[] = [
   { id: 'A2', value: 2, status: 'VALUE_CHANGED' }
 ];
 
-const variableCodings: VariableCodingData[] =
-  /* from a coding-scheme JSON */ [];
+const variableCodings: VariableCodingData[] = /* from a coding-scheme JSON */ [];
 
 const coded = CodingSchemeFactory.code(responses, variableCodings, {
   onError: (err) => {
@@ -136,8 +125,7 @@ import type { VariableCodingData } from '@iqbspecs/coding-scheme';
 import { CodingFactory } from '@iqb/responses';
 
 const response: Response = { id: 'A1', value: 'foo', status: 'VALUE_CHANGED' };
-const coding: VariableCodingData =
-  /* coding for variable A1 */ {} as VariableCodingData;
+const coding: VariableCodingData = /* coding for variable A1 */ {} as VariableCodingData;
 
 const codedResponse = CodingFactory.code(response, coding);
 ```
@@ -179,10 +167,7 @@ import { CodingSchemeFactory } from '@iqb/responses';
 const targetVarAliases = ['V1', 'V2'];
 const variableCodings: VariableCodingData[] = [];
 
-const requiredBaseVarAliases = CodingSchemeFactory.getBaseVarsList(
-  targetVarAliases,
-  variableCodings
-);
+const requiredBaseVarAliases = CodingSchemeFactory.getBaseVarsList(targetVarAliases, variableCodings);
 ```
 
 ## Render coding information as text
@@ -197,9 +182,17 @@ const lines = ToTextFactory.varInfoAsText(varInfo);
 
 ## Status values
 
-Status strings are defined in `CODING_SCHEME_STATUS` (e.g. `VALUE_CHANGED`, `CODING_COMPLETE`, `CODING_INCOMPLETE`, `CODING_ERROR`, `DERIVE_ERROR`, `INVALID`, `NO_CODING`, `UNSET`, ...).
+Status strings used by this package include (among others) `VALUE_CHANGED`, `CODING_COMPLETE`, `CODING_INCOMPLETE`, `CODING_ERROR`, `DERIVE_ERROR`, `INVALID`, `NO_CODING`, `UNSET`, ...
 
 ## Versionsänderungen npm-package `@iqb/responses`
+
+### 5.0
+
+- umfangreiches Refactoring/Modularisierung (u. a. Ableitungen, Rule-Engine, Dependency-Planung)
+- verbesserte Validierung des Coding-Schemes (z. B. doppelte IDs/Aliase, ungültige Quellen, `RULE_PARAMETER_COUNT_MISMATCH`)
+- robustere Fehlerbehandlung (z. B. ungültige RegEx, ungültige Solver-Expressions)
+- Performance-Verbesserungen durch `Map`-basierte Lookups
+- deutlich erweiterte Unit-Tests sowie CI/Dependabot-Workflows
 
 ### 4.0
 

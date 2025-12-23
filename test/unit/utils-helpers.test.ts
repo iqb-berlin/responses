@@ -1,6 +1,6 @@
 import { deepClone } from '../../src/utils/deep-clone';
 import { isErrorStatus } from '../../src/status-helpers';
-import { CODING_SCHEME_STATUS } from '../../src';
+import { CODING_SCHEME_STATUS } from '../../src/constants';
 import { getValueAsString, transformString } from '../../src/value-transform';
 
 describe('utils/helpers', () => {
@@ -15,9 +15,7 @@ describe('utils/helpers', () => {
 
   describe('value-transform', () => {
     test('transformString trims and normalizes dispensable spaces', () => {
-      expect(transformString('  A   B  ', ['REMOVE_DISPENSABLE_SPACES'])).toBe(
-        'A B'
-      );
+      expect(transformString('  A   B  ', ['REMOVE_DISPENSABLE_SPACES'])).toBe('A B');
     });
 
     test('getValueAsString stringifies number and boolean', () => {
@@ -29,9 +27,7 @@ describe('utils/helpers', () => {
 
   describe('deep-clone', () => {
     test('falls back to JSON clone when structuredClone is unavailable', () => {
-      const originalStructuredClone = (
-        globalThis as unknown as { structuredClone?: unknown }
-      ).structuredClone;
+      const originalStructuredClone = (globalThis as unknown as { structuredClone?: unknown }).structuredClone;
 
       try {
         Object.defineProperty(globalThis, 'structuredClone', {

@@ -1,10 +1,6 @@
 import { evaluate } from 'mathjs';
 import { Response } from '@iqbspecs/response/response.interface';
-import {
-  DeriveConcatDelimiter,
-  validStatesForDerivingValue,
-  VariableCodingData
-} from '@iqbspecs/coding-scheme';
+import { DeriveConcatDelimiter, validStatesForDerivingValue, VariableCodingData } from '@iqbspecs/coding-scheme';
 import {
   CONCAT_SUM_VALID_STATES,
   CODING_SCHEME_STATUS,
@@ -16,34 +12,22 @@ import {
 import { CodingFactory } from '../coding-factory';
 import { type CodingSchemeStatus, isPendingStatus } from '../status-helpers';
 
-const deriveErrorResponse = (
-  coding: VariableCodingData,
-  subform: string | undefined
-): Response => <Response>{
+const deriveErrorResponse = (coding: VariableCodingData, subform: string | undefined): Response => <Response>{
   id: coding.id,
   value: null,
   status: CODING_SCHEME_STATUS.DERIVE_ERROR,
   subform
 };
 
-export const amountFalseStates = (
-  coding: VariableCodingData,
-  sourceResponses: Response[]
-): number => {
+export const amountFalseStates = (coding: VariableCodingData, sourceResponses: Response[]): number => {
   switch (coding.sourceType) {
     case 'MANUAL': {
-      const isInvalid = (r: Response) => !MANUAL_VALID_STATES.includes(
-        r.status as (typeof MANUAL_VALID_STATES)[number]
-      ) &&
+      const isInvalid = (r: Response) => !MANUAL_VALID_STATES.includes(r.status as (typeof MANUAL_VALID_STATES)[number]) &&
         !(
           (r.status === CODING_SCHEME_STATUS.DISPLAYED &&
-            coding.sourceParameters?.processing?.includes(
-              'TAKE_DISPLAYED_AS_VALUE_CHANGED'
-            )) ||
+            coding.sourceParameters?.processing?.includes('TAKE_DISPLAYED_AS_VALUE_CHANGED')) ||
           (r.status === CODING_SCHEME_STATUS.NOT_REACHED &&
-            coding.sourceParameters?.processing?.includes(
-              'TAKE_NOT_REACHED_AS_VALUE_CHANGED'
-            ))
+            coding.sourceParameters?.processing?.includes('TAKE_NOT_REACHED_AS_VALUE_CHANGED'))
         );
 
       return sourceResponses.filter(isInvalid).length;
@@ -52,18 +36,14 @@ export const amountFalseStates = (
     case 'COPY_VALUE':
     case 'UNIQUE_VALUES':
     case 'SOLVER': {
-      const isInvalid = (r: Response) => !COPY_SOLVER_VALID_STATES.includes(
-        r.status as (typeof COPY_SOLVER_VALID_STATES)[number]
-      );
+      const isInvalid = (r: Response) => !COPY_SOLVER_VALID_STATES.includes(r.status as (typeof COPY_SOLVER_VALID_STATES)[number]);
       return sourceResponses.filter(isInvalid).length;
     }
 
     case 'CONCAT_CODE':
     case 'SUM_CODE':
     case 'SUM_SCORE': {
-      const isInvalid = (r: Response) => !CONCAT_SUM_VALID_STATES.includes(
-        r.status as (typeof CONCAT_SUM_VALID_STATES)[number]
-      );
+      const isInvalid = (r: Response) => !CONCAT_SUM_VALID_STATES.includes(r.status as (typeof CONCAT_SUM_VALID_STATES)[number]);
       return sourceResponses.filter(isInvalid).length;
     }
 
@@ -76,19 +56,12 @@ type DeriveContext = {
   variableCodings: VariableCodingData[];
   coding: VariableCodingData;
   sourceResponses: Response[];
+  sourceResponseById: Map<string, Response>;
   subformSource: string | undefined;
 };
 
-const handleManual = ({
-  coding,
-  sourceResponses,
-  subformSource
-}: DeriveContext): Response => {
-  if (
-    sourceResponses.every(
-      r => r.status === CODING_SCHEME_STATUS.INTENDED_INCOMPLETE
-    )
-  ) {
+const handleManual = ({ coding, sourceResponses, subformSource }: DeriveContext): Response => {
+  if (sourceResponses.every(r => r.status === CODING_SCHEME_STATUS.INTENDED_INCOMPLETE)) {
     return <Response>{
       id: coding.id,
       value: null,
@@ -104,16 +77,8 @@ const handleManual = ({
   };
 };
 
-const handleCopyValue = ({
-  coding,
-  sourceResponses,
-  subformSource
-}: DeriveContext): Response => {
-  if (
-    sourceResponses.some(
-      response => response.status === CODING_SCHEME_STATUS.DERIVE_PENDING
-    )
-  ) {
+const handleCopyValue = ({ coding, sourceResponses, subformSource }: DeriveContext): Response => {
+  if (sourceResponses.some(response => response.status === CODING_SCHEME_STATUS.DERIVE_PENDING)) {
     return <Response>{
       id: coding.id,
       value: null,
@@ -131,17 +96,11 @@ const handleCopyValue = ({
   };
 };
 
-const handleConcatCode = ({
-  coding,
-  sourceResponses,
-  subformSource
-}: DeriveContext): Response => {
+const handleConcatCode = ({ coding, sourceResponseById, subformSource }: DeriveContext): Response => {
   const deriveSources = coding.deriveSources ?? [];
   const extractCode = (sourceId: string): string => {
-    const response = sourceResponses.find(r => r.id === sourceId);
-    return response && (response.code || response.code === 0) ?
-      response.code.toString(10) :
-      '?';
+    const response = sourceResponseById.get(sourceId);
+    return response && (response.code || response.code === 0) ? response.code.toString(10) : '?';
   };
   const codes = deriveSources.map(extractCode);
 
@@ -157,36 +116,26 @@ const handleConcatCode = ({
   };
 };
 
-const handleSumCode = ({
-  coding,
-  sourceResponses,
-  subformSource
-}: DeriveContext): Response => {
+const handleSumCode = ({ coding, sourceResponseById, subformSource }: DeriveContext): Response => {
   const deriveSources = coding.deriveSources ?? [];
-  const allSourcesPresent = deriveSources.every(sourceId => sourceResponses.some(r => r.id === sourceId)
-  );
+  const allSourcesPresent = deriveSources.every(sourceId => sourceResponseById.has(sourceId));
   if (!allSourcesPresent) {
     return deriveErrorResponse(coding, subformSource);
   }
   return <Response>{
     id: coding.id,
     value: deriveSources.reduce((sum, sourceId) => {
-      const myResponse = sourceResponses.find(r => r.id === sourceId);
-      return sum + (myResponse?.code || 0);
+      const myResponse = sourceResponseById.get(sourceId);
+      return sum + (myResponse?.code ?? 0);
     }, 0),
     status: CODING_SCHEME_STATUS.VALUE_CHANGED,
     subform: subformSource
   };
 };
 
-const handleSumScore = ({
-  coding,
-  sourceResponses,
-  subformSource
-}: DeriveContext): Response => {
+const handleSumScore = ({ coding, sourceResponseById, subformSource }: DeriveContext): Response => {
   const deriveSources = coding.deriveSources ?? [];
-  const allSourcesPresent = deriveSources.every(sourceId => sourceResponses.some(r => r.id === sourceId)
-  );
+  const allSourcesPresent = deriveSources.every(sourceId => sourceResponseById.has(sourceId));
   if (!allSourcesPresent) {
     return deriveErrorResponse(coding, subformSource);
   }
@@ -195,7 +144,7 @@ const handleSumScore = ({
     id: coding.id,
     value: deriveSources
       .map((sourceId: string) => {
-        const response = sourceResponses.find(r => r.id === sourceId);
+        const response = sourceResponseById.get(sourceId);
         return response?.score ?? 0;
       })
       .reduce((total: number, score: number) => total + score, 0),
@@ -204,11 +153,7 @@ const handleSumScore = ({
   };
 };
 
-const handleUniqueValues = ({
-  coding,
-  sourceResponses,
-  subformSource
-}: DeriveContext): Response => {
+const handleUniqueValues = ({ coding, sourceResponses, subformSource }: DeriveContext): Response => {
   const valuesToCompare: string[] = sourceResponses
     .filter(r => validStatesForDerivingValue.includes(r.status))
     .map(r => {
@@ -229,9 +174,7 @@ const handleUniqueValues = ({
         CodingFactory.getValueAsString(r.value, processing) || '';
     });
 
-  const duplicates = valuesToCompare.filter(
-    (value, index, array) => array.indexOf(value) < index
-  );
+  const duplicates = valuesToCompare.filter((value, index, array) => array.indexOf(value) < index);
 
   return <Response>{
     id: coding.id,
@@ -242,18 +185,9 @@ const handleUniqueValues = ({
 };
 
 const handleSolver = ({
-  variableCodings,
-  coding,
-  sourceResponses,
-  subformSource
+  variableCodings, coding, sourceResponseById, subformSource
 }: DeriveContext): Response => {
-  if (
-    !(
-      coding.sourceParameters &&
-      coding.sourceParameters.processing &&
-      coding.sourceParameters.solverExpression
-    )
-  ) {
+  if (!(coding.sourceParameters && coding.sourceParameters.processing && coding.sourceParameters.solverExpression)) {
     return deriveErrorResponse(coding, subformSource);
   }
 
@@ -262,16 +196,12 @@ const handleSolver = ({
   const sources: string[] = [];
   const replacements = new Map<string, string>();
 
-  const matches = Array.from(
-    coding.sourceParameters.solverExpression.matchAll(varSearchPattern)
-  );
+  const matches = Array.from(coding.sourceParameters.solverExpression.matchAll(varSearchPattern));
 
   // eslint-disable-next-line no-restricted-syntax
   for (const match of matches) {
     const variableAlias = match[1].trim();
-    const matchId =
-      variableCodings.find(c => c.alias === variableAlias)?.id ||
-      variableAlias;
+    const matchId = variableCodings.find(c => c.alias === variableAlias)?.id || variableAlias;
 
     if (!sources.includes(matchId)) {
       sources.push(matchId);
@@ -281,9 +211,7 @@ const handleSolver = ({
     }
   }
 
-  const missingDeriveVars = sources.filter(
-    source => !deriveSources.includes(source)
-  );
+  const missingDeriveVars = sources.filter(source => !deriveSources.includes(source));
 
   if (missingDeriveVars.length > 0) {
     return <Response>{
@@ -298,23 +226,18 @@ const handleSolver = ({
 
   // eslint-disable-next-line no-restricted-syntax
   for (const [toReplace, varId] of replacements.entries()) {
-    const responseToReplace = sourceResponses.find(r => r.id === varId);
+    const responseToReplace = sourceResponseById.get(varId);
     if (!responseToReplace || Array.isArray(responseToReplace.value)) {
       return deriveErrorResponse(coding, subformSource);
     }
 
-    const valueToReplace = CodingFactory.getValueAsNumber(
-      responseToReplace.value
-    );
+    const valueToReplace = CodingFactory.getValueAsNumber(responseToReplace.value);
     if (valueToReplace === null) {
       return deriveErrorResponse(coding, subformSource);
     }
 
     const replacePattern = new RegExp(`\\$\\{${toReplace}}`, 'g');
-    newExpression = newExpression.replace(
-      replacePattern,
-      valueToReplace.toString(10)
-    );
+    newExpression = newExpression.replace(replacePattern, valueToReplace.toString(10));
   }
 
   let newValue: unknown;
@@ -336,10 +259,7 @@ const handleSolver = ({
   return <Response>{
     id: coding.id,
     value: newValue,
-    status:
-      newValue === null ?
-        CODING_SCHEME_STATUS.DERIVE_ERROR :
-        CODING_SCHEME_STATUS.VALUE_CHANGED,
+    status: newValue === null ? CODING_SCHEME_STATUS.DERIVE_ERROR : CODING_SCHEME_STATUS.VALUE_CHANGED,
     subform: subformSource
   };
 };
@@ -349,9 +269,7 @@ export const deriveValue = (
   coding: VariableCodingData,
   sourceResponses: Response[]
 ): Response => {
-  const subformSource = sourceResponses.find(
-    r => r.subform !== undefined
-  )?.subform;
+  const subformSource = sourceResponses.find(r => r.subform !== undefined)?.subform;
 
   const statusPrecedence: Array<{
     from: CodingSchemeStatus;
@@ -385,7 +303,7 @@ export const deriveValue = (
     }
   }
 
-  const hasPending = sourceResponses.some(r => isPendingStatus(r.status));
+  const hasPending = sourceResponses.some(r => isPendingStatus(r.status as CodingSchemeStatus));
 
   if (
     hasPending &&
@@ -393,9 +311,7 @@ export const deriveValue = (
       r.status as (typeof VALID_STATES_TO_START_DERIVE_PENDING_CHECK)[number]
     )
     ) &&
-    !['MANUAL', 'COPY_VALUE', 'UNIQUE_VALUES', 'SOLVER'].includes(
-      coding.sourceType
-    )
+    !['MANUAL', 'COPY_VALUE', 'UNIQUE_VALUES', 'SOLVER'].includes(coding.sourceType)
   ) {
     return <Response>{
       id: coding.id,
@@ -408,12 +324,8 @@ export const deriveValue = (
   const falseStates = amountFalseStates(coding, sourceResponses);
 
   if (sourceResponses.length >= falseStates && falseStates > 0) {
-    const allHaveSameStatus = sourceResponses.every(
-      r => r.status === sourceResponses[0].status
-    );
-    const allArePartlyDisplayedStatuses = sourceResponses.every(r => PARTLY_DISPLAYED_STATUSES.includes(
-      r.status as (typeof PARTLY_DISPLAYED_STATUSES)[number]
-    )
+    const allHaveSameStatus = sourceResponses.every(r => r.status === sourceResponses[0].status);
+    const allArePartlyDisplayedStatuses = sourceResponses.every(r => PARTLY_DISPLAYED_STATUSES.includes(r.status as (typeof PARTLY_DISPLAYED_STATUSES)[number])
     );
 
     if (allHaveSameStatus) {
@@ -446,12 +358,11 @@ export const deriveValue = (
     variableCodings,
     coding,
     sourceResponses,
+    sourceResponseById: new Map(sourceResponses.map(r => [r.id, r] as const)),
     subformSource
   };
 
-  const handlers: Partial<
-  Record<VariableCodingData['sourceType'], (c: DeriveContext) => Response>
-  > = {
+  const handlers: Partial<Record<VariableCodingData['sourceType'], (c: DeriveContext) => Response>> = {
     MANUAL: handleManual,
     COPY_VALUE: handleCopyValue,
     CONCAT_CODE: handleConcatCode,
