@@ -1,0 +1,44 @@
+{
+  "variableCodings": [
+    {
+      "id": "b1",
+      "alias": "b1",
+      "label": "",
+      "sourceType": "BASE",
+      "sourceParameters": { "solverExpression": "", "processing": [] },
+      "deriveSources": [],
+      "processing": [],
+      "fragmenting": "",
+      "manualInstruction": "",
+      "codeModel": "NONE",
+      "codes": []
+    },
+    {
+      "id": "d1",
+      "alias": "d1",
+      "label": "",
+      "sourceType": "SUM_SCORE",
+      "sourceParameters": { "solverExpression": "", "processing": [] },
+      "deriveSources": ["d2"],
+      "processing": [],
+      "fragmenting": "",
+      "manualInstruction": "",
+      "codeModel": "NONE",
+      "codes": []
+    },
+    {
+      "id": "d2",
+      "alias": "d2",
+      "label": "",
+      "sourceType": "SUM_SCORE",
+      "sourceParameters": { "solverExpression": "", "processing": [] },
+      "deriveSources": ["d1"],
+      "processing": [],
+      "fragmenting": "",
+      "manualInstruction": "",
+      "codeModel": "NONE",
+      "codes": []
+    }
+  ],
+  "version": "3.0"
+}
