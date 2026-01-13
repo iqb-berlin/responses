@@ -12,6 +12,13 @@ This package contains of type definitions for processing assessment data. Additi
 npm i @iqb/responses
 ```
 
+## Documentation
+
+- **[Quick Reference Guide](./QUICK_REFERENCE.md)** - Common operations, examples, and troubleshooting
+- **[Coding Process Documentation](./CODING_PROCESS.md)** - Detailed architecture and logic flow with diagrams
+- [Iqb specifications](https://iqb-specifications.github.io/)
+- [Ausführliche Darstellungen zum Kodieren](https://iqb-berlin.github.io/tba-info/coding/response-status.html)
+
 ## Public API (Exports)
 
 The package exports (among others):
