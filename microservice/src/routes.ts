@@ -2,8 +2,16 @@ import express, { Request, Response } from 'express';
 import { CodingFactory, CodingSchemeFactory, ToTextFactory } from '@iqb/responses';
 import path from 'path';
 import fs from 'fs';
+import rateLimit from 'express-rate-limit';
 
 export const router = express.Router();
+
+// Rate limiter for documentation page (file access)
+const docLimit = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again after 15 minutes'
+});
 
 // Error handling helper
 const handleError = (res: Response, error: unknown) => {
@@ -13,7 +21,7 @@ const handleError = (res: Response, error: unknown) => {
 
 // --- Documentation Page ---
 
-router.get('/', (req: Request, res: Response) => {
+router.get('/', docLimit, (req: Request, res: Response) => {
   const htmlPath = path.join(__dirname, 'index.html');
   if (fs.existsSync(htmlPath)) {
     res.sendFile(htmlPath);
