@@ -1,0 +1,111 @@
+# Docker Compose Example for Using Responses Microservice
+# 
+# This is an example docker-compose.yml file that shows how to integrate
+# the responses-microservice into your project.
+#
+# Copy this file to your project and adjust as needed.
+
+version: '3.8'
+
+services:
+  # Responses Microservice
+  responses-microservice:
+    # Use a specific version tag in production (not 'latest')
+    image: ghcr.io/iqb-berlin/responses-microservice:5.0.0
+    
+    # Alternative: Use Docker Hub
+    # image: iqbberlin/responses-microservice:5.0.0
+    
+    # Alternative: Use private registry
+    # image: registry.iqb.de/responses-microservice:5.0.0
+    
+    container_name: responses-service
+    
+    ports:
+      - "3000:3000"
+    
+    restart: unless-stopped
+    
+    environment:
+      - NODE_ENV=production
+    
+    # Health check to ensure service is running
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Networks
+    networks:
+      - app-network
+
+  # Example: Your own application that uses the responses service
+  # my-app:
+  #   build: .
+  #   container_name: my-app
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     responses-microservice:
+  #       condition: service_healthy
+  #   environment:
+  #     # The service is accessible via the service name
+  #     - RESPONSES_SERVICE_URL=http://responses-microservice:3000
+  #   networks:
+  #     - app-network
+
+  # Example: Backend service (Node.js/Express)
+  # backend:
+  #   build:
+  #     context: ./backend
+  #     dockerfile: Dockerfile
+  #   container_name: backend
+  #   ports:
+  #     - "4000:4000"
+  #   depends_on:
+  #     responses-microservice:
+  #       condition: service_healthy
+  #   environment:
+  #     - RESPONSES_SERVICE_URL=http://responses-microservice:3000
+  #     - DATABASE_URL=postgresql://user:password@db:5432/mydb
+  #   networks:
+  #     - app-network
+
+  # Example: Database
+  # db:
+  #   image: postgres:15-alpine
+  #   container_name: postgres-db
+  #   environment:
+  #     - POSTGRES_USER=user
+  #     - POSTGRES_PASSWORD=password
+  #     - POSTGRES_DB=mydb
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #   networks:
+  #     - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+# volumes:
+#   postgres-data:
