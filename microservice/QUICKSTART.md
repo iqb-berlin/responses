@@ -44,15 +44,24 @@ console.log(result.data);
 ### Java Example
 
 ```java
-RestTemplate restTemplate = new RestTemplate();
-String url = "http://localhost:3000/codings/code";
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.ResponseEntity;
+import java.util.HashMap;
+import java.util.Map;
 
-Map<String, Object> request = new HashMap<>();
-request.put("response", responseData);
-request.put("coding", codingData);
+public class ResponseCoder {
+    public void code() {
+        RestTemplate restTemplate = new RestTemplate();
+        String url = "http://localhost:3000/codings/code";
 
-ResponseEntity<CodingResult> response = 
-    restTemplate.postForEntity(url, request, CodingResult.class);
+        Map<String, Object> request = new HashMap<>();
+        request.put("response", responseData);
+        request.put("coding", codingData);
+
+        ResponseEntity<CodingResult> response = 
+            restTemplate.postForEntity(url, request, CodingResult.class);
+    }
+}
 ```
 
 ### Python Example
