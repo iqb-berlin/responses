@@ -15,6 +15,7 @@ const docLimit = rateLimit({
 
 // Error handling helper
 const handleError = (res: Response, error: unknown) => {
+  // eslint-disable-next-line no-console
   console.error(error);
   res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
 };
@@ -36,7 +37,8 @@ router.post('/codings/code', (req: Request, res: Response) => {
   try {
     const { response, coding } = req.body;
     if (!response || !coding) {
-      return res.status(400).json({ error: 'Missing response or coding in body' });
+      res.status(400).json({ error: 'Missing response or coding in body' });
+      return;
     }
     const result = CodingFactory.code(response, coding);
     res.json(result);
@@ -51,7 +53,8 @@ router.post('/schemes/code', (req: Request, res: Response) => {
   try {
     const { unitResponses, variableCodings } = req.body;
     if (!unitResponses || !variableCodings) {
-      return res.status(400).json({ error: 'Missing unitResponses or variableCodings in body' });
+      res.status(400).json({ error: 'Missing unitResponses or variableCodings in body' });
+      return;
     }
     const result = CodingSchemeFactory.code(unitResponses, variableCodings);
     res.json(result);
@@ -64,7 +67,8 @@ router.post('/schemes/validate', (req: Request, res: Response) => {
   try {
     const { baseVariables, variableCodings } = req.body;
     if (!baseVariables || !variableCodings) {
-      return res.status(400).json({ error: 'Missing baseVariables or variableCodings in body' });
+      res.status(400).json({ error: 'Missing baseVariables or variableCodings in body' });
+      return;
     }
     const result = CodingSchemeFactory.validate(baseVariables, variableCodings);
     res.json(result);
@@ -77,7 +81,8 @@ router.post('/schemes/derive-value', (req: Request, res: Response) => {
   try {
     const { variableCodings, coding, sourceResponses } = req.body;
     if (!variableCodings || !coding || !sourceResponses) {
-      return res.status(400).json({ error: 'Missing variableCodings, coding, or sourceResponses in body' });
+      res.status(400).json({ error: 'Missing variableCodings, coding, or sourceResponses in body' });
+      return;
     }
     const result = CodingSchemeFactory.deriveValue(variableCodings, coding, sourceResponses);
     res.json(result);
@@ -92,7 +97,8 @@ router.post('/text/code', (req: Request, res: Response) => {
   try {
     const { code, mode } = req.body;
     if (!code) {
-      return res.status(400).json({ error: 'Missing code in body' });
+      res.status(400).json({ error: 'Missing code in body' });
+      return;
     }
     const result = ToTextFactory.codeAsText(code, mode || 'EXTENDED');
     res.json(result);
@@ -103,9 +109,15 @@ router.post('/text/code', (req: Request, res: Response) => {
 
 router.post('/text/source', (req: Request, res: Response) => {
   try {
-    const { variableId, sourceType, sources, parameters } = req.body;
+    const {
+      variableId,
+      sourceType,
+      sources,
+      parameters
+    } = req.body;
     if (!variableId || !sourceType) {
-      return res.status(400).json({ error: 'Missing variableId or sourceType in body' });
+      res.status(400).json({ error: 'Missing variableId or sourceType in body' });
+      return;
     }
     const result = ToTextFactory.sourceAsText(variableId, sourceType, sources || [], parameters);
     res.json({ text: result });
@@ -128,7 +140,8 @@ router.post('/text/var-info', (req: Request, res: Response) => {
   try {
     const { varInfo } = req.body;
     if (!varInfo) {
-      return res.status(400).json({ error: 'Missing varInfo in body' });
+      res.status(400).json({ error: 'Missing varInfo in body' });
+      return;
     }
     const result = ToTextFactory.varInfoAsText(varInfo);
     res.json(result);

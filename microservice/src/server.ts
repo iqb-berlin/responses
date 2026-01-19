@@ -12,5 +12,6 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use('/', router);
 
 app.listen(port, () => {
+  // eslint-disable-next-line no-console
   console.log(`Microservice listening at http://localhost:${port}`);
 });
