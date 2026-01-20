@@ -1,6 +1,6 @@
 {
   "name": "responses-microservice",
-  "version": "1.0.0",
+  "version": "5.0.0",
   "description": "Microservice wrapper for @iqb/responses",
   "main": "dist/microservice/src/server.js",
   "scripts": {
