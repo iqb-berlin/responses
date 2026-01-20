@@ -250,7 +250,7 @@
             <div class="section">
                 <h2>📋 Overview</h2>
                 <p>This microservice exposes the functionality of the <code>@iqb/responses</code> library through a REST API, enabling coding, validation, and text rendering operations for educational assessment responses.</p>
-                
+
                 <div class="info-grid">
                     <div class="info-card">
                         <h4>🔧 Technology</h4>
@@ -258,7 +258,7 @@
                     </div>
                     <div class="info-card">
                         <h4>📦 Version</h4>
-                        <p>1.0.0</p>
+                        <p>5.0.0</p>
                     </div>
                     <div class="info-card">
                         <h4>🌐 Base URL</h4>
@@ -279,7 +279,7 @@
                         <span class="path">/codings/code</span>
                     </div>
                     <p class="description">Code a single response using a specific coding definition.</p>
-                    
+
                     <div class="label">Request Body:</div>
                     <div class="code-block"><pre>{
   "response": {
@@ -303,7 +303,7 @@
                         <span class="path">/schemes/code</span>
                     </div>
                     <p class="description">Code a set of responses using a complete variable coding scheme.</p>
-                    
+
                     <div class="label">Request Body:</div>
                     <div class="code-block"><pre>{
   "unitResponses": [...],
@@ -317,7 +317,7 @@
                         <span class="path">/schemes/validate</span>
                     </div>
                     <p class="description">Validate a coding scheme against a set of base variables.</p>
-                    
+
                     <div class="label">Request Body:</div>
                     <div class="code-block"><pre>{
   "baseVariables": [...],
@@ -331,7 +331,7 @@
                         <span class="path">/schemes/derive-value</span>
                     </div>
                     <p class="description">Derive a value for a variable based on other variable values (derivation rule).</p>
-                    
+
                     <div class="label">Request Body:</div>
                     <div class="code-block"><pre>{
   "variableCodings": [...],
@@ -349,7 +349,7 @@
                         <span class="path">/text/code</span>
                     </div>
                     <p class="description">Generate a text description for a specific code rule.</p>
-                    
+
                     <div class="label">Request Body:</div>
                     <div class="code-block"><pre>{
   "code": {...},
@@ -363,7 +363,7 @@
                         <span class="path">/text/source</span>
                     </div>
                     <p class="description">Generate a text description for a source definition.</p>
-                    
+
                     <div class="label">Request Body:</div>
                     <div class="code-block"><pre>{
   "variableId": "var1",
@@ -379,7 +379,7 @@
                         <span class="path">/text/processing</span>
                     </div>
                     <p class="description">Generate a text description for processing instructions.</p>
-                    
+
                     <div class="label">Request Body:</div>
                     <div class="code-block"><pre>{
   "processing": [...],
@@ -393,7 +393,7 @@
                         <span class="path">/text/var-info</span>
                     </div>
                     <p class="description">Generate a text description for general variable information.</p>
-                    
+
                     <div class="label">Request Body:</div>
                     <div class="code-block"><pre>{
   "varInfo": {...}
@@ -403,7 +403,7 @@
 
             <div class="section">
                 <h2>💡 Example Usage</h2>
-                
+
                 <div class="example-usage">
                     <h4>Using fetch (JavaScript/TypeScript)</h4>
                     <div class="code-block"><pre>const response = await fetch('http://localhost:3000/codings/code', {
@@ -432,7 +432,7 @@ console.log(result);</pre></div>
             <div class="section">
                 <h2>🐳 Docker Integration</h2>
                 <p>This service is designed to run as a Docker container and can be integrated into your application stack:</p>
-                
+
                 <div class="code-block"><pre>version: '3.8'
 
 services:
@@ -442,7 +442,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    
+
   my-app:
     image: my-app-image
     depends_on:
