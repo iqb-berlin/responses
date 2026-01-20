@@ -13,6 +13,52 @@ const docLimit = rateLimit({
   message: 'Too many requests from this IP, please try again after 15 minutes'
 });
 
+// --- Version Info ---
+
+const getPackageVersions = () => {
+  const versions = {
+    microservice: 'unknown',
+    library: 'unknown'
+  };
+
+  const findVersion = (pkgName: string, searchPaths: string[]): string => {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const pkgPath of searchPaths) {
+      try {
+        if (fs.existsSync(pkgPath)) {
+          const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+          if (pkg.name === pkgName && pkg.version) {
+            return pkg.version;
+          }
+        }
+      } catch (e) { /* ignore */ }
+    }
+    return 'unknown';
+  };
+
+  // 1. Get Microservice Version
+  versions.microservice = findVersion('responses-microservice', [
+    path.join(__dirname, '..', 'package.json'), // Dev: src/ -> ..
+    path.join(__dirname, '..', '..', '..', 'package.json'), // Dist: dist/microservice/src/ -> ../../../
+    path.join(process.cwd(), 'package.json'), // In case it's run from microservice root
+    path.join(process.cwd(), 'microservice', 'package.json') // In case it's run from repo root
+  ]);
+
+  // 2. Get Library Version (@iqb/responses)
+  versions.library = findVersion('@iqb/responses', [
+    path.join(__dirname, '..', '..', 'package.json'), // Dev: src/ -> ../..
+    path.join(__dirname, '..', '..', '..', '..', '..', 'package.json'), // Dist: dist/microservice/src/ -> ../../../../../
+    path.join(__dirname, '..', '..', 'node_modules', '@iqb/responses', 'package.json'), // node_modules dev
+    path.join(__dirname, '..', '..', '..', 'node_modules', '@iqb/responses', 'package.json'), // node_modules dist
+    path.join(process.cwd(), '..', 'package.json'), // Up from microservice root
+    path.join(process.cwd(), 'package.json') // If run from repo root
+  ]);
+
+  return versions;
+};
+
+const versions = getPackageVersions();
+
 // Error handling helper
 const handleError = (res: Response, error: unknown) => {
   // eslint-disable-next-line no-console
@@ -25,10 +71,17 @@ const handleError = (res: Response, error: unknown) => {
 router.get('/', docLimit, (req: Request, res: Response) => {
   const htmlPath = path.join(__dirname, 'index.html');
   if (fs.existsSync(htmlPath)) {
-    res.sendFile(htmlPath);
+    let html = fs.readFileSync(htmlPath, 'utf8');
+    html = html.replace(/{{LIBRARY_VERSION}}/g, versions.library);
+    html = html.replace(/{{MICROSERVICE_VERSION}}/g, versions.microservice);
+    res.send(html);
   } else {
     res.status(404).send('Documentation page not found');
   }
+});
+
+router.get('/version', (req: Request, res: Response) => {
+  res.json(versions);
 });
 
 // --- CodingFactory Endpoints ---

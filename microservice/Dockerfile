@@ -34,6 +34,12 @@ RUN npm install
 # Build the microservice
 RUN npm run build
 
+# Add version labels
+ARG MS_VERSION
+ARG LIB_VERSION
+LABEL org.opencontainers.image.version=$MS_VERSION
+LABEL de.iqb.responses.version=$LIB_VERSION
+
 EXPOSE 3000
 
 CMD ["npm", "start"]

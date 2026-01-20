@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,8 +73,15 @@
         }
 
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
         }
 
         .content {
@@ -235,11 +243,15 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
             <h1>🚀 Responses Microservice</h1>
-            <p class="subtitle">REST API wrapper for @iqb/responses library</p>
+            <p class="subtitle">
+                REST API wrapper for @iqb/responses library <span style="font-weight: 600;">v{{LIBRARY_VERSION}}</span>
+                <span style="opacity: 0.7; font-size: 0.8rem; margin-left: 1rem;">(ms v{{MICROSERVICE_VERSION}})</span>
+            </p>
             <div class="status-badge">
                 <span class="status-indicator"></span>
                 Service Running
@@ -249,7 +261,9 @@
         <div class="content">
             <div class="section">
                 <h2>📋 Overview</h2>
-                <p>This microservice exposes the functionality of the <code>@iqb/responses</code> library through a REST API, enabling coding, validation, and text rendering operations for educational assessment responses.</p>
+                <p>This microservice exposes the functionality of the <code>@iqb/responses</code> library through a REST
+                    API, enabling coding, validation, and text rendering operations for educational assessment
+                    responses.</p>
 
                 <div class="info-grid">
                     <div class="info-card">
@@ -257,8 +271,12 @@
                         <p>Express.js REST API with TypeScript</p>
                     </div>
                     <div class="info-card">
-                        <h4>📦 Version</h4>
-                        <p>5.0.0</p>
+                        <h4>📦 Library Version</h4>
+                        <p style="font-size: 1.5rem; font-weight: 700; color: #667eea;">{{LIBRARY_VERSION}}</p>
+                    </div>
+                    <div class="info-card" style="border-left-color: #9ca3af;">
+                        <h4>⚙️ Microservice</h4>
+                        <p>{{MICROSERVICE_VERSION}}</p>
                     </div>
                     <div class="info-card">
                         <h4>🌐 Base URL</h4>
@@ -281,7 +299,8 @@
                     <p class="description">Code a single response using a specific coding definition.</p>
 
                     <div class="label">Request Body:</div>
-                    <div class="code-block"><pre>{
+                    <div class="code-block">
+                        <pre>{
   "response": {
     "id": "var1",
     "value": "hello",
@@ -291,7 +310,8 @@
     "id": "var1",
     "codes": []
   }
-}</pre></div>
+}</pre>
+                    </div>
                 </div>
 
                 <h3>Coding Scheme Operations</h3>
@@ -305,10 +325,12 @@
                     <p class="description">Code a set of responses using a complete variable coding scheme.</p>
 
                     <div class="label">Request Body:</div>
-                    <div class="code-block"><pre>{
+                    <div class="code-block">
+                        <pre>{
   "unitResponses": [...],
   "variableCodings": [...]
-}</pre></div>
+}</pre>
+                    </div>
                 </div>
 
                 <div class="endpoint-card">
@@ -319,10 +341,12 @@
                     <p class="description">Validate a coding scheme against a set of base variables.</p>
 
                     <div class="label">Request Body:</div>
-                    <div class="code-block"><pre>{
+                    <div class="code-block">
+                        <pre>{
   "baseVariables": [...],
   "variableCodings": [...]
-}</pre></div>
+}</pre>
+                    </div>
                 </div>
 
                 <div class="endpoint-card">
@@ -330,14 +354,17 @@
                         <span class="method">POST</span>
                         <span class="path">/schemes/derive-value</span>
                     </div>
-                    <p class="description">Derive a value for a variable based on other variable values (derivation rule).</p>
+                    <p class="description">Derive a value for a variable based on other variable values (derivation
+                        rule).</p>
 
                     <div class="label">Request Body:</div>
-                    <div class="code-block"><pre>{
+                    <div class="code-block">
+                        <pre>{
   "variableCodings": [...],
   "coding": {...},
   "sourceResponses": [...]
-}</pre></div>
+}</pre>
+                    </div>
                 </div>
 
                 <h3>Text Rendering Operations</h3>
@@ -351,10 +378,12 @@
                     <p class="description">Generate a text description for a specific code rule.</p>
 
                     <div class="label">Request Body:</div>
-                    <div class="code-block"><pre>{
+                    <div class="code-block">
+                        <pre>{
   "code": {...},
   "mode": "EXTENDED"  // Optional
-}</pre></div>
+}</pre>
+                    </div>
                 </div>
 
                 <div class="endpoint-card">
@@ -365,12 +394,14 @@
                     <p class="description">Generate a text description for a source definition.</p>
 
                     <div class="label">Request Body:</div>
-                    <div class="code-block"><pre>{
+                    <div class="code-block">
+                        <pre>{
   "variableId": "var1",
   "sourceType": "BASE",
   "sources": [...],
   "parameters": {...}  // Optional
-}</pre></div>
+}</pre>
+                    </div>
                 </div>
 
                 <div class="endpoint-card">
@@ -381,10 +412,12 @@
                     <p class="description">Generate a text description for processing instructions.</p>
 
                     <div class="label">Request Body:</div>
-                    <div class="code-block"><pre>{
+                    <div class="code-block">
+                        <pre>{
   "processing": [...],
   "fragmenting": {...}  // Optional
-}</pre></div>
+}</pre>
+                    </div>
                 </div>
 
                 <div class="endpoint-card">
@@ -395,9 +428,11 @@
                     <p class="description">Generate a text description for general variable information.</p>
 
                     <div class="label">Request Body:</div>
-                    <div class="code-block"><pre>{
+                    <div class="code-block">
+                        <pre>{
   "varInfo": {...}
-}</pre></div>
+}</pre>
+                    </div>
                 </div>
             </div>
 
@@ -406,7 +441,8 @@
 
                 <div class="example-usage">
                     <h4>Using fetch (JavaScript/TypeScript)</h4>
-                    <div class="code-block"><pre>const response = await fetch('http://localhost:3000/codings/code', {
+                    <div class="code-block">
+                        <pre>const response = await fetch('http://localhost:3000/codings/code', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
@@ -415,25 +451,30 @@
   })
 });
 const result = await response.json();
-console.log(result);</pre></div>
+console.log(result);</pre>
+                    </div>
                 </div>
 
                 <div class="example-usage" style="background: #fef3c7; border-left-color: #f59e0b;">
                     <h4 style="color: #92400e;">Using curl</h4>
-                    <div class="code-block"><pre>curl -X POST http://localhost:3000/codings/code \
+                    <div class="code-block">
+                        <pre>curl -X POST http://localhost:3000/codings/code \
   -H "Content-Type: application/json" \
   -d '{
     "response": {"id": "var1", "value": "hello", "status": "VALUE_CHANGED"},
     "coding": {"id": "var1", "codes": []}
-  }'</pre></div>
+  }'</pre>
+                    </div>
                 </div>
             </div>
 
             <div class="section">
                 <h2>🐳 Docker Integration</h2>
-                <p>This service is designed to run as a Docker container and can be integrated into your application stack:</p>
+                <p>This service is designed to run as a Docker container and can be integrated into your application
+                    stack:</p>
 
-                <div class="code-block"><pre>version: '3.8'
+                <div class="code-block">
+                    <pre>version: '3.8'
 
 services:
   responses-service:
@@ -448,14 +489,16 @@ services:
     depends_on:
       - responses-service
     environment:
-      - RESPONSES_SERVICE_URL=http://responses-service:3000</pre></div>
+      - RESPONSES_SERVICE_URL=http://responses-service:3000</pre>
+                </div>
             </div>
         </div>
 
         <footer>
             <p>Responses Microservice &copy; 2026 | Built with Express.js & TypeScript</p>
             <p style="margin-top: 0.5rem; font-size: 0.9rem;">
-                For more information, see the <a href="https://github.com/iqb-berlin/responses" target="_blank">@iqb/responses repository</a>
+                For more information, see the <a href="https://github.com/iqb-berlin/responses"
+                    target="_blank">@iqb/responses repository</a>
             </p>
         </footer>
     </div>
@@ -465,4 +508,5 @@ services:
         document.getElementById('baseUrl').textContent = window.location.origin;
     </script>
 </body>
+
 </html>

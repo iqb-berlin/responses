@@ -13,12 +13,16 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-VERSION=$(node -p "require('../package.json').version")
-IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+MS_VERSION=$(node -p "require('./package.json').version")
+LIB_VERSION=$(node -p "require('../package.json').version")
+
+IFS='.' read -r MS_MAJOR MS_MINOR MS_PATCH <<< "$MS_VERSION"
+IFS='.' read -r LIB_MAJOR LIB_MINOR LIB_PATCH <<< "$LIB_VERSION"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}Docker Publish Script${NC}"
-echo -e "${BLUE}Version: ${VERSION}${NC}"
+echo -e "${BLUE}Microservice: ${MS_VERSION}${NC}"
+echo -e "${BLUE}Library:      ${LIB_VERSION}${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 
@@ -29,16 +33,29 @@ push_images() {
     
     echo -e "${YELLOW}Pushing to ${registry}...${NC}"
     
-    # Push all version tags
-    docker push ${registry}/${image_name}:${VERSION}
-    echo "  ✓ Pushed ${registry}/${image_name}:${VERSION}"
+    # 1. Combined Tag
+    local COMBINED_TAG="m${MS_VERSION}-l${LIB_VERSION}"
+    docker push ${registry}/${image_name}:${COMBINED_TAG}
+    echo "  ✓ Pushed ${registry}/${image_name}:${COMBINED_TAG}"
     
-    docker push ${registry}/${image_name}:${MAJOR}.${MINOR}
-    echo "  ✓ Pushed ${registry}/${image_name}:${MAJOR}.${MINOR}"
+    # 2. Microservice Tags
+    docker push ${registry}/${image_name}:${MS_VERSION}
+    echo "  ✓ Pushed ${registry}/${image_name}:${MS_VERSION}"
     
-    docker push ${registry}/${image_name}:${MAJOR}
-    echo "  ✓ Pushed ${registry}/${image_name}:${MAJOR}"
+    docker push ${registry}/${image_name}:${MS_MAJOR}.${MS_MINOR}
+    echo "  ✓ Pushed ${registry}/${image_name}:${MS_MAJOR}.${MS_MINOR}"
     
+    docker push ${registry}/${image_name}:${MS_MAJOR}
+    echo "  ✓ Pushed ${registry}/${image_name}:${MS_MAJOR}"
+    
+    # 3. Library Tags
+    docker push ${registry}/${image_name}:lib${LIB_VERSION}
+    echo "  ✓ Pushed ${registry}/${image_name}:lib${LIB_VERSION}"
+    
+    docker push ${registry}/${image_name}:lib${LIB_MAJOR}.${LIB_MINOR}
+    echo "  ✓ Pushed ${registry}/${image_name}:lib${LIB_MAJOR}.${LIB_MINOR}"
+    
+    # 4. Latest
     docker push ${registry}/${image_name}:latest
     echo "  ✓ Pushed ${registry}/${image_name}:latest"
     

@@ -13,12 +13,16 @@ NC='\033[0m' # No Color
 
 # Configuration
 LOCAL_IMAGE="responses-microservice"
-VERSION=$(node -p "require('../package.json').version")
+MS_VERSION=$(node -p "require('./package.json').version")
+LIB_VERSION=$(node -p "require('../package.json').version")
 
 # Parse version components
-IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+IFS='.' read -r MS_MAJOR MS_MINOR MS_PATCH <<< "$MS_VERSION"
+IFS='.' read -r LIB_MAJOR LIB_MINOR LIB_PATCH <<< "$LIB_VERSION"
 
-echo -e "${GREEN}Tagging Docker image for version ${VERSION}${NC}"
+echo -e "${GREEN}Tagging Docker image:${NC}"
+echo -e "  Microservice: ${MS_VERSION}"
+echo -e "  Library:      ${LIB_VERSION}"
 echo ""
 
 # Function to tag image
@@ -28,19 +32,29 @@ tag_image() {
     
     echo -e "${YELLOW}Tagging for ${registry}...${NC}"
     
-    # Full version tag
-    docker tag ${LOCAL_IMAGE} ${registry}/${image_name}:${VERSION}
-    echo "  ✓ ${registry}/${image_name}:${VERSION}"
+    # 1. Combined Tag (Explicit)
+    local COMBINED_TAG="m${MS_VERSION}-l${LIB_VERSION}"
+    docker tag ${LOCAL_IMAGE} ${registry}/${image_name}:${COMBINED_TAG}
+    echo "  ✓ ${registry}/${image_name}:${COMBINED_TAG}"
     
-    # Major.Minor tag
-    docker tag ${LOCAL_IMAGE} ${registry}/${image_name}:${MAJOR}.${MINOR}
-    echo "  ✓ ${registry}/${image_name}:${MAJOR}.${MINOR}"
+    # 2. Microservice version tags
+    docker tag ${LOCAL_IMAGE} ${registry}/${image_name}:${MS_VERSION}
+    echo "  ✓ ${registry}/${image_name}:${MS_VERSION}"
     
-    # Major tag
-    docker tag ${LOCAL_IMAGE} ${registry}/${image_name}:${MAJOR}
-    echo "  ✓ ${registry}/${image_name}:${MAJOR}"
+    docker tag ${LOCAL_IMAGE} ${registry}/${image_name}:${MS_MAJOR}.${MS_MINOR}
+    echo "  ✓ ${registry}/${image_name}:${MS_MAJOR}.${MS_MINOR}"
     
-    # Latest tag
+    docker tag ${LOCAL_IMAGE} ${registry}/${image_name}:${MS_MAJOR}
+    echo "  ✓ ${registry}/${image_name}:${MS_MAJOR}"
+    
+    # 3. Library version tags
+    docker tag ${LOCAL_IMAGE} ${registry}/${image_name}:lib${LIB_VERSION}
+    echo "  ✓ ${registry}/${image_name}:lib${LIB_VERSION}"
+    
+    docker tag ${LOCAL_IMAGE} ${registry}/${image_name}:lib${LIB_MAJOR}.${LIB_MINOR}
+    echo "  ✓ ${registry}/${image_name}:lib${LIB_MAJOR}.${LIB_MINOR}"
+    
+    # 4. Latest tag
     docker tag ${LOCAL_IMAGE} ${registry}/${image_name}:latest
     echo "  ✓ ${registry}/${image_name}:latest"
     

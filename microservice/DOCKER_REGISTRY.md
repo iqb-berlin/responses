@@ -66,30 +66,35 @@ cd /Users/julian/iqb-dev/responses
 
 ### 2. Image taggen
 
-Das Image sollte mit aussagekräftigen Tags versehen werden:
+Das Image wird mit einer Hierarchie von Tags versehen, um sowohl die Microservice-Version als auch die Version der verwendeten `@iqb/responses` Bibliothek abzubilden:
 
 ```bash
-# Für GitHub Container Registry
-docker tag responses-microservice ghcr.io/iqb-berlin/responses-microservice:latest
-docker tag responses-microservice ghcr.io/iqb-berlin/responses-microservice:5.0.0
-docker tag responses-microservice ghcr.io/iqb-berlin/responses-microservice:5.0
-
-# Für Docker Hub
-docker tag responses-microservice iqbberlin/responses-microservice:latest
-docker tag responses-microservice iqbberlin/responses-microservice:5.0.0
-docker tag responses-microservice iqbberlin/responses-microservice:5.0
-
-# Für private Registry
-docker tag responses-microservice registry.iqb.de/responses-microservice:latest
-docker tag responses-microservice registry.iqb.de/responses-microservice:5.0.0
+# Nutze das Script für automatisches Tagging (empfohlen)
+cd microservice
+./docker-tag.sh
 ```
 
-**Tag-Strategie:**
-- `latest` - Neueste stabile Version
-- `5.0.0` - Spezifische Version (aus package.json)
-- `5.0` - Major.Minor Version
-- `5` - Major Version
-- `dev` - Entwicklungsversion (optional)
+**Die neue Tag-Strategie:**
+
+1. **Kombinierter Tag (Eindeutig)**:
+   - `m1.0.0-l5.0.0` - Fixiert sowohl Microservice (`m`) als auch Library (`l`). Dies ist der sicherste Tag für Produktion.
+
+2. **Microservice Tags (Standard)**:
+   - `1.0.0` - Spezifische Microservice-Version.
+   - `1.0` - Major.Minor Version des Microservices.
+   - `1` - Major Version des Microservices.
+
+3. **Library Tags (Referenz)**:
+   - `lib5.0.0` - Die Version der enthaltenen `@iqb/responses` Bibliothek.
+   - `lib5.0` - Major.Minor der Bibliothek.
+
+4. **Latest**:
+   - `latest` - Die absolut neueste Version.
+
+**Beispiel GHCR:**
+- `ghcr.io/iqb-berlin/responses-microservice:m1.0.0-l5.0.0`
+- `ghcr.io/iqb-berlin/responses-microservice:1.0.0`
+- `ghcr.io/iqb-berlin/responses-microservice:lib5.0.0`
 
 ## In Registry veröffentlichen
 
