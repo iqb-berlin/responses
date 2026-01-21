@@ -355,4 +355,22 @@ describe('deriveValue', () => {
     expect(result.status).toBe('DERIVE_ERROR');
     expect(result.value).toBeNull();
   });
+
+  test('returns DERIVE_ERROR if sourceType is invalid (e.g. toString)', () => {
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'toString' as unknown as VariableCodingData['sourceType'],
+      deriveSources: ['v1'],
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: 1,
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([coding], coding, [r1]);
+    expect(result.status).toBe('DERIVE_ERROR');
+  });
 });

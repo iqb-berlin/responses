@@ -376,6 +376,8 @@ export const deriveValue = (
     SOLVER: handleSolver
   };
 
-  const handler = handlers[coding.sourceType];
+  const handler = Object.prototype.hasOwnProperty.call(handlers, coding.sourceType) ?
+    handlers[coding.sourceType] :
+    undefined;
   return handler ? handler(ctx) : deriveErrorResponse(coding, subformSource);
 };
