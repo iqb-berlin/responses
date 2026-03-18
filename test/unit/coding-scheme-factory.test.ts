@@ -193,7 +193,7 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
-    test('detects RULE_PARAMETER_COUNT_MISMATCH for invalid MATCH_REGEX pattern', () => {
+    test('detects RULE_REGEX_INVALID for invalid MATCH_REGEX pattern', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1' }
       ] as unknown as VariableInfo[];
@@ -219,12 +219,12 @@ describe('CodingSchemeFactory', () => {
       const problems = CodingSchemeFactory.validate(baseVars, [coding]);
       expect(
         problems.some(
-          p => p.type === 'RULE_PARAMETER_COUNT_MISMATCH' && p.breaking
+          p => p.type === 'RULE_REGEX_INVALID' && p.breaking
         )
       ).toBe(true);
     });
 
-    test('detects RULE_PARAMETER_COUNT_MISMATCH for non-numeric NUMERIC_MIN parameter', () => {
+    test('detects RULE_PARAMETER_INVALID for non-numeric NUMERIC_MIN parameter', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1' }
       ] as unknown as VariableInfo[];
@@ -250,12 +250,12 @@ describe('CodingSchemeFactory', () => {
       const problems = CodingSchemeFactory.validate(baseVars, [coding]);
       expect(
         problems.some(
-          p => p.type === 'RULE_PARAMETER_COUNT_MISMATCH' && p.breaking
+          p => p.type === 'RULE_PARAMETER_INVALID' && p.breaking
         )
       ).toBe(true);
     });
 
-    test('detects RULE_PARAMETER_COUNT_MISMATCH for reversed NUMERIC_RANGE bounds', () => {
+    test('detects RULE_NUMERIC_RANGE_INVALID for reversed NUMERIC_RANGE bounds', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1' }
       ] as unknown as VariableInfo[];
@@ -281,7 +281,38 @@ describe('CodingSchemeFactory', () => {
       const problems = CodingSchemeFactory.validate(baseVars, [coding]);
       expect(
         problems.some(
-          p => p.type === 'RULE_PARAMETER_COUNT_MISMATCH' && p.breaking
+          p => p.type === 'RULE_NUMERIC_RANGE_INVALID' && p.breaking
+        )
+      ).toBe(true);
+    });
+
+    test('detects RULE_NUMERIC_RANGE_INVALID for non-numeric range bounds', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'NUMERIC_RANGE', parameters: ['abc', '10'] }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_NUMERIC_RANGE_INVALID' && p.breaking
         )
       ).toBe(true);
     });
@@ -433,7 +464,7 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
-    test('detects RULE_PARAMETER_COUNT_MISMATCH for invalid valueArrayPos string and negative numeric', () => {
+    test('detects RULESET_VALUE_ARRAY_POS_INVALID for invalid valueArrayPos string and negative numeric', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1' }
       ] as unknown as VariableInfo[];
@@ -475,7 +506,7 @@ describe('CodingSchemeFactory', () => {
       const problems = CodingSchemeFactory.validate(baseVars, [coding]);
       expect(
         problems.some(
-          p => p.type === 'RULE_PARAMETER_COUNT_MISMATCH' && p.breaking
+          p => p.type === 'RULESET_VALUE_ARRAY_POS_INVALID' && p.breaking
         )
       ).toBe(true);
     });

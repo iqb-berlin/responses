@@ -26,6 +26,62 @@ export const validateCodingScheme = (
     });
   };
 
+  const pushRuleParameterInvalid = (
+    variableId: string,
+    variableLabel: string,
+    code: string
+  ) => {
+    problems.push({
+      type: 'RULE_PARAMETER_INVALID',
+      breaking: true,
+      variableId,
+      variableLabel,
+      code
+    });
+  };
+
+  const pushRuleRegexInvalid = (
+    variableId: string,
+    variableLabel: string,
+    code: string
+  ) => {
+    problems.push({
+      type: 'RULE_REGEX_INVALID',
+      breaking: true,
+      variableId,
+      variableLabel,
+      code
+    });
+  };
+
+  const pushRuleNumericRangeInvalid = (
+    variableId: string,
+    variableLabel: string,
+    code: string
+  ) => {
+    problems.push({
+      type: 'RULE_NUMERIC_RANGE_INVALID',
+      breaking: true,
+      variableId,
+      variableLabel,
+      code
+    });
+  };
+
+  const pushRulesetValueArrayPosInvalid = (
+    variableId: string,
+    variableLabel: string,
+    code: string
+  ) => {
+    problems.push({
+      type: 'RULESET_VALUE_ARRAY_POS_INVALID',
+      breaking: true,
+      variableId,
+      variableLabel,
+      code
+    });
+  };
+
   const isFiniteNumberString = (s: unknown): boolean => {
     if (typeof s !== 'string') return false;
     const n = Number.parseFloat(s);
@@ -198,7 +254,7 @@ export const validateCodingScheme = (
             );
 
           if (!isAllowedValueArrayPos) {
-            pushRuleParameterMismatch(
+            pushRulesetValueArrayPosInvalid(
               c.alias || c.id,
               c.label || '',
               code.id ? code.id.toString(10) : 'null'
@@ -206,7 +262,7 @@ export const validateCodingScheme = (
           }
 
           if (typeof valueArrayPos === 'number' && valueArrayPos < 0) {
-            pushRuleParameterMismatch(
+            pushRulesetValueArrayPosInvalid(
               c.alias || c.id,
               c.label || '',
               code.id ? code.id.toString(10) : 'null'
@@ -240,7 +296,7 @@ export const validateCodingScheme = (
                   // eslint-disable-next-line no-new
                   new RegExp(p);
                 } catch (e) {
-                  pushRuleParameterMismatch(
+                  pushRuleRegexInvalid(
                     c.alias || c.id,
                     c.label || '',
                     code.id ? code.id.toString(10) : 'null'
@@ -260,7 +316,7 @@ export const validateCodingScheme = (
             ) {
               const values = params.flatMap(p => p.split(/\r?\n/));
               if (values.some(v => !isFiniteNumberString(v))) {
-                pushRuleParameterMismatch(
+                pushRuleParameterInvalid(
                   c.alias || c.id,
                   c.label || '',
                   code.id ? code.id.toString(10) : 'null'
@@ -275,7 +331,7 @@ export const validateCodingScheme = (
               const ll = params[0];
               const ul = params[1];
               if (!isFiniteNumberString(ll) || !isFiniteNumberString(ul)) {
-                pushRuleParameterMismatch(
+                pushRuleNumericRangeInvalid(
                   c.alias || c.id,
                   c.label || '',
                   code.id ? code.id.toString(10) : 'null'
@@ -284,7 +340,7 @@ export const validateCodingScheme = (
                 const llNum = Number.parseFloat(ll);
                 const ulNum = Number.parseFloat(ul);
                 if (llNum > ulNum) {
-                  pushRuleParameterMismatch(
+                  pushRuleNumericRangeInvalid(
                     c.alias || c.id,
                     c.label || '',
                     code.id ? code.id.toString(10) : 'null'
