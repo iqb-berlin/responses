@@ -193,6 +193,16 @@ Status strings used by this package include (among others) `VALUE_CHANGED`, `COD
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 5.1
+- @iqbspecs/coding-scheme 3.4.0
+- Implementiert die neuen CodingProblem Typen:
+     - `RULE_REGEX_INVALID`,
+     - `RULE_PARAMETER_INVALID`,
+     - `RULE_NUMERIC_RANGE_INVALID`,
+     - `RULESET_VALUE_ARRAY_POS_INVALID`
+
+
+
 ### 5.0
 
 - umfangreiches Refactoring/Modularisierung (u. a. Ableitungen, Rule-Engine, Dependency-Planung)
