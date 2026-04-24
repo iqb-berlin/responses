@@ -2,6 +2,28 @@
 
 This microservice wraps the `@iqb/responses` library, exposing its functionality via a REST API.
 
+## Load Testing
+
+This branch contains a k6-based load-test setup for `POST /schemes/code`.
+
+- [k6 test matrix](../docs/load-testing/responses-schemes-code-k6.md)
+- [saturation matrix](../docs/load-testing/responses-schemes-code-saturation-k6.md)
+- [load-test report](../docs/load-testing/responses-schemes-code-report-2026-04-23.md)
+- [decision note](../docs/load-testing/responses-schemes-code-decision-note-2026-04-24.md)
+
+Typical local flow:
+
+```bash
+make microservice-install
+make microservice-build
+make microservice-start
+
+BASE_URL=http://localhost:3000 \
+PROFILE=baseline \
+PAYLOAD=medium \
+make load-test-responses-schemes-code
+```
+
 ## API Endpoints
 
 ### Coding
