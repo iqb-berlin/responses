@@ -1,0 +1,151 @@
+name: Load Test Responses Schemes Code
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Base URL of the responses microservice
+        required: true
+        type: string
+      profile:
+        description: k6 profile
+        required: true
+        default: baseline
+        type: choice
+        options:
+          - smoke
+          - baseline
+          - spike
+          - soak
+          - payload_scaling
+          - saturation_medium
+          - saturation_complex
+          - saturation_complex_x5
+          - saturation_complex_x10
+      payload:
+        description: Payload class or auto for profile default
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - small
+          - medium
+          - complex
+      scale_factor:
+        description: Synthetic payload multiplier, empty uses the profile default
+        required: false
+        default: ''
+        type: string
+      rate:
+        description: Override fixed arrival rate for soak or payload_scaling
+        required: false
+        default: ''
+        type: string
+      duration:
+        description: Override duration for smoke, soak or payload_scaling
+        required: false
+        default: ''
+        type: string
+      saturation_start_rate:
+        description: Override initial arrival rate for saturation profiles
+        required: false
+        default: ''
+        type: string
+      saturation_targets:
+        description: Override saturation target rates as comma-separated integers
+        required: false
+        default: ''
+        type: string
+      saturation_ramp_duration:
+        description: Override per-step ramp duration for saturation profiles
+        required: false
+        default: ''
+        type: string
+      saturation_hold_duration:
+        description: Override per-step hold duration for saturation profiles
+        required: false
+        default: ''
+        type: string
+      parse_response:
+        description: Parse and validate JSON response body
+        required: true
+        default: true
+        type: boolean
+      max_failure_rate:
+        description: Threshold for http_req_failed
+        required: true
+        default: '0.01'
+        type: string
+      p95_ms:
+        description: Threshold for http_req_duration p95
+        required: true
+        default: '1000'
+        type: string
+      p99_ms:
+        description: Threshold for http_req_duration p99
+        required: true
+        default: '1500'
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  load-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+
+      - name: Prepare artifacts directory
+        run: mkdir -p artifacts/k6
+
+      - name: Run k6 load test
+        id: k6
+        continue-on-error: true
+        env:
+          BASE_URL: ${{ inputs.base_url }}
+          PROFILE: ${{ inputs.profile }}
+          PAYLOAD: ${{ inputs.payload == 'auto' && '' || inputs.payload }}
+          SCALE_FACTOR: ${{ inputs.scale_factor }}
+          RATE: ${{ inputs.rate }}
+          DURATION: ${{ inputs.duration }}
+          SATURATION_START_RATE: ${{ inputs.saturation_start_rate }}
+          SATURATION_TARGETS: ${{ inputs.saturation_targets }}
+          SATURATION_RAMP_DURATION: ${{ inputs.saturation_ramp_duration }}
+          SATURATION_HOLD_DURATION: ${{ inputs.saturation_hold_duration }}
+          PARSE_RESPONSE: ${{ inputs.parse_response }}
+          MAX_FAILURE_RATE: ${{ inputs.max_failure_rate }}
+          P95_MS: ${{ inputs.p95_ms }}
+          P99_MS: ${{ inputs.p99_ms }}
+          SUMMARY_STDOUT: 'false'
+          SUMMARY_JSON: artifacts/k6/summary.json
+          SUMMARY_MD: artifacts/k6/summary.md
+        run: k6 run scripts/load-tests/responses-schemes-code.js
+
+      - name: Publish markdown summary
+        if: always()
+        run: |
+          if [ -f artifacts/k6/summary.md ]; then
+            cat artifacts/k6/summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No k6 markdown summary was generated." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload k6 artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: responses-schemes-code-${{ inputs.profile }}-${{ inputs.payload == 'auto' && 'auto' || inputs.payload }}-x${{ inputs.scale_factor != '' && inputs.scale_factor || 'auto' }}
+          path: artifacts/k6/
+          if-no-files-found: warn
+
+      - name: Fail workflow when k6 failed
+        if: always() && steps.k6.outcome == 'failure'
+        run: exit 1

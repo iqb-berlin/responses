@@ -23,6 +23,8 @@
     "url": "https://github.com/iqb-berlin/responses/issues"
   },
   "homepage": "https://github.com/iqb-berlin/responses#readme",
+   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "eslintConfig": {
     "overrides": [
       {
