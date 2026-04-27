@@ -88,6 +88,9 @@ on:
         default: '1500'
         type: string
 
+permissions:
+  contents: read
+
 jobs:
   load-test:
     runs-on: ubuntu-latest
