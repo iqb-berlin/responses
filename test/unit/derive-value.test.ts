@@ -3,6 +3,9 @@ import { VariableCodingData } from '@iqbspecs/coding-scheme';
 import { deriveValue } from '../../src/derive/derive-value';
 import { CodingFactory } from '../../src';
 
+const solverRef = (name: string): string => `\${${name}}`;
+const solverFragmentRef = (name: string, index: number): string => `\${${name}[${index}]}`;
+
 describe('deriveValue', () => {
   test('propagates UNSET status by precedence and keeps subform', () => {
     const coding: VariableCodingData = {
@@ -352,6 +355,137 @@ describe('deriveValue', () => {
     } as Response;
 
     const result = deriveValue([coding], coding, [r1]);
+    expect(result.status).toBe('DERIVE_ERROR');
+    expect(result.value).toBeNull();
+  });
+
+  test('SOLVER can use numeric fragments from source variable fragmenting', () => {
+    const source = CodingFactory.createCodingVariable('01');
+    source.alias = 'FORMEL';
+    source.fragmenting = '\\\\frac\\{?(\\d+)\\}?\\{?(\\d+)\\}?';
+
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['01'],
+      sourceParameters: {
+        solverExpression: `${solverFragmentRef('FORMEL', 1)} - 2 * ${solverFragmentRef('FORMEL', 0)}`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: '01',
+      value: '\\frac{21}{42}',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([source, coding], coding, [r1]);
+    expect(result.status).toBe('VALUE_CHANGED');
+    expect(result.value).toBe(0);
+  });
+
+  test('SOLVER keeps whole-variable placeholders backwards compatible beside fragments', () => {
+    const source = CodingFactory.createCodingVariable('v1');
+    source.fragmenting = '(\\d+)';
+
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1')} + ${solverFragmentRef('v1', 0)}`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: '3',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([source, coding], coding, [r1]);
+    expect(result.status).toBe('VALUE_CHANGED');
+    expect(result.value).toBe(6);
+  });
+
+  test('SOLVER returns DERIVE_ERROR if a referenced fragment is missing', () => {
+    const source = CodingFactory.createCodingVariable('v1');
+    source.fragmenting = '(\\d+)-(\\d+)';
+
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverFragmentRef('v1', 2)} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: '3-4',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([source, coding], coding, [r1]);
+    expect(result.status).toBe('DERIVE_ERROR');
+    expect(result.value).toBeNull();
+  });
+
+  test('SOLVER returns DERIVE_ERROR if a referenced fragment is not numeric', () => {
+    const source = CodingFactory.createCodingVariable('v1');
+    source.fragmenting = '(\\d+)-([A-Z]+)';
+
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverFragmentRef('v1', 1)} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: '3-ABC',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([source, coding], coding, [r1]);
+    expect(result.status).toBe('DERIVE_ERROR');
+    expect(result.value).toBeNull();
+  });
+
+  test('SOLVER returns DERIVE_ERROR if source fragmenting is invalid', () => {
+    const source = CodingFactory.createCodingVariable('v1');
+    source.fragmenting = '(';
+
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverFragmentRef('v1', 0)} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: '3',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([source, coding], coding, [r1]);
     expect(result.status).toBe('DERIVE_ERROR');
     expect(result.value).toBeNull();
   });
