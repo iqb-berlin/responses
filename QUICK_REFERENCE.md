@@ -78,6 +78,7 @@ Solver expressions reference source variables with `${VAR}` or source fragments 
 | `${VAR:INC}` | `CODING_INCOMPLETE` | `DERIVE_ERROR` |
 | `${VAR:n:m}` | numeric default `n` | numeric default `m` |
 | `${VAR:n:INC}` | numeric default `n` | `CODING_INCOMPLETE` |
+| `${VAR:INC:m}` | `CODING_INCOMPLETE` | numeric default `m` |
 | `${VAR:ERROR:m}` | `DERIVE_ERROR` | numeric default `m` |
 
 The same policy syntax works for fragments, for example `${VAR[0]:0:INC}`.
