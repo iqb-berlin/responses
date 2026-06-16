@@ -20,7 +20,11 @@ const deriveErrorResponse = (coding: VariableCodingData, subform: string | undef
   subform
 };
 
-export const amountFalseStates = (coding: VariableCodingData, sourceResponses: Response[]): number => {
+export const amountFalseStates = (
+  coding: VariableCodingData,
+  sourceResponses: Response[],
+  variableCodings: VariableCodingData[] = []
+): number => {
   switch (coding.sourceType) {
     case 'MANUAL': {
       const isInvalid = (r: Response) => !MANUAL_VALID_STATES
@@ -38,8 +42,13 @@ export const amountFalseStates = (coding: VariableCodingData, sourceResponses: R
     case 'COPY_VALUE':
     case 'UNIQUE_VALUES':
     case 'SOLVER': {
+      const codingById = new Map(variableCodings.map(c => [c.id, c] as const));
       const isInvalid = (r: Response) => !COPY_SOLVER_VALID_STATES
-        .includes(r.status as (typeof COPY_SOLVER_VALID_STATES)[number]);
+        .includes(r.status as (typeof COPY_SOLVER_VALID_STATES)[number]) &&
+        !(coding.sourceType === 'SOLVER' &&
+          r.status === CODING_SCHEME_STATUS.INVALID &&
+          codingById.get(r.id)?.sourceType === 'BASE' &&
+          isSolverEmptyValue(r.value));
       return sourceResponses.filter(isInvalid).length;
     }
 
@@ -67,13 +76,35 @@ type DeriveContext = {
 type SolverReplacement = {
   sourceId: string;
   fragmentIndex?: number;
+  emptyPolicy: SolverValuePolicy;
+  nonNumericPolicy: SolverValuePolicy;
 };
 
 type SolverToken = {
   text: string;
   variableAlias: string;
   fragmentIndex?: number;
+  emptyPolicy: SolverValuePolicy;
+  nonNumericPolicy: SolverValuePolicy;
 };
+
+type SolverValuePolicy =
+  | { kind: 'ERROR' }
+  | { kind: 'INC' }
+  | { kind: 'DEFAULT'; value: number };
+
+type SolverValueResolution =
+  | { kind: 'value'; value: number }
+  | { kind: 'empty' }
+  | { kind: 'nonNumeric' }
+  | { kind: 'deriveError' };
+
+const SOLVER_ERROR_POLICY: SolverValuePolicy = { kind: 'ERROR' };
+
+const isSolverEmptyValue = (value: Response['value']): boolean => (
+  value === null ||
+  (typeof value === 'string' && value.trim() === '')
+);
 
 const handleManual = ({ coding, sourceResponses, subformSource }: DeriveContext): Response => {
   if (sourceResponses.every(r => r.status === CODING_SCHEME_STATUS.INTENDED_INCOMPLETE)) {
@@ -216,9 +247,44 @@ const isDigit = (char: string): boolean => {
   return code >= 48 && code <= 57;
 };
 
+const parseSolverValuePolicy = (text: string): SolverValuePolicy | null => {
+  const trimmed = text.trim();
+  const normalized = trimmed.toUpperCase();
+
+  if (normalized === 'ERROR') {
+    return SOLVER_ERROR_POLICY;
+  }
+
+  if (normalized === 'INC') {
+    return { kind: 'INC' };
+  }
+
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  const defaultValue = CodingFactory.getValueAsNumber(trimmed);
+  return defaultValue === null ? null : { kind: 'DEFAULT', value: defaultValue };
+};
+
 const parseSolverToken = (text: string, content: string): SolverToken | null => {
-  let variableAlias = content.trim();
+  const contentParts = content.split(':');
+  if (contentParts.length > 3) {
+    return null;
+  }
+
+  let variableAlias = contentParts[0].trim();
   let fragmentIndex: number | undefined;
+  const emptyPolicy = contentParts.length > 1 ?
+    parseSolverValuePolicy(contentParts[1]) :
+    SOLVER_ERROR_POLICY;
+  const nonNumericPolicy = contentParts.length > 2 ?
+    parseSolverValuePolicy(contentParts[2]) :
+    SOLVER_ERROR_POLICY;
+
+  if (!emptyPolicy || !nonNumericPolicy) {
+    return null;
+  }
 
   if (variableAlias.endsWith(']')) {
     const fragmentStart = variableAlias.lastIndexOf('[');
@@ -242,11 +308,13 @@ const parseSolverToken = (text: string, content: string): SolverToken | null => 
   return {
     text,
     variableAlias,
-    fragmentIndex
+    fragmentIndex,
+    emptyPolicy,
+    nonNumericPolicy
   };
 };
 
-const getSolverTokens = (solverExpression: string): SolverToken[] => {
+const getSolverTokens = (solverExpression: string): SolverToken[] | null => {
   const tokens: SolverToken[] = [];
   let searchStart = 0;
 
@@ -264,9 +332,10 @@ const getSolverTokens = (solverExpression: string): SolverToken[] => {
     const text = solverExpression.slice(tokenStart, tokenEnd + 1);
     const content = solverExpression.slice(tokenStart + 2, tokenEnd);
     const token = parseSolverToken(text, content);
-    if (token) {
-      tokens.push(token);
+    if (!token) {
+      return null;
     }
+    tokens.push(token);
     searchStart = tokenEnd + 1;
   }
 
@@ -277,41 +346,46 @@ const getFragmentValueAsNumber = (
   response: Response,
   sourceCoding: VariableCodingData | undefined,
   fragmentIndex: number
-): number | null => {
+): SolverValueResolution => {
   if (!sourceCoding || Array.isArray(response.value)) {
-    return null;
+    return { kind: 'deriveError' };
   }
 
   let transformedValue;
   try {
     transformedValue = transformValue(response.value, sourceCoding.fragmenting || '', false);
   } catch (error) {
-    return null;
+    return { kind: 'deriveError' };
   }
   if (!Array.isArray(transformedValue)) {
-    return null;
+    return { kind: 'empty' };
   }
 
   const fragment = transformedValue[fragmentIndex];
-  if (Array.isArray(fragment) || typeof fragment === 'undefined') {
-    return null;
+  if (typeof fragment === 'undefined') {
+    return { kind: 'empty' };
   }
 
   if (typeof fragment === 'string' && fragment.trim() === '') {
-    return null;
+    return { kind: 'empty' };
   }
 
-  return CodingFactory.getValueAsNumber(fragment as ResponseValueSingleType);
+  if (Array.isArray(fragment)) {
+    return { kind: 'deriveError' };
+  }
+
+  const value = CodingFactory.getValueAsNumber(fragment as ResponseValueSingleType);
+  return value === null ? { kind: 'nonNumeric' } : { kind: 'value', value };
 };
 
 const getSolverReplacementValue = (
   replacement: SolverReplacement,
   sourceResponseById: Map<string, Response>,
   sourceCodingById: Map<string, VariableCodingData>
-): number | null => {
+): SolverValueResolution => {
   const responseToReplace = sourceResponseById.get(replacement.sourceId);
   if (!responseToReplace) {
-    return null;
+    return { kind: 'empty' };
   }
 
   if (typeof replacement.fragmentIndex === 'number') {
@@ -323,10 +397,36 @@ const getSolverReplacementValue = (
   }
 
   if (Array.isArray(responseToReplace.value)) {
-    return null;
+    return { kind: 'deriveError' };
   }
 
-  return CodingFactory.getValueAsNumber(responseToReplace.value);
+  if (isSolverEmptyValue(responseToReplace.value)) {
+    return { kind: 'empty' };
+  }
+
+  const value = CodingFactory.getValueAsNumber(responseToReplace.value);
+  return value === null ? { kind: 'nonNumeric' } : { kind: 'value', value };
+};
+
+const handleSolverPolicy = (
+  coding: VariableCodingData,
+  subformSource: string | undefined,
+  policy: SolverValuePolicy
+): Response | number => {
+  if (policy.kind === 'DEFAULT') {
+    return policy.value;
+  }
+
+  if (policy.kind === 'INC') {
+    return <Response>{
+      id: coding.id,
+      value: null,
+      status: CODING_SCHEME_STATUS.CODING_INCOMPLETE,
+      subform: subformSource
+    };
+  }
+
+  return deriveErrorResponse(coding, subformSource);
 };
 
 const handleSolver = ({
@@ -342,6 +442,9 @@ const handleSolver = ({
   const replacements = new Map<string, SolverReplacement>();
 
   const tokens = getSolverTokens(coding.sourceParameters.solverExpression);
+  if (!tokens) {
+    return deriveErrorResponse(coding, subformSource);
+  }
 
   // eslint-disable-next-line no-restricted-syntax
   for (const token of tokens) {
@@ -354,7 +457,9 @@ const handleSolver = ({
     if (!replacements.has(token.text)) {
       replacements.set(token.text, {
         sourceId: matchId,
-        fragmentIndex: token.fragmentIndex
+        fragmentIndex: token.fragmentIndex,
+        emptyPolicy: token.emptyPolicy,
+        nonNumericPolicy: token.nonNumericPolicy
       });
     }
   }
@@ -374,9 +479,22 @@ const handleSolver = ({
 
   // eslint-disable-next-line no-restricted-syntax
   for (const [toReplace, replacement] of replacements.entries()) {
-    const valueToReplace = getSolverReplacementValue(replacement, sourceResponseById, sourceCodingById);
-    if (valueToReplace === null) {
+    const resolvedValue = getSolverReplacementValue(replacement, sourceResponseById, sourceCodingById);
+    if (resolvedValue.kind === 'deriveError') {
       return deriveErrorResponse(coding, subformSource);
+    }
+
+    let valueToReplace: number | Response;
+    if (resolvedValue.kind === 'empty') {
+      valueToReplace = handleSolverPolicy(coding, subformSource, replacement.emptyPolicy);
+    } else if (resolvedValue.kind === 'nonNumeric') {
+      valueToReplace = handleSolverPolicy(coding, subformSource, replacement.nonNumericPolicy);
+    } else {
+      valueToReplace = resolvedValue.value;
+    }
+
+    if (typeof valueToReplace !== 'number') {
+      return valueToReplace;
     }
 
     newExpression = newExpression.split(toReplace).join(valueToReplace.toString(10));
@@ -412,6 +530,7 @@ export const deriveValue = (
   sourceResponses: Response[]
 ): Response => {
   const subformSource = sourceResponses.find(r => r.subform !== undefined)?.subform;
+  const sourceCodingById = new Map(variableCodings.map(c => [c.id, c] as const));
 
   const statusPrecedence: Array<{
     from: CodingSchemeStatus;
@@ -433,9 +552,34 @@ export const deriveValue = (
     { from: CODING_SCHEME_STATUS.INVALID, to: CODING_SCHEME_STATUS.INVALID }
   ];
 
+  const shouldApplyStatusPrecedence = (
+    sourceResponse: Response,
+    mapping: { from: CodingSchemeStatus; to: CodingSchemeStatus }
+  ): boolean => {
+    if (coding.sourceType !== 'SOLVER') {
+      return sourceResponse.status === mapping.from;
+    }
+
+    if (mapping.from === CODING_SCHEME_STATUS.NO_CODING) {
+      return sourceResponse.status === mapping.from &&
+        sourceCodingById.get(sourceResponse.id)?.sourceType !== 'BASE';
+    }
+
+    if (
+      mapping.from === CODING_SCHEME_STATUS.INVALID &&
+      sourceResponse.status === mapping.from &&
+      sourceCodingById.get(sourceResponse.id)?.sourceType === 'BASE' &&
+      isSolverEmptyValue(sourceResponse.value)
+    ) {
+      return false;
+    }
+
+    return sourceResponse.status === mapping.from;
+  };
+
   // eslint-disable-next-line no-restricted-syntax
   for (const mapping of statusPrecedence) {
-    if (sourceResponses.some(r => r.status === mapping.from)) {
+    if (sourceResponses.some(r => shouldApplyStatusPrecedence(r, mapping))) {
       return <Response>{
         id: coding.id,
         value: null,
@@ -463,7 +607,7 @@ export const deriveValue = (
     };
   }
 
-  const falseStates = amountFalseStates(coding, sourceResponses);
+  const falseStates = amountFalseStates(coding, sourceResponses, variableCodings);
 
   if (sourceResponses.length >= falseStates && falseStates > 0) {
     const allHaveSameStatus = sourceResponses.every(r => r.status === sourceResponses[0].status);
