@@ -1,5 +1,5 @@
 import { evaluate } from 'mathjs';
-import { Response } from '@iqbspecs/response/response.interface';
+import { Response, ResponseValueSingleType } from '@iqbspecs/response/response.interface';
 import { DeriveConcatDelimiter, validStatesForDerivingValue, VariableCodingData } from '@iqbspecs/coding-scheme';
 import {
   CODING_SCHEME_STATUS,
@@ -11,6 +11,7 @@ import {
 } from '../constants';
 import { CodingFactory } from '../coding-factory';
 import { type CodingSchemeStatus, isPendingStatus } from '../status-helpers';
+import { transformValue } from '../value-transform';
 
 const deriveErrorResponse = (coding: VariableCodingData, subform: string | undefined): Response => <Response>{
   id: coding.id,
@@ -61,6 +62,17 @@ type DeriveContext = {
   sourceResponses: Response[];
   sourceResponseById: Map<string, Response>;
   subformSource: string | undefined;
+};
+
+type SolverReplacement = {
+  sourceId: string;
+  fragmentIndex?: number;
+};
+
+type SolverToken = {
+  text: string;
+  variableAlias: string;
+  fragmentIndex?: number;
 };
 
 const handleManual = ({ coding, sourceResponses, subformSource }: DeriveContext): Response => {
@@ -187,6 +199,136 @@ const handleUniqueValues = ({ coding, sourceResponses, subformSource }: DeriveCo
   };
 };
 
+const isSolverAliasChar = (char: string): boolean => {
+  const code = char.charCodeAt(0);
+  return (
+    (code >= 48 && code <= 57) ||
+    (code >= 65 && code <= 90) ||
+    (code >= 97 && code <= 122) ||
+    char === '_' ||
+    char === ',' ||
+    char === '-'
+  );
+};
+
+const isDigit = (char: string): boolean => {
+  const code = char.charCodeAt(0);
+  return code >= 48 && code <= 57;
+};
+
+const parseSolverToken = (text: string, content: string): SolverToken | null => {
+  let variableAlias = content.trim();
+  let fragmentIndex: number | undefined;
+
+  if (variableAlias.endsWith(']')) {
+    const fragmentStart = variableAlias.lastIndexOf('[');
+    if (fragmentStart < 0) {
+      return null;
+    }
+
+    const fragmentText = variableAlias.slice(fragmentStart + 1, -1).trim();
+    if (fragmentText.length === 0 || !Array.from(fragmentText).every(isDigit)) {
+      return null;
+    }
+
+    fragmentIndex = Number.parseInt(fragmentText, 10);
+    variableAlias = variableAlias.slice(0, fragmentStart).trim();
+  }
+
+  if (variableAlias.length === 0 || !Array.from(variableAlias).every(isSolverAliasChar)) {
+    return null;
+  }
+
+  return {
+    text,
+    variableAlias,
+    fragmentIndex
+  };
+};
+
+const getSolverTokens = (solverExpression: string): SolverToken[] => {
+  const tokens: SolverToken[] = [];
+  let searchStart = 0;
+
+  while (searchStart < solverExpression.length) {
+    const tokenStart = solverExpression.indexOf('${', searchStart);
+    if (tokenStart < 0) {
+      break;
+    }
+
+    const tokenEnd = solverExpression.indexOf('}', tokenStart + 2);
+    if (tokenEnd < 0) {
+      break;
+    }
+
+    const text = solverExpression.slice(tokenStart, tokenEnd + 1);
+    const content = solverExpression.slice(tokenStart + 2, tokenEnd);
+    const token = parseSolverToken(text, content);
+    if (token) {
+      tokens.push(token);
+    }
+    searchStart = tokenEnd + 1;
+  }
+
+  return tokens;
+};
+
+const getFragmentValueAsNumber = (
+  response: Response,
+  sourceCoding: VariableCodingData | undefined,
+  fragmentIndex: number
+): number | null => {
+  if (!sourceCoding || Array.isArray(response.value)) {
+    return null;
+  }
+
+  let transformedValue;
+  try {
+    transformedValue = transformValue(response.value, sourceCoding.fragmenting || '', false);
+  } catch (error) {
+    return null;
+  }
+  if (!Array.isArray(transformedValue)) {
+    return null;
+  }
+
+  const fragment = transformedValue[fragmentIndex];
+  if (Array.isArray(fragment) || typeof fragment === 'undefined') {
+    return null;
+  }
+
+  if (typeof fragment === 'string' && fragment.trim() === '') {
+    return null;
+  }
+
+  return CodingFactory.getValueAsNumber(fragment as ResponseValueSingleType);
+};
+
+const getSolverReplacementValue = (
+  replacement: SolverReplacement,
+  sourceResponseById: Map<string, Response>,
+  sourceCodingById: Map<string, VariableCodingData>
+): number | null => {
+  const responseToReplace = sourceResponseById.get(replacement.sourceId);
+  if (!responseToReplace) {
+    return null;
+  }
+
+  if (typeof replacement.fragmentIndex === 'number') {
+    return getFragmentValueAsNumber(
+      responseToReplace,
+      sourceCodingById.get(replacement.sourceId),
+      replacement.fragmentIndex
+    );
+  }
+
+  if (Array.isArray(responseToReplace.value)) {
+    return null;
+  }
+
+  return CodingFactory.getValueAsNumber(responseToReplace.value);
+};
+
 const handleSolver = ({
   variableCodings, coding, sourceResponseById, subformSource
 }: DeriveContext): Response => {
@@ -195,22 +337,25 @@ const handleSolver = ({
   }
 
   const deriveSources = coding.deriveSources ?? [];
-  const varSearchPattern = /\$\{(\s*[\w,-]+\s*)}/g;
+  const sourceCodingById = new Map(variableCodings.map(c => [c.id, c] as const));
   const sources: string[] = [];
-  const replacements = new Map<string, string>();
+  const replacements = new Map<string, SolverReplacement>();
 
-  const matches = Array.from(coding.sourceParameters.solverExpression.matchAll(varSearchPattern));
+  const tokens = getSolverTokens(coding.sourceParameters.solverExpression);
 
   // eslint-disable-next-line no-restricted-syntax
-  for (const match of matches) {
-    const variableAlias = match[1].trim();
+  for (const token of tokens) {
+    const variableAlias = token.variableAlias;
     const matchId = variableCodings.find(c => c.alias === variableAlias)?.id || variableAlias;
 
     if (!sources.includes(matchId)) {
       sources.push(matchId);
     }
-    if (!replacements.has(variableAlias)) {
-      replacements.set(variableAlias, matchId);
+    if (!replacements.has(token.text)) {
+      replacements.set(token.text, {
+        sourceId: matchId,
+        fragmentIndex: token.fragmentIndex
+      });
     }
   }
 
@@ -228,19 +373,13 @@ const handleSolver = ({
   let newExpression = coding.sourceParameters.solverExpression;
 
   // eslint-disable-next-line no-restricted-syntax
-  for (const [toReplace, varId] of replacements.entries()) {
-    const responseToReplace = sourceResponseById.get(varId);
-    if (!responseToReplace || Array.isArray(responseToReplace.value)) {
-      return deriveErrorResponse(coding, subformSource);
-    }
-
-    const valueToReplace = CodingFactory.getValueAsNumber(responseToReplace.value);
+  for (const [toReplace, replacement] of replacements.entries()) {
+    const valueToReplace = getSolverReplacementValue(replacement, sourceResponseById, sourceCodingById);
     if (valueToReplace === null) {
       return deriveErrorResponse(coding, subformSource);
     }
 
-    const replacePattern = new RegExp(`\\$\\{${toReplace}}`, 'g');
-    newExpression = newExpression.replace(replacePattern, valueToReplace.toString(10));
+    newExpression = newExpression.split(toReplace).join(valueToReplace.toString(10));
   }
 
   let newValue: unknown;
