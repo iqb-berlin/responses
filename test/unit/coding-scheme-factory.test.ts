@@ -9,6 +9,8 @@ import { CodingFactory, CodingSchemeFactory } from '../../src';
 import { executeDependencyPlan } from '../../src/derive/dependency-plan';
 import { applyDerivationsAndCoding } from '../../src/derive/derivation-traversal';
 
+const solverRef = (name: string): string => `\${${name}}`;
+
 describe('CodingSchemeFactory', () => {
   test('can be subclassed (covers instance property initialization)', () => {
     class TestFactory extends CodingSchemeFactory {}
@@ -604,6 +606,238 @@ describe('CodingSchemeFactory', () => {
       ];
       const codedOk = CodingSchemeFactory.code(responses, [v1ok]);
       expect(codedOk.find(r => r.id === 'v1')?.status).toBe('VALUE_CHANGED');
+    });
+
+    test('sets DERIVE_ERROR for SOLVER empty source without explicit policy', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1')} + 1`,
+          processing: []
+        },
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: '', status: 'VALUE_CHANGED' } as Response],
+        [source, derived]
+      );
+
+      const derivedResponse = coded.find(r => r.id === 'd1');
+      expect(derivedResponse?.value).toBeNull();
+      expect(derivedResponse?.status).toBe('DERIVE_ERROR');
+    });
+
+    test('applies SOLVER empty-value default without TAKE_EMPTY_AS_VALID source normalization', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1:0')} + 1`,
+          processing: []
+        },
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: '', status: 'VALUE_CHANGED' } as Response],
+        [source, derived]
+      );
+
+      const derivedResponse = coded.find(r => r.id === 'd1');
+      expect(derivedResponse?.value).toBe(1);
+      expect(derivedResponse?.status).toBe('NO_CODING');
+    });
+
+    test('applies SOLVER non-numeric default from second policy position without source normalization', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1:ERROR:5')} + 1`,
+          processing: []
+        },
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: 'abc', status: 'VALUE_CHANGED' } as Response],
+        [source, derived]
+      );
+
+      const derivedResponse = coded.find(r => r.id === 'd1');
+      expect(derivedResponse?.value).toBe(6);
+      expect(derivedResponse?.status).toBe('NO_CODING');
+    });
+
+    test('sets derived response to CODING_INCOMPLETE for SOLVER INC policy without source normalization', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1:ERROR:INC')} + 1`,
+          processing: []
+        },
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: 'abc', status: 'VALUE_CHANGED' } as Response],
+        [source, derived]
+      );
+
+      const derivedResponse = coded.find(r => r.id === 'd1');
+      expect(derivedResponse?.value).toBeNull();
+      expect(derivedResponse?.status).toBe('CODING_INCOMPLETE');
+    });
+
+    test('does not apply SOLVER default to genuinely INVALID source coding result', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+      source.codes = <CodeData[]>[
+        {
+          id: 'INVALID',
+          score: 0,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH', parameters: ['abc'] }]
+            }
+          ]
+        }
+      ];
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1:ERROR:5')} + 1`,
+          processing: []
+        },
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: 'abc', status: 'VALUE_CHANGED' } as Response],
+        [source, derived]
+      );
+
+      const derivedResponse = coded.find(r => r.id === 'd1');
+      expect(derivedResponse?.value).toBeNull();
+      expect(derivedResponse?.status).toBe('INVALID');
+    });
+
+    test('applies SOLVER empty-value default to incoming empty INVALID base response', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1:0')} + 1`,
+          processing: []
+        },
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: '', status: 'INVALID' } as Response],
+        [source, derived]
+      );
+
+      const derivedResponse = coded.find(r => r.id === 'd1');
+      expect(derivedResponse?.value).toBe(1);
+      expect(derivedResponse?.status).toBe('NO_CODING');
+    });
+
+    test('applies SOLVER empty-value default to incoming null INVALID base response', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1:0')} + 1`,
+          processing: []
+        },
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: null, status: 'INVALID' } as Response],
+        [source, derived]
+      );
+
+      const derivedResponse = coded.find(r => r.id === 'd1');
+      expect(derivedResponse?.value).toBe(1);
+      expect(derivedResponse?.status).toBe('NO_CODING');
+    });
+
+    test('applies SOLVER empty-value default to incoming whitespace INVALID base response', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1:0')} + 1`,
+          processing: []
+        },
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: '   ', status: 'INVALID' } as Response],
+        [source, derived]
+      );
+
+      const derivedResponse = coded.find(r => r.id === 'd1');
+      expect(derivedResponse?.value).toBe(1);
+      expect(derivedResponse?.status).toBe('NO_CODING');
+    });
+
+    test('does not apply SOLVER non-numeric default to incoming non-empty INVALID base response', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1:ERROR:5')} + 1`,
+          processing: []
+        },
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: 'abc', status: 'INVALID' } as Response],
+        [source, derived]
+      );
+
+      const derivedResponse = coded.find(r => r.id === 'd1');
+      expect(derivedResponse?.value).toBeNull();
+      expect(derivedResponse?.status).toBe('INVALID');
     });
 
     test('maps response ids from alias to id and back to alias', () => {

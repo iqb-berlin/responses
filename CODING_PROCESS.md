@@ -192,6 +192,11 @@ This diagram shows how data is transformed at each stage of the pipeline:
   - `ATTACHMENT`: Attach source values
   - `CONCAT_CODE`: Concatenate source codes
   - `CONCAT_TEXT`: Concatenate source values as text
+- **SOLVER source references**:
+  - `${VAR}` and `${VAR[i]}` default to `ERROR` for empty/missing and non-numeric values.
+  - `${VAR:n}` uses numeric default `n` for empty/missing values.
+  - `${VAR:INC}` sets the derived response to `CODING_INCOMPLETE` for empty/missing values.
+  - `${VAR:n:m}`, `${VAR:n:INC}`, `${VAR:INC:m}`, `${VAR:ERROR:m}` configure empty/missing and non-numeric values separately.
 
 ### 7. **CODING Stage**
 - **Module**: `src/coding-factory.ts`

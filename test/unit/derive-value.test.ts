@@ -359,6 +359,217 @@ describe('deriveValue', () => {
     expect(result.value).toBeNull();
   });
 
+  test('SOLVER keeps array source value as DERIVE_ERROR even with non-numeric default policy', () => {
+    const v1 = CodingFactory.createCodingVariable('ID_1');
+    v1.alias = 'v1';
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1:ERROR:5')} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: [1],
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([coding], coding, [r1]);
+    expect(result.status).toBe('DERIVE_ERROR');
+    expect(result.value).toBeNull();
+  });
+
+  test('SOLVER returns DERIVE_ERROR for empty source value without explicit policy', () => {
+    const v1 = CodingFactory.createCodingVariable('ID_1');
+    v1.alias = 'v1';
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${v1} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: '',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([coding], coding, [r1]);
+    expect(result.status).toBe('DERIVE_ERROR');
+    expect(result.value).toBeNull();
+  });
+
+  test('SOLVER rejects empty policy segment after separator', () => {
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1:')} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: '1',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([coding], coding, [r1]);
+    expect(result.status).toBe('DERIVE_ERROR');
+    expect(result.value).toBeNull();
+  });
+
+  test('SOLVER rejects omitted empty policy before non-numeric policy', () => {
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1::INC')} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: 'abc',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([coding], coding, [r1]);
+    expect(result.status).toBe('DERIVE_ERROR');
+    expect(result.value).toBeNull();
+  });
+
+  test('SOLVER can replace empty source value with explicit numeric default', () => {
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1:0')} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: '',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([coding], coding, [r1]);
+    expect(result.status).toBe('VALUE_CHANGED');
+    expect(result.value).toBe(1);
+  });
+
+  test('SOLVER returns CODING_INCOMPLETE for empty source value with INC policy', () => {
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1:INC')} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: '',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([coding], coding, [r1]);
+    expect(result.status).toBe('CODING_INCOMPLETE');
+    expect(result.value).toBeNull();
+  });
+
+  test('SOLVER keeps non-numeric source value as DERIVE_ERROR when only empty default is set', () => {
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1:0')} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: 'abc',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([coding], coding, [r1]);
+    expect(result.status).toBe('DERIVE_ERROR');
+    expect(result.value).toBeNull();
+  });
+
+  test('SOLVER can replace non-numeric source value with second-position numeric default', () => {
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1:ERROR:5')} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: 'abc',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([coding], coding, [r1]);
+    expect(result.status).toBe('VALUE_CHANGED');
+    expect(result.value).toBe(6);
+  });
+
+  test('SOLVER returns CODING_INCOMPLETE for non-numeric source value with second-position INC policy', () => {
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1:0:INC')} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: 'abc',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([coding], coding, [r1]);
+    expect(result.status).toBe('CODING_INCOMPLETE');
+    expect(result.value).toBeNull();
+  });
+
   test('SOLVER can use numeric fragments from source variable fragmenting', () => {
     const source = CodingFactory.createCodingVariable('01');
     source.alias = 'FORMEL';
@@ -487,6 +698,84 @@ describe('deriveValue', () => {
 
     const result = deriveValue([source, coding], coding, [r1]);
     expect(result.status).toBe('DERIVE_ERROR');
+    expect(result.value).toBeNull();
+  });
+
+  test('SOLVER can replace missing fragment with explicit numeric default', () => {
+    const source = CodingFactory.createCodingVariable('v1');
+    source.fragmenting = '(\\d+)-(\\d+)';
+
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1[2]:10')} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: '3-4',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([source, coding], coding, [r1]);
+    expect(result.status).toBe('VALUE_CHANGED');
+    expect(result.value).toBe(11);
+  });
+
+  test('SOLVER keeps non-numeric fragment as DERIVE_ERROR when only empty default is set', () => {
+    const source = CodingFactory.createCodingVariable('v1');
+    source.fragmenting = '(\\d+)-([A-Z]+)';
+
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1[1]:10')} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: '3-ABC',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([source, coding], coding, [r1]);
+    expect(result.status).toBe('DERIVE_ERROR');
+    expect(result.value).toBeNull();
+  });
+
+  test('SOLVER can apply second-position INC policy to non-numeric fragment', () => {
+    const source = CodingFactory.createCodingVariable('v1');
+    source.fragmenting = '(\\d+)-([A-Z]+)';
+
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: ['v1'],
+      sourceParameters: {
+        solverExpression: `${solverRef('v1[1]:10:INC')} + 1`,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const r1: Response = {
+      id: 'v1',
+      value: '3-ABC',
+      status: 'VALUE_CHANGED'
+    } as Response;
+
+    const result = deriveValue([source, coding], coding, [r1]);
+    expect(result.status).toBe('CODING_INCOMPLETE');
     expect(result.value).toBeNull();
   });
 });

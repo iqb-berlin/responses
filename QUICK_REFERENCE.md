@@ -67,6 +67,22 @@ INPUT → GROUP → NORMALIZE → RESOLVE → PLAN → DERIVE → CODE → OUTPU
 | `SOLVER` | Math expression | `V1 + V2 * 3` |
 | `CONCAT_TEXT` | Concatenate text | Combined responses |
 
+### SOLVER Placeholders
+
+Solver expressions reference source variables with `${VAR}` or source fragments with `${VAR[i]}`. Empty/missing values and non-numeric values default to `ERROR`, so `${VAR}` behaves like `${VAR:ERROR:ERROR}`.
+
+| Syntax | Empty/missing value | Non-numeric value |
+|--------|---------------------|-------------------|
+| `${VAR}` | `DERIVE_ERROR` | `DERIVE_ERROR` |
+| `${VAR:n}` | numeric default `n` | `DERIVE_ERROR` |
+| `${VAR:INC}` | `CODING_INCOMPLETE` | `DERIVE_ERROR` |
+| `${VAR:n:m}` | numeric default `n` | numeric default `m` |
+| `${VAR:n:INC}` | numeric default `n` | `CODING_INCOMPLETE` |
+| `${VAR:INC:m}` | `CODING_INCOMPLETE` | numeric default `m` |
+| `${VAR:ERROR:m}` | `DERIVE_ERROR` | numeric default `m` |
+
+The same policy syntax works for fragments, for example `${VAR[0]:0:INC}`.
+
 ### Rule Types
 
 | Rule | Description | Example |
