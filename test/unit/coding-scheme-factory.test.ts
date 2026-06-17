@@ -555,9 +555,42 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
-    test('detects RULE_PARAMETER_INVALID for numeric rules on non-numeric base variables', () => {
+    test('accepts numeric rules on string base variables', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('detects RULE_PARAMETER_INVALID for numeric rules on non-scalar base variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'attachment' }
       ] as unknown as VariableInfo[];
 
       const coding = CodingFactory.createCodingVariable('v1');
@@ -588,9 +621,108 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
-    test('detects RULE_PARAMETER_INVALID for boolean rules on non-boolean base variables', () => {
+    test('accepts numeric rules on boolean base variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'boolean' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('accepts boolean rules on numeric base variables', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1', type: 'number' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'IS_TRUE' }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('accepts boolean rules on string base variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'IS_TRUE' }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('detects RULE_PARAMETER_INVALID for boolean rules on non-scalar base variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'attachment' }
       ] as unknown as VariableInfo[];
 
       const coding = CodingFactory.createCodingVariable('v1');
@@ -621,7 +753,7 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
-    test('detects RULE_PARAMETER_INVALID for numeric rules on non-numeric derived variables', () => {
+    test('accepts numeric rules on string derived variables', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1', type: 'string' },
         { id: 'v2', type: 'string' }
@@ -656,10 +788,10 @@ describe('CodingSchemeFactory', () => {
             p.breaking &&
             p.code === '1'
         )
-      ).toBe(true);
+      ).toBe(false);
     });
 
-    test('detects RULE_PARAMETER_INVALID for boolean rules on numeric derived variables', () => {
+    test('accepts boolean rules on numeric derived variables', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1', type: 'number' },
         { id: 'v2', type: 'number' }
@@ -694,7 +826,7 @@ describe('CodingSchemeFactory', () => {
             p.breaking &&
             p.code === '1'
         )
-      ).toBe(true);
+      ).toBe(false);
     });
 
     test('accepts numeric rules on numeric derived variables', () => {
@@ -735,9 +867,87 @@ describe('CodingSchemeFactory', () => {
       ).toBe(false);
     });
 
-    test('detects RULE_PARAMETER_INVALID when COPY_VALUE inherits a non-numeric source type', () => {
+    test('accepts numeric rules on boolean derived variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'string' },
+        { id: 'v2', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const coding: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'UNIQUE_VALUES',
+        deriveSources: ['v1', 'v2'],
+        codes: <CodeData[]>[
+          {
+            id: 1,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: false,
+                rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+              }
+            ]
+          }
+        ]
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('accepts numeric rules when COPY_VALUE inherits a string source type', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const baseCoding = CodingFactory.createCodingVariable('v1');
+      baseCoding.codes = [];
+
+      const coding: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['v1'],
+        codes: <CodeData[]>[
+          {
+            id: 1,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: false,
+                rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+              }
+            ]
+          }
+        ]
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [baseCoding, coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('detects RULE_PARAMETER_INVALID when COPY_VALUE inherits a non-scalar source type', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'attachment' }
       ] as unknown as VariableInfo[];
 
       const baseCoding = CodingFactory.createCodingVariable('v1');

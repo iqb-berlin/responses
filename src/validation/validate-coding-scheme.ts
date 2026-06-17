@@ -138,11 +138,18 @@ export const validateCodingScheme = (
     return { valueType: 'other', multiple, valuePositionLabels };
   };
 
-  const isKnownIncompatibleType = (
-    valueType: CodingValueType,
-    expectedType: CodingValueType
+  const isKnownIncompatibleNumericRuleType = (
+    valueType: CodingValueType
   ): boolean => (
-    valueType !== 'unknown' && valueType !== expectedType
+    valueType !== 'unknown' &&
+    !['numeric', 'boolean', 'string'].includes(valueType)
+  );
+
+  const isKnownIncompatibleBooleanRuleType = (
+    valueType: CodingValueType
+  ): boolean => (
+    valueType !== 'unknown' &&
+    !['numeric', 'boolean', 'string'].includes(valueType)
   );
 
   const pushInvalidSourceProblem = (
@@ -484,7 +491,7 @@ export const validateCodingScheme = (
 
             if (
               numericRuleMethods.includes(r.method) &&
-              isKnownIncompatibleType(codingValueShape.valueType, 'numeric')
+              isKnownIncompatibleNumericRuleType(codingValueShape.valueType)
             ) {
               pushRuleParameterInvalid(
                 c.alias || c.id,
@@ -495,7 +502,7 @@ export const validateCodingScheme = (
 
             if (
               booleanRuleMethods.includes(r.method) &&
-              isKnownIncompatibleType(codingValueShape.valueType, 'boolean')
+              isKnownIncompatibleBooleanRuleType(codingValueShape.valueType)
             ) {
               pushRuleParameterInvalid(
                 c.alias || c.id,
