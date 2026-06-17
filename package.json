@@ -2,7 +2,7 @@
   "name": "@iqb/responses",
   "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
   "license": "MIT",
-  "version": "5.1.0",
+  "version": "5.1.1",
   "description": "Automatic coding.",
   "scripts": {
     "test": "jest",

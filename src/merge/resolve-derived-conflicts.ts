@@ -21,3 +21,39 @@ export const removeBaseResponsesShadowedByDerived = (
     return !hasDerivedConflict;
   });
 };
+
+export const removeBaseResponsesShadowedByDerivedAlias = (
+  responses: Response[],
+  variableCodings: VariableCodingData[]
+): Response[] => {
+  const baseCodingIds = new Set(
+    variableCodings
+      .filter(vc => vc.sourceType === 'BASE')
+      .map(vc => vc.id)
+  );
+  const shadowingPairs = variableCodings
+    .filter(vc => (
+      vc.sourceType !== 'BASE' &&
+      vc.sourceType !== 'BASE_NO_VALUE' &&
+      Boolean(vc.alias) &&
+      vc.alias !== vc.id &&
+      baseCodingIds.has(vc.alias as string) &&
+      (vc.deriveSources ?? []).includes(vc.alias as string)
+    ))
+    .map(vc => ({
+      baseId: vc.alias as string,
+      derivedId: vc.id
+    }));
+
+  return responses.filter(response => {
+    const isShadowedBaseResponse = shadowingPairs.some(pair => (
+      response.id === pair.baseId &&
+      responses.some(candidate => (
+        candidate.id === pair.derivedId &&
+        candidate.subform === response.subform
+      ))
+    ));
+
+    return !isShadowedBaseResponse;
+  });
+};
