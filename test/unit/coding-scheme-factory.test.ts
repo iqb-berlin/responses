@@ -966,6 +966,55 @@ describe('CodingSchemeFactory', () => {
       );
     });
 
+    test('codes derived alias shadowing separately per subform', () => {
+      const base = CodingFactory.createCodingVariable('01');
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d_1756129659039'),
+        alias: '01',
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['01'],
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [
+          {
+            id: '01',
+            value: 7,
+            status: 'CODING_COMPLETE',
+            subform: 'S1'
+          } as Response,
+          {
+            id: '01',
+            value: 9,
+            status: 'CODING_COMPLETE',
+            subform: 'S2'
+          } as Response
+        ],
+        [base, derived]
+      );
+
+      expect(coded).toHaveLength(2);
+      expect(coded.filter(r => r.id === '01' && r.subform === 'S1')).toHaveLength(1);
+      expect(coded.filter(r => r.id === '01' && r.subform === 'S2')).toHaveLength(1);
+      expect(coded).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            id: '01',
+            value: 7,
+            status: 'NO_CODING',
+            subform: 'S1'
+          }),
+          expect.objectContaining({
+            id: '01',
+            value: 9,
+            status: 'NO_CODING',
+            subform: 'S2'
+          })
+        ])
+      );
+    });
+
     test('keeps subforms separated when mapping ids and returning results', () => {
       const coding: VariableCodingData = {
         ...CodingFactory.createCodingVariable('ID_1'),
