@@ -116,25 +116,76 @@ export const validateCodingScheme = (
   const codingIdCounts = new Map<string, number>();
   const codingAliasCounts = new Map<string, number>();
   const codingIds = new Set<string>();
+  const codingById = new Map<string, VariableCodingData>();
+  const codingsByAlias = new Map<string, VariableCodingData[]>();
   variableCodings.forEach(vc => {
     codingIdCounts.set(vc.id, (codingIdCounts.get(vc.id) ?? 0) + 1);
     codingIds.add(vc.id);
+    codingById.set(vc.id, vc);
     if (vc.alias) {
       codingAliasCounts.set(
         vc.alias,
         (codingAliasCounts.get(vc.alias) ?? 0) + 1
       );
+      codingsByAlias.set(vc.alias, [
+        ...(codingsByAlias.get(vc.alias) ?? []),
+        vc
+      ]);
     }
   });
+
+  const isDerivedVariable = (vc: VariableCodingData): boolean => (
+    vc.sourceType !== 'BASE' && vc.sourceType !== 'BASE_NO_VALUE'
+  );
+
+  const isDerivedShadowingItsBaseSource = (
+    vc: VariableCodingData
+  ): boolean => {
+    if (!vc.alias || vc.alias === vc.id || !isDerivedVariable(vc)) {
+      return false;
+    }
+
+    const shadowedCoding = codingById.get(vc.alias);
+    return Boolean(
+      shadowedCoding &&
+      shadowedCoding.sourceType === 'BASE' &&
+      (vc.deriveSources ?? []).includes(shadowedCoding.id)
+    );
+  };
+
+  const isAllowedAliasShadowingGroup = (alias: string): boolean => {
+    const codingsWithAlias = codingsByAlias.get(alias) ?? [];
+    const shadowedCoding = codingById.get(alias);
+    if (!shadowedCoding || shadowedCoding.sourceType !== 'BASE') {
+      return false;
+    }
+
+    const shadowingCodings = codingsWithAlias.filter(
+      vc => vc.id !== shadowedCoding.id
+    );
+    return (
+      shadowingCodings.length === 1 &&
+      isDerivedShadowingItsBaseSource(shadowingCodings[0])
+    );
+  };
 
   variableCodings.forEach(vc => {
     if ((codingIdCounts.get(vc.id) ?? 0) > 1) {
       pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
     }
-    if (vc.alias && (codingAliasCounts.get(vc.alias) ?? 0) > 1) {
+    if (
+      vc.alias &&
+      (codingAliasCounts.get(vc.alias) ?? 0) > 1 &&
+      !isAllowedAliasShadowingGroup(vc.alias)
+    ) {
       pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
     }
-    if (vc.alias && codingIds.has(vc.alias) && vc.alias !== vc.id) {
+    if (
+      vc.alias &&
+      codingIds.has(vc.alias) &&
+      vc.alias !== vc.id &&
+      !isDerivedShadowingItsBaseSource(vc)
+    ) {
       pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
     }
   });

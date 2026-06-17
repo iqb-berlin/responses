@@ -15,7 +15,10 @@ import {
   normalizeDisplayedToValueChanged,
   normalizeNotReachedToValueChanged
 } from './normalize/response-status';
-import { removeBaseResponsesShadowedByDerived } from './merge/resolve-derived-conflicts';
+import {
+  removeBaseResponsesShadowedByDerived,
+  removeBaseResponsesShadowedByDerivedAlias
+} from './merge/resolve-derived-conflicts';
 import { finalizeAndDeduplicateResponses } from './finalize/finalize-and-deduplicate';
 
 export type { VariableGraphNode } from './graph/dependency-tree';
@@ -66,9 +69,14 @@ export abstract class CodingSchemeFactory {
           options
         );
 
+        const resolved = removeBaseResponsesShadowedByDerivedAlias(
+          executed,
+          ctx.variableCodings
+        );
+
         return {
           ...ctx,
-          responses: executed
+          responses: resolved
         };
       },
       ctx => ({

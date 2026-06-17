@@ -400,6 +400,48 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
+    test('allows a derived variable to shadow its base source id by alias', () => {
+      const baseVars: VariableInfo[] = [
+        { id: '01', type: 'string' }
+      ] as unknown as VariableInfo[];
+      const base = CodingFactory.createCodingVariable('01');
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d_1756129659039'),
+        alias: '01',
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['01']
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [base, derived]);
+      expect(
+        problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
+      ).toBe(false);
+    });
+
+    test('detects INVALID_SOURCE when an alias shadows a variable that is not a source', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'source', type: 'string' },
+        { id: 'visible', type: 'string' }
+      ] as unknown as VariableInfo[];
+      const source = CodingFactory.createCodingVariable('source');
+      const visible = CodingFactory.createCodingVariable('visible');
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('derived'),
+        alias: 'visible',
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['source']
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [
+        source,
+        visible,
+        derived
+      ]);
+      expect(
+        problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
+      ).toBe(true);
+    });
+
     test('detects MORE_THAN_ONE_SOURCE for COPY_VALUE with multiple sources', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1' },
@@ -855,6 +897,73 @@ describe('CodingSchemeFactory', () => {
       );
 
       expect(coded[0].id).toBe('ALIAS_1');
+    });
+
+    test('codes derived alias shadowing as a single external variable', () => {
+      const base = CodingFactory.createCodingVariable('01');
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d_1756129659039'),
+        alias: '01',
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['01'],
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: '01', value: 7, status: 'CODING_COMPLETE' } as Response],
+        [base, derived]
+      );
+
+      expect(coded.filter(r => r.id === '01')).toHaveLength(1);
+      expect(coded[0]).toEqual(
+        expect.objectContaining({
+          id: '01',
+          value: 7,
+          status: 'NO_CODING'
+        })
+      );
+    });
+
+    test('codes derived alias shadowing when the base variable has no alias', () => {
+      const base = CodingFactory.createCodingVariable('01');
+      delete base.alias;
+      base.codes = [
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH', parameters: ['7'] }]
+            }
+          ]
+        }
+      ] as CodeData[];
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d_1756129659039'),
+        alias: '01',
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['01'],
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: '01', value: '7', status: 'VALUE_CHANGED' } as Response],
+        [base, derived]
+      );
+
+      expect(coded).toHaveLength(1);
+      expect(coded[0]).toEqual(
+        expect.objectContaining({
+          id: '01',
+          value: '7',
+          status: 'NO_CODING'
+        })
+      );
     });
 
     test('keeps subforms separated when mapping ids and returning results', () => {
