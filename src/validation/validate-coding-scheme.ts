@@ -1,9 +1,18 @@
 import {
+  RuleMethod,
   RuleMethodParameterCount,
   VariableCodingData
 } from '@iqbspecs/coding-scheme';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
 import { CodingSchemeProblem } from '../coding-interfaces';
+
+type CodingValueType = 'numeric' | 'boolean' | 'string' | 'other' | 'unknown';
+
+type CodingValueShape = {
+  valueType: CodingValueType;
+  multiple?: boolean;
+  valuePositionLabels?: string[];
+};
 
 export const validateCodingScheme = (
   baseVariables: VariableInfo[],
@@ -11,6 +20,16 @@ export const validateCodingScheme = (
 ): CodingSchemeProblem[] => {
   const baseVarById = new Map<string, VariableInfo>();
   const problems: CodingSchemeProblem[] = [];
+  const numericRuleMethods: RuleMethod[] = [
+    'NUMERIC_MATCH',
+    'NUMERIC_RANGE',
+    'NUMERIC_FULL_RANGE',
+    'NUMERIC_MIN',
+    'NUMERIC_MORE_THAN',
+    'NUMERIC_LESS_THAN',
+    'NUMERIC_MAX'
+  ];
+  const booleanRuleMethods: RuleMethod[] = ['IS_TRUE', 'IS_FALSE'];
 
   const pushRuleParameterMismatch = (
     variableId: string,
@@ -88,6 +107,51 @@ export const validateCodingScheme = (
     return Number.isFinite(n);
   };
 
+  const getCodeRef = (code: { id?: unknown }): string => (
+    typeof code.id !== 'undefined' && code.id !== null ?
+      String(code.id) :
+      'null'
+  );
+
+  const getBaseVariableValueShape = (
+    varInfo: VariableInfo | undefined
+  ): CodingValueShape => {
+    const multiple = varInfo?.multiple;
+    const valuePositionLabels = varInfo?.valuePositionLabels;
+
+    if (!varInfo?.type) {
+      return { valueType: 'unknown', multiple, valuePositionLabels };
+    }
+
+    if (['integer', 'number'].includes(varInfo.type)) {
+      return { valueType: 'numeric', multiple, valuePositionLabels };
+    }
+
+    if (varInfo.type === 'boolean') {
+      return { valueType: 'boolean', multiple, valuePositionLabels };
+    }
+
+    if (varInfo.type === 'string') {
+      return { valueType: 'string', multiple, valuePositionLabels };
+    }
+
+    return { valueType: 'other', multiple, valuePositionLabels };
+  };
+
+  const isKnownIncompatibleNumericRuleType = (
+    valueType: CodingValueType
+  ): boolean => (
+    valueType !== 'unknown' &&
+    !['numeric', 'boolean', 'string'].includes(valueType)
+  );
+
+  const isKnownIncompatibleBooleanRuleType = (
+    valueType: CodingValueType
+  ): boolean => (
+    valueType !== 'unknown' &&
+    !['numeric', 'boolean', 'string'].includes(valueType)
+  );
+
   const pushInvalidSourceProblem = (
     variableId: string,
     variableLabel: string
@@ -133,6 +197,54 @@ export const validateCodingScheme = (
       ]);
     }
   });
+
+  const getSourceValueShape = (
+    sourceId: string | undefined,
+    visitedCodingIds: Set<string>
+  ): CodingValueShape => {
+    if (!sourceId) {
+      return { valueType: 'unknown' };
+    }
+
+    const sourceCoding = codingById.get(sourceId);
+    if (sourceCoding) {
+      return getCodingValueShape(sourceCoding, visitedCodingIds);
+    }
+
+    return getBaseVariableValueShape(baseVarById.get(sourceId));
+  };
+
+  const getCodingValueShape = (
+    coding: VariableCodingData,
+    visitedCodingIds: Set<string> = new Set<string>()
+  ): CodingValueShape => {
+    if (visitedCodingIds.has(coding.id)) {
+      return { valueType: 'unknown' };
+    }
+
+    const nextVisitedCodingIds = new Set(visitedCodingIds);
+    nextVisitedCodingIds.add(coding.id);
+
+    switch (coding.sourceType) {
+      case 'BASE':
+        return getBaseVariableValueShape(baseVarById.get(coding.id));
+      case 'COPY_VALUE':
+        return getSourceValueShape(coding.deriveSources?.[0], nextVisitedCodingIds);
+      case 'CONCAT_CODE':
+        return { valueType: 'string', multiple: false };
+      case 'SUM_CODE':
+      case 'SUM_SCORE':
+      case 'SOLVER':
+        return { valueType: 'numeric', multiple: false };
+      case 'UNIQUE_VALUES':
+        return { valueType: 'boolean', multiple: false };
+      case 'BASE_NO_VALUE':
+        return { valueType: 'other', multiple: false };
+      case 'MANUAL':
+      default:
+        return { valueType: 'unknown' };
+    }
+  };
 
   const isDerivedVariable = (vc: VariableCodingData): boolean => (
     vc.sourceType !== 'BASE' && vc.sourceType !== 'BASE_NO_VALUE'
@@ -209,8 +321,10 @@ export const validateCodingScheme = (
     });
 
   variableCodings.forEach(c => {
+    const varInfo = c.sourceType === 'BASE' ? baseVarById.get(c.id) : undefined;
+    const codingValueShape = getCodingValueShape(c);
+
     if (c.sourceType === 'BASE') {
-      const varInfo = baseVarById.get(c.id);
       if (varInfo?.type === 'no-value') {
         problems.push({
           type: 'INVALID_SOURCE',
@@ -228,8 +342,8 @@ export const validateCodingScheme = (
         });
       }
     } else if (c.sourceType === 'BASE_NO_VALUE') {
-      const varInfo = baseVarById.get(c.id);
-      if (varInfo && varInfo.type !== 'no-value') {
+      const noValueVarInfo = baseVarById.get(c.id);
+      if (noValueVarInfo && noValueVarInfo.type !== 'no-value') {
         problems.push({
           type: 'INVALID_SOURCE',
           breaking: true,
@@ -308,7 +422,7 @@ export const validateCodingScheme = (
             pushRulesetValueArrayPosInvalid(
               c.alias || c.id,
               c.label || '',
-              code.id ? code.id.toString(10) : 'null'
+              getCodeRef(code)
             );
           }
 
@@ -316,7 +430,31 @@ export const validateCodingScheme = (
             pushRulesetValueArrayPosInvalid(
               c.alias || c.id,
               c.label || '',
-              code.id ? code.id.toString(10) : 'null'
+              getCodeRef(code)
+            );
+          }
+
+          if (
+            typeof valueArrayPos !== 'undefined' &&
+            codingValueShape.multiple === false
+          ) {
+            pushRulesetValueArrayPosInvalid(
+              c.alias || c.id,
+              c.label || '',
+              getCodeRef(code)
+            );
+          }
+
+          if (
+            typeof valueArrayPos === 'number' &&
+            codingValueShape.multiple === true &&
+            (codingValueShape.valuePositionLabels?.length ?? 0) > 0 &&
+            valueArrayPos >= (codingValueShape.valuePositionLabels?.length ?? 0)
+          ) {
+            pushRulesetValueArrayPosInvalid(
+              c.alias || c.id,
+              c.label || '',
+              getCodeRef(code)
             );
           }
 
@@ -333,12 +471,45 @@ export const validateCodingScheme = (
               pushRuleParameterMismatch(
                 c.alias || c.id,
                 c.label || '',
-                code.id ? code.id.toString(10) : 'null'
+                getCodeRef(code)
               );
               return;
             }
 
             const params = r.parameters ?? [];
+
+            if (
+              typeof r.fragment !== 'undefined' &&
+              (!c.fragmenting || r.fragment < -1 || !Number.isInteger(r.fragment))
+            ) {
+              pushRuleParameterInvalid(
+                c.alias || c.id,
+                c.label || '',
+                getCodeRef(code)
+              );
+            }
+
+            if (
+              numericRuleMethods.includes(r.method) &&
+              isKnownIncompatibleNumericRuleType(codingValueShape.valueType)
+            ) {
+              pushRuleParameterInvalid(
+                c.alias || c.id,
+                c.label || '',
+                getCodeRef(code)
+              );
+            }
+
+            if (
+              booleanRuleMethods.includes(r.method) &&
+              isKnownIncompatibleBooleanRuleType(codingValueShape.valueType)
+            ) {
+              pushRuleParameterInvalid(
+                c.alias || c.id,
+                c.label || '',
+                getCodeRef(code)
+              );
+            }
 
             if (r.method === 'MATCH_REGEX') {
               const patterns = params.flatMap(p => p.split(/\r?\n/));
@@ -350,7 +521,7 @@ export const validateCodingScheme = (
                   pushRuleRegexInvalid(
                     c.alias || c.id,
                     c.label || '',
-                    code.id ? code.id.toString(10) : 'null'
+                    getCodeRef(code)
                   );
                 }
               });
@@ -370,7 +541,7 @@ export const validateCodingScheme = (
                 pushRuleParameterInvalid(
                   c.alias || c.id,
                   c.label || '',
-                  code.id ? code.id.toString(10) : 'null'
+                  getCodeRef(code)
                 );
               }
             }
@@ -385,7 +556,7 @@ export const validateCodingScheme = (
                 pushRuleNumericRangeInvalid(
                   c.alias || c.id,
                   c.label || '',
-                  code.id ? code.id.toString(10) : 'null'
+                  getCodeRef(code)
                 );
               } else {
                 const llNum = Number.parseFloat(ll);
@@ -394,7 +565,7 @@ export const validateCodingScheme = (
                   pushRuleNumericRangeInvalid(
                     c.alias || c.id,
                     c.label || '',
-                    code.id ? code.id.toString(10) : 'null'
+                    getCodeRef(code)
                   );
                 }
               }

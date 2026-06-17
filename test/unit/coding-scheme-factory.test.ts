@@ -555,6 +555,571 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
+    test('accepts numeric rules on string base variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('detects RULE_PARAMETER_INVALID for numeric rules on non-scalar base variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'attachment' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(true);
+    });
+
+    test('accepts numeric rules on boolean base variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'boolean' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('accepts boolean rules on numeric base variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'number' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'IS_TRUE' }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('accepts boolean rules on string base variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'IS_TRUE' }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('detects RULE_PARAMETER_INVALID for boolean rules on non-scalar base variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'attachment' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'IS_TRUE' }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(true);
+    });
+
+    test('accepts numeric rules on string derived variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'string' },
+        { id: 'v2', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const coding: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'CONCAT_CODE',
+        deriveSources: ['v1', 'v2'],
+        codes: <CodeData[]>[
+          {
+            id: 1,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: false,
+                rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+              }
+            ]
+          }
+        ]
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('accepts boolean rules on numeric derived variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'number' },
+        { id: 'v2', type: 'number' }
+      ] as unknown as VariableInfo[];
+
+      const coding: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SUM_SCORE',
+        deriveSources: ['v1', 'v2'],
+        codes: <CodeData[]>[
+          {
+            id: 1,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: false,
+                rules: [{ method: 'IS_TRUE' }]
+              }
+            ]
+          }
+        ]
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('accepts numeric rules on numeric derived variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'number' },
+        { id: 'v2', type: 'number' }
+      ] as unknown as VariableInfo[];
+
+      const coding: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SUM_SCORE',
+        deriveSources: ['v1', 'v2'],
+        codes: <CodeData[]>[
+          {
+            id: 1,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: false,
+                rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+              }
+            ]
+          }
+        ]
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('accepts numeric rules on boolean derived variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'string' },
+        { id: 'v2', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const coding: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'UNIQUE_VALUES',
+        deriveSources: ['v1', 'v2'],
+        codes: <CodeData[]>[
+          {
+            id: 1,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: false,
+                rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+              }
+            ]
+          }
+        ]
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('accepts numeric rules when COPY_VALUE inherits a string source type', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const baseCoding = CodingFactory.createCodingVariable('v1');
+      baseCoding.codes = [];
+
+      const coding: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['v1'],
+        codes: <CodeData[]>[
+          {
+            id: 1,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: false,
+                rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+              }
+            ]
+          }
+        ]
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [baseCoding, coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
+    test('detects RULE_PARAMETER_INVALID when COPY_VALUE inherits a non-scalar source type', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'attachment' }
+      ] as unknown as VariableInfo[];
+
+      const baseCoding = CodingFactory.createCodingVariable('v1');
+      baseCoding.codes = [];
+
+      const coding: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['v1'],
+        codes: <CodeData[]>[
+          {
+            id: 1,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: false,
+                rules: [{ method: 'NUMERIC_MATCH', parameters: ['1'] }]
+              }
+            ]
+          }
+        ]
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(baseVars, [baseCoding, coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(true);
+    });
+
+    test('detects RULESET_VALUE_ARRAY_POS_INVALID for array references on single-value variables', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', multiple: false }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              valueArrayPos: 0,
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH', parameters: ['A'] }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULESET_VALUE_ARRAY_POS_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(true);
+    });
+
+    test('detects RULESET_VALUE_ARRAY_POS_INVALID for array positions outside known labels', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', multiple: true, valuePositionLabels: ['first'] }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              valueArrayPos: 1,
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH', parameters: ['A'] }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULESET_VALUE_ARRAY_POS_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(true);
+    });
+
+    test('detects RULE_PARAMETER_INVALID for fragment references without fragmenting', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH', parameters: ['A'], fragment: 0 }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(true);
+    });
+
+    test('accepts fragment -1 as any fragment when fragmenting is configured', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.fragmenting = '([0-9]+)-([A-Z]+)';
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH', parameters: ['A'], fragment: -1 }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
     test('detects INVALID_SOURCE for duplicate base variable ids in var info list', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1' },
