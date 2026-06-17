@@ -1086,6 +1086,40 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
+    test('accepts fragment -1 as any fragment when fragmenting is configured', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'string' }
+      ] as unknown as VariableInfo[];
+
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.fragmenting = '([0-9]+)-([A-Z]+)';
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH', parameters: ['A'], fragment: -1 }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(
+          p => p.type === 'RULE_PARAMETER_INVALID' &&
+            p.breaking &&
+            p.code === '1'
+        )
+      ).toBe(false);
+    });
+
     test('detects INVALID_SOURCE for duplicate base variable ids in var info list', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1' },

@@ -480,7 +480,7 @@ export const validateCodingScheme = (
 
             if (
               typeof r.fragment !== 'undefined' &&
-              (!c.fragmenting || r.fragment < 0 || !Number.isInteger(r.fragment))
+              (!c.fragmenting || r.fragment < -1 || !Number.isInteger(r.fragment))
             ) {
               pushRuleParameterInvalid(
                 c.alias || c.id,
