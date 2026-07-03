@@ -52,6 +52,10 @@ function findNumericValue(
   value: ResponseValueSingleType,
   parameters: string[] = []
 ): boolean {
+  if (value === null || value === '') {
+    return false;
+  }
+
   const allCompareValues = parameters
     .flatMap(p => p.split(/\r?\n/))
     .map(s => getValueAsNumber(s));
