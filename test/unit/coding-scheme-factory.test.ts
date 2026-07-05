@@ -1194,6 +1194,93 @@ describe('CodingSchemeFactory', () => {
   });
 
   describe('code', () => {
+    test('does not score displayed empty responses as NUMERIC_MATCH zero', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+      source.sourceParameters = {
+        processing: [
+          'TAKE_DISPLAYED_AS_VALUE_CHANGED',
+          'TAKE_EMPTY_AS_VALID'
+        ]
+      };
+      source.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: true,
+              rules: [{ method: 'NUMERIC_MATCH', parameters: ['0'] }]
+            }
+          ]
+        },
+        {
+          id: 0,
+          score: 0,
+          label: '',
+          type: 'RESIDUAL_AUTO',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: []
+        }
+      ];
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: '', status: 'DISPLAYED' } as Response],
+        [source]
+      );
+
+      const response = coded.find(r => r.id === 'v1');
+      expect(response?.status).toBe('CODING_COMPLETE');
+      expect(response?.code).toBe(0);
+      expect(response?.score).toBe(0);
+    });
+
+    test('does not score null responses as NUMERIC_MATCH zero', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+      source.sourceParameters = {
+        processing: ['TAKE_EMPTY_AS_VALID']
+      };
+      source.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: true,
+              rules: [{ method: 'NUMERIC_MATCH', parameters: ['0'] }]
+            }
+          ]
+        },
+        {
+          id: 0,
+          score: 0,
+          label: '',
+          type: 'RESIDUAL_AUTO',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: []
+        }
+      ];
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: null, status: 'VALUE_CHANGED' } as Response],
+        [source]
+      );
+
+      const response = coded.find(r => r.id === 'v1');
+      expect(response?.status).toBe('CODING_COMPLETE');
+      expect(response?.code).toBe(0);
+      expect(response?.score).toBe(0);
+    });
+
     test('marks empty string as INVALID for BASE unless TAKE_EMPTY_AS_VALID is set', () => {
       const v1 = CodingFactory.createCodingVariable('v1');
       v1.sourceParameters = v1.sourceParameters || { processing: [] };

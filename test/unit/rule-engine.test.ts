@@ -56,6 +56,24 @@ describe('rule-engine', () => {
         expected: true
       },
       {
+        title: 'NUMERIC_MATCH does not treat null as numeric zero',
+        value: null,
+        rule: { method: 'NUMERIC_MATCH', parameters: ['0'] } as CodingRule,
+        expected: false
+      },
+      {
+        title: 'NUMERIC_MATCH does not treat empty string as numeric zero',
+        value: '',
+        rule: { method: 'NUMERIC_MATCH', parameters: ['0'] } as CodingRule,
+        expected: false
+      },
+      {
+        title: 'NUMERIC_MATCH still matches explicit numeric zero',
+        value: '00',
+        rule: { method: 'NUMERIC_MATCH', parameters: ['0'] } as CodingRule,
+        expected: true
+      },
+      {
         title: 'NUMERIC_RANGE is lower-exclusive, upper-inclusive',
         value: '5',
         rule: {
