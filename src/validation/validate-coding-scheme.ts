@@ -14,6 +14,13 @@ type CodingValueShape = {
   valuePositionLabels?: string[];
 };
 
+type InvalidSourceProblemDetails = {
+  reason?: CodingSchemeProblem['reason'];
+  alias?: string;
+  aliasVariableId?: string;
+  collidingVariableId?: string;
+};
+
 export const validateCodingScheme = (
   baseVariables: VariableInfo[],
   variableCodings: VariableCodingData[]
@@ -154,13 +161,25 @@ export const validateCodingScheme = (
 
   const pushInvalidSourceProblem = (
     variableId: string,
-    variableLabel: string
+    variableLabel: string,
+    details: InvalidSourceProblemDetails = {}
   ) => {
     problems.push({
       type: 'INVALID_SOURCE',
       breaking: true,
       variableId,
-      variableLabel
+      variableLabel,
+      ...details
+    });
+  };
+
+  const pushAliasIdCollisionProblem = (vc: VariableCodingData) => {
+    if (!vc.alias) return;
+    pushInvalidSourceProblem(vc.alias, vc.label || '', {
+      reason: 'ALIAS_ID_COLLISION',
+      alias: vc.alias,
+      aliasVariableId: vc.id,
+      collidingVariableId: vc.alias
     });
   };
 
@@ -298,7 +317,7 @@ export const validateCodingScheme = (
       vc.alias !== vc.id &&
       !isDerivedShadowingItsBaseSource(vc)
     ) {
-      pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
+      pushAliasIdCollisionProblem(vc);
     }
   });
 

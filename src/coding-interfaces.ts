@@ -1,11 +1,17 @@
 import { CodingSchemeProblemType } from '@iqbspecs/coding-scheme/coding-scheme.interface';
 
+export type CodingSchemeProblemReason = 'ALIAS_ID_COLLISION';
+
 export interface CodingSchemeProblem {
   type: CodingSchemeProblemType,
   breaking: boolean,
   variableId: string,
   variableLabel: string,
-  code?: string
+  code?: string,
+  reason?: CodingSchemeProblemReason,
+  alias?: string,
+  aliasVariableId?: string,
+  collidingVariableId?: string
 }
 
 export interface CodeAsText {

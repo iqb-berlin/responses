@@ -398,6 +398,17 @@ describe('CodingSchemeFactory', () => {
       expect(
         problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
       ).toBe(true);
+      expect(
+        problems.find(p => p.reason === 'ALIAS_ID_COLLISION')
+      ).toMatchObject({
+        type: 'INVALID_SOURCE',
+        breaking: true,
+        variableId: 'v2',
+        variableLabel: '',
+        alias: 'v2',
+        aliasVariableId: 'v1',
+        collidingVariableId: 'v2'
+      });
     });
 
     test('allows a derived variable to shadow its base source id by alias', () => {
