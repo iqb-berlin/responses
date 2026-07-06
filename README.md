@@ -193,6 +193,13 @@ Status strings used by this package include (among others) `VALUE_CHANGED`, `COD
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 5.2
+- SOLVER-Ausdrücke können jetzt Fragmente aus Quellvariablen referenzieren, z. B. `${VAR[0]}`.
+- SOLVER-Placeholders unterstützen Policies für leere/fehlende und nicht-numerische Werte, z. B. `${VAR:0}`, `${VAR:INC}` oder `${VAR:0:INC}`.
+- Die Validierung des Coding-Schemes prüft weitere Regelparameter, Numeric-Ranges, Fragment-Regeln, `valueArrayPos` und Typkompatibilität.
+- Abgeleitete Variablen können gezielt den Alias ihrer Base-Source überschreiben; die Base-Response wird danach korrekt entfernt.
+- `NUMERIC_MATCH` wertet `null` und leere Strings nicht mehr als numerische `0`.
+
 ### 5.1
 - @iqbspecs/coding-scheme 3.4.0
 - Implementiert die neuen CodingProblem Typen:
