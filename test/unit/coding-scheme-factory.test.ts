@@ -386,18 +386,24 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
-    test('detects INVALID_SOURCE when an alias collides with another variable id', () => {
-      const baseVars: VariableInfo[] = [] as unknown as VariableInfo[];
+    test('allows a unique alias to match another variable id', () => {
+      const baseVars: VariableInfo[] = [
+        { id: '04', alias: '02', type: 'string' },
+        { id: '02', alias: '05', type: 'string' }
+      ] as unknown as VariableInfo[];
       const v1: VariableCodingData = {
-        ...CodingFactory.createCodingVariable('v1'),
-        alias: 'v2'
+        ...CodingFactory.createCodingVariable('04'),
+        alias: '02'
       } as VariableCodingData;
-      const v2 = CodingFactory.createCodingVariable('v2');
+      const v2: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('02'),
+        alias: '05'
+      } as VariableCodingData;
 
       const problems = CodingSchemeFactory.validate(baseVars, [v1, v2]);
       expect(
         problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
-      ).toBe(true);
+      ).toBe(false);
     });
 
     test('allows a derived variable to shadow its base source id by alias', () => {
@@ -1549,6 +1555,49 @@ describe('CodingSchemeFactory', () => {
       );
 
       expect(coded[0].id).toBe('ALIAS_1');
+    });
+
+    test('prefers public aliases while derived sources keep using technical ids', () => {
+      const alias02: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('04'),
+        alias: '02',
+        codes: []
+      } as VariableCodingData;
+      const technical02: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('02'),
+        alias: '05',
+        codes: [{
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [{
+            ruleOperatorAnd: false,
+            rules: [{ method: 'MATCH', parameters: ['technical-02'] }]
+          }]
+        }]
+      } as VariableCodingData;
+      const copiedTechnical02: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('copy_02'),
+        alias: 'COPY_02',
+        sourceType: 'COPY_VALUE',
+        deriveSources: ['02'],
+        codes: []
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [
+          { id: '02', value: 'public-02', status: 'VALUE_CHANGED' } as Response,
+          { id: '05', value: 'technical-02', status: 'VALUE_CHANGED' } as Response
+        ],
+        [alias02, technical02, copiedTechnical02]
+      );
+
+      expect(coded.find(r => r.id === '02')?.value).toBe('public-02');
+      expect(coded.find(r => r.id === '05')?.value).toBe('technical-02');
+      expect(coded.find(r => r.id === 'COPY_02')?.value).toBe('technical-02');
     });
 
     test('codes derived alias shadowing as a single external variable', () => {
