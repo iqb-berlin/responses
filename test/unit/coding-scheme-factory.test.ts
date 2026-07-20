@@ -406,6 +406,53 @@ describe('CodingSchemeFactory', () => {
       ).toBe(false);
     });
 
+    test('detects INVALID_SOURCE when an alias collides with a fallback public id', () => {
+      const baseVars: VariableInfo[] = [
+        { id: '02', type: 'string' },
+        { id: '04', type: 'string' }
+      ] as unknown as VariableInfo[];
+      const technical02 = CodingFactory.createCodingVariable('02');
+      delete technical02.alias;
+      const public02: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('04'),
+        alias: '02'
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(
+        baseVars,
+        [technical02, public02]
+      );
+
+      expect(
+        problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
+      ).toBe(true);
+    });
+
+    test('allows an alias to match a BASE_NO_VALUE technical id', () => {
+      const baseVars: VariableInfo[] = [
+        { id: '02', type: 'no-value' },
+        { id: '04', type: 'string' }
+      ] as unknown as VariableInfo[];
+      const technical02: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('02'),
+        sourceType: 'BASE_NO_VALUE'
+      } as VariableCodingData;
+      delete technical02.alias;
+      const public02: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('04'),
+        alias: '02'
+      } as VariableCodingData;
+
+      const problems = CodingSchemeFactory.validate(
+        baseVars,
+        [technical02, public02]
+      );
+
+      expect(
+        problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
+      ).toBe(false);
+    });
+
     test('allows a derived variable to shadow its base source id by alias', () => {
       const baseVars: VariableInfo[] = [
         { id: '01', type: 'string' }

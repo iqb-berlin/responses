@@ -279,6 +279,24 @@ export const validateCodingScheme = (
     );
   };
 
+  const hasAliasCollisionWithPublicIdentifier = (
+    vc: VariableCodingData
+  ): boolean => {
+    if (!vc.alias || vc.alias === vc.id) {
+      return false;
+    }
+
+    const codingWithMatchingId = codingById.get(vc.alias);
+    if (codingWithMatchingId?.sourceType === 'BASE_NO_VALUE') {
+      return false;
+    }
+
+    return Boolean(
+      codingWithMatchingId &&
+      (codingWithMatchingId.alias || codingWithMatchingId.id) === vc.alias
+    );
+  };
+
   variableCodings.forEach(vc => {
     if ((codingIdCounts.get(vc.id) ?? 0) > 1) {
       pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
@@ -287,6 +305,12 @@ export const validateCodingScheme = (
       vc.alias &&
       (codingAliasCounts.get(vc.alias) ?? 0) > 1 &&
       !isAllowedAliasShadowingGroup(vc.alias)
+    ) {
+      pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
+    }
+    if (
+      hasAliasCollisionWithPublicIdentifier(vc) &&
+      !isDerivedShadowingItsBaseSource(vc)
     ) {
       pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
     }
