@@ -643,13 +643,9 @@ console.log('Required base variables:', required);
 
 ## Version History
 
-### Version 5.0 (Current)
-- Comprehensive refactoring and modularization
-- Improved validation with detailed error reporting
-- Robust error handling for edge cases
-- Performance improvements with Map-based lookups
-- Extensive unit test coverage
-- CI/CD with GitHub Actions and Dependabot
+### Version 5.2.1 (Current)
+- Public aliases and technical IDs may overlap when the resulting external identifiers remain unambiguous.
+- Invalid or unexpected derivation `sourceType` values are handled as `DERIVE_ERROR` instead of resolving inherited object properties as handlers.
 
 ### Previous Versions
 See [README.md](./README.md) for complete version history.

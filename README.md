@@ -193,6 +193,11 @@ Status strings used by this package include (among others) `VALUE_CHANGED`, `COD
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 5.2.1
+- Ein eindeutiger öffentlicher Alias darf der technischen ID einer anderen Variable entsprechen, sofern deren öffentlicher Bezeichner abweicht. Responses bleiben extern aliasbasiert, während `deriveSources` weiterhin technische IDs referenzieren.
+- Doppelte IDs, doppelte Aliasse und echte öffentliche Kollisionen bleiben ungültig.
+- Unerwartete `sourceType`-Werte führen kontrolliert zu `DERIVE_ERROR`, statt geerbte Object-Properties als Handler aufzulösen.
+
 ### 5.2
 - SOLVER-Ausdrücke können jetzt Fragmente aus Quellvariablen referenzieren, z. B. `${VAR[0]}`.
 - SOLVER-Placeholders unterstützen Policies für leere/fehlende und nicht-numerische Werte, z. B. `${VAR:0}`, `${VAR:INC}` oder `${VAR:0:INC}`.
