@@ -179,12 +179,10 @@ export const validateCodingScheme = (
 
   const codingIdCounts = new Map<string, number>();
   const codingAliasCounts = new Map<string, number>();
-  const codingIds = new Set<string>();
   const codingById = new Map<string, VariableCodingData>();
   const codingsByAlias = new Map<string, VariableCodingData[]>();
   variableCodings.forEach(vc => {
     codingIdCounts.set(vc.id, (codingIdCounts.get(vc.id) ?? 0) + 1);
-    codingIds.add(vc.id);
     codingById.set(vc.id, vc);
     if (vc.alias) {
       codingAliasCounts.set(
@@ -281,6 +279,24 @@ export const validateCodingScheme = (
     );
   };
 
+  const hasAliasCollisionWithPublicIdentifier = (
+    vc: VariableCodingData
+  ): boolean => {
+    if (!vc.alias || vc.alias === vc.id) {
+      return false;
+    }
+
+    const codingWithMatchingId = codingById.get(vc.alias);
+    if (codingWithMatchingId?.sourceType === 'BASE_NO_VALUE') {
+      return false;
+    }
+
+    return Boolean(
+      codingWithMatchingId &&
+      (codingWithMatchingId.alias || codingWithMatchingId.id) === vc.alias
+    );
+  };
+
   variableCodings.forEach(vc => {
     if ((codingIdCounts.get(vc.id) ?? 0) > 1) {
       pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
@@ -293,9 +309,7 @@ export const validateCodingScheme = (
       pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
     }
     if (
-      vc.alias &&
-      codingIds.has(vc.alias) &&
-      vc.alias !== vc.id &&
+      hasAliasCollisionWithPublicIdentifier(vc) &&
       !isDerivedShadowingItsBaseSource(vc)
     ) {
       pushInvalidSourceProblem(vc.alias || vc.id, vc.label || '');
