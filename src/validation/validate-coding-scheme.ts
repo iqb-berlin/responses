@@ -339,7 +339,6 @@ export const validateCodingScheme = (
     });
 
   variableCodings.forEach(c => {
-    const varInfo = c.sourceType === 'BASE' ? baseVarById.get(c.id) : undefined;
     const codingValueShape = getCodingValueShape(c);
 
     if (c.sourceType === 'BASE') {
