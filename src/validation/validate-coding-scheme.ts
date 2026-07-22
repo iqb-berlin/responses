@@ -116,6 +116,10 @@ export const validateCodingScheme = (
   const getBaseVariableValueShape = (
     varInfo: VariableInfo | undefined
   ): CodingValueShape => {
+    if (varInfo?.type === 'no-value') {
+      return { valueType: 'string', multiple: true };
+    }
+
     const multiple = varInfo?.multiple;
     const valuePositionLabels = varInfo?.valuePositionLabels;
 
@@ -339,14 +343,6 @@ export const validateCodingScheme = (
     const codingValueShape = getCodingValueShape(c);
 
     if (c.sourceType === 'BASE') {
-      if (varInfo?.type === 'no-value') {
-        problems.push({
-          type: 'INVALID_SOURCE',
-          breaking: true,
-          variableId: c.alias || c.id,
-          variableLabel: c.label || ''
-        });
-      }
       if (allBaseVariableInfoIds.indexOf(c.id) < 0) {
         problems.push({
           type: 'SOURCE_MISSING',
