@@ -1334,6 +1334,181 @@ describe('CodingSchemeFactory', () => {
       expect(response?.score).toBe(0);
     });
 
+    test('codes an explicit SOLVER null with IS_NULL', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1')} > 0 ? 1 : null`,
+          processing: []
+        },
+        codes: <CodeData[]>[
+          {
+            id: 1,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: true,
+                rules: [{ method: 'IS_NULL', parameters: [] }]
+              }
+            ]
+          },
+          {
+            id: 0,
+            score: 0,
+            label: '',
+            type: 'RESIDUAL_AUTO',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: []
+          }
+        ]
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: 0, status: 'VALUE_CHANGED' } as Response],
+        [source, derived]
+      );
+      const response = coded.find(r => r.id === 'd1');
+
+      expect(response?.status).toBe('CODING_COMPLETE');
+      expect(response?.value).toBeNull();
+      expect(response?.code).toBe(1);
+      expect(response?.score).toBe(1);
+    });
+
+    test('uses RESIDUAL_AUTO for SOLVER null instead of IS_EMPTY or numeric rules', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+      const derived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1')} > 0 ? 1 : null`,
+          processing: []
+        },
+        codes: <CodeData[]>[
+          {
+            id: 1,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: true,
+                rules: [{ method: 'IS_EMPTY', parameters: [] }]
+              }
+            ]
+          },
+          {
+            id: 2,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: true,
+                rules: [{ method: 'NUMERIC_MATCH', parameters: ['0'] }]
+              }
+            ]
+          },
+          {
+            id: 0,
+            score: 0,
+            label: '',
+            type: 'RESIDUAL_AUTO',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: []
+          }
+        ]
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: 0, status: 'VALUE_CHANGED' } as Response],
+        [source, derived]
+      );
+      const response = coded.find(r => r.id === 'd1');
+
+      expect(response?.status).toBe('CODING_COMPLETE');
+      expect(response?.value).toBeNull();
+      expect(response?.code).toBe(0);
+      expect(response?.score).toBe(0);
+    });
+
+    test('applies an empty policy when a downstream SOLVER consumes a coded null', () => {
+      const source = CodingFactory.createCodingVariable('v1');
+      const nullDerived: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d1'),
+        sourceType: 'SOLVER',
+        deriveSources: ['v1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('v1')} > 0 ? 1 : null`,
+          processing: []
+        },
+        codes: <CodeData[]>[
+          {
+            id: 1,
+            score: 0,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [
+              {
+                ruleOperatorAnd: true,
+                rules: [{ method: 'IS_NULL', parameters: [] }]
+              }
+            ]
+          }
+        ]
+      } as VariableCodingData;
+
+      const downstream: VariableCodingData = {
+        ...CodingFactory.createCodingVariable('d2'),
+        sourceType: 'SOLVER',
+        deriveSources: ['d1'],
+        sourceParameters: {
+          solverExpression: `${solverRef('d1:4')} + 1`,
+          processing: []
+        },
+        codes: <CodeData[]>[
+          {
+            id: 0,
+            score: 0,
+            label: '',
+            type: 'RESIDUAL_AUTO',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: []
+          }
+        ]
+      } as VariableCodingData;
+
+      const coded = CodingSchemeFactory.code(
+        [{ id: 'v1', value: 0, status: 'VALUE_CHANGED' } as Response],
+        [source, nullDerived, downstream]
+      );
+      const sourceResponse = coded.find(r => r.id === 'd1');
+      const downstreamResponse = coded.find(r => r.id === 'd2');
+
+      expect(sourceResponse?.status).toBe('CODING_COMPLETE');
+      expect(sourceResponse?.value).toBeNull();
+      expect(downstreamResponse?.status).toBe('CODING_COMPLETE');
+      expect(downstreamResponse?.value).toBe(5);
+      expect(downstreamResponse?.code).toBe(0);
+    });
+
     test('marks empty string as INVALID for BASE unless TAKE_EMPTY_AS_VALID is set', () => {
       const v1 = CodingFactory.createCodingVariable('v1');
       v1.sourceParameters = v1.sourceParameters || { processing: [] };

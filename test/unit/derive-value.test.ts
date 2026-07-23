@@ -309,6 +309,47 @@ describe('deriveValue', () => {
     expect(result.value).toBeNull();
   });
 
+  test('SOLVER returns VALUE_CHANGED for an explicit null result', () => {
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: [],
+      sourceParameters: {
+        solverExpression: 'false ? 1 : null',
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const result = deriveValue([coding], coding, []);
+    expect(result.status).toBe('VALUE_CHANGED');
+    expect(result.value).toBeNull();
+  });
+
+  test.each([
+    ['NaN', '0 / 0'],
+    ['positive infinity', '1 / 0'],
+    ['negative infinity', '-1 / 0'],
+    ['boolean', 'true'],
+    ['string', '"text"'],
+    ['object', '{ value: 1 }']
+  ])('SOLVER returns DERIVE_ERROR for a %s result', (_label, solverExpression) => {
+    const coding: VariableCodingData = {
+      ...CodingFactory.createCodingVariable('d'),
+      sourceType: 'SOLVER',
+      deriveSources: [],
+      sourceParameters: {
+        solverExpression,
+        processing: []
+      },
+      codes: []
+    } as VariableCodingData;
+
+    const result = deriveValue([coding], coding, []);
+    expect(result.status).toBe('DERIVE_ERROR');
+    expect(result.value).toBeNull();
+  });
+
   test('SOLVER returns DERIVE_ERROR if expression uses var not in deriveSources', () => {
     const v2 = CodingFactory.createCodingVariable('ID_1');
     v2.alias = 'v2';
