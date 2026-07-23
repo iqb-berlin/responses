@@ -193,6 +193,10 @@ Status strings used by this package include (among others) `VALUE_CHANGED`, `COD
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 5.2.2
+- Ein von einem SOLVER-Ausdruck explizit zurückgegebenes `null` wird als `VALUE_CHANGED` weitergegeben und kann über `IS_NULL` oder `RESIDUAL_AUTO` kodiert werden.
+- `NaN`, positive und negative Unendlichkeit sowie andere nichtnumerische SOLVER-Ergebnisse führen weiterhin zu `DERIVE_ERROR`.
+
 ### 5.2.1
 - Ein eindeutiger öffentlicher Alias darf der technischen ID einer anderen Variable entsprechen, sofern deren öffentlicher Bezeichner abweicht. Responses bleiben extern aliasbasiert, während `deriveSources` weiterhin technische IDs referenzieren.
 - Doppelte IDs, doppelte Aliasse und echte öffentliche Kollisionen bleiben ungültig.

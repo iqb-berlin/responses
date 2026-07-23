@@ -507,19 +507,23 @@ const handleSolver = ({
     return deriveErrorResponse(coding, subformSource);
   }
 
-  if (
-    typeof newValue !== 'number' ||
-    Number.isNaN(newValue) ||
-    newValue === Number.POSITIVE_INFINITY ||
-    newValue === Number.NEGATIVE_INFINITY
-  ) {
-    newValue = null;
+  if (newValue === null) {
+    return <Response>{
+      id: coding.id,
+      value: null,
+      status: CODING_SCHEME_STATUS.VALUE_CHANGED,
+      subform: subformSource
+    };
+  }
+
+  if (typeof newValue !== 'number' || !Number.isFinite(newValue)) {
+    return deriveErrorResponse(coding, subformSource);
   }
 
   return <Response>{
     id: coding.id,
     value: newValue,
-    status: newValue === null ? CODING_SCHEME_STATUS.DERIVE_ERROR : CODING_SCHEME_STATUS.VALUE_CHANGED,
+    status: CODING_SCHEME_STATUS.VALUE_CHANGED,
     subform: subformSource
   };
 };
