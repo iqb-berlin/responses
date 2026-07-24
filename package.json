@@ -8,6 +8,7 @@
     "test": "jest",
     "test_coding": "jest test/coding",
     "test:coverage": "jest --coverage",
+    "test:package": "node scripts/verify-package.js",
     "test_coding2text": "cd test && ts-node test-code2text case1",
     "test_getBaseVarsList": "cd test && ts-node test-getBaseVarsList get-base-vars-case",
     "prepare_publish": "rm -rf dist/* && tsc --module commonjs && cp ./package_npm.json ./dist/package.json && cp ./README.md ./dist",
