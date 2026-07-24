@@ -331,7 +331,7 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
-    test('detects INVALID_SOURCE if BASE variable points to VarInfo of type no-value', () => {
+    test('allows BASE to activate a VarInfo of type no-value', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1', type: 'no-value' }
       ] as unknown as VariableInfo[];
@@ -340,7 +340,38 @@ describe('CodingSchemeFactory', () => {
       const problems = CodingSchemeFactory.validate(baseVars, [coding]);
       expect(
         problems.some(p => p.type === 'INVALID_SOURCE' && p.breaking)
-      ).toBe(true);
+      ).toBe(false);
+    });
+
+    test('validates an activated no-value variable as a multiple string', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1', type: 'no-value' }
+      ] as unknown as VariableInfo[];
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          score: 0,
+          label: '',
+          type: 'INTENDED_INCOMPLETE',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [{
+            ruleOperatorAnd: false,
+            valueArrayPos: 0,
+            rules: [{ method: 'IS_TRUE' }]
+          }]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(
+        problems.some(p => [
+          'INVALID_SOURCE',
+          'RULE_PARAMETER_INVALID',
+          'RULESET_VALUE_ARRAY_POS_INVALID'
+        ].includes(p.type))
+      ).toBe(false);
     });
 
     test('detects INVALID_SOURCE if BASE_NO_VALUE variable points to VarInfo not of type no-value', () => {
