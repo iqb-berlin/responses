@@ -15,7 +15,8 @@ const {
   materialize,
   modelArbitrary
 } = require('./generators');
-const { canonicalize, firstDifference, signedSeed } = require('./protocol');
+const { canonicalize, signedSeed } = require('./protocol');
+const { compareWithSolverTolerance } = require('./numeric-comparison');
 const { WorkerClient } = require('./worker-client');
 
 const repositoryRoot = resolve(__dirname, '..', '..');
@@ -26,6 +27,7 @@ const profileDefinitions = [
   { name: 'portable-invalid-response', runs: 3500, seed: 0x05220004 },
   { name: 'wire-factory', runs: 2500, seed: 0x05220005 }
 ];
+let toleratedNumericResults = 0;
 
 function parseArguments(argv) {
   const options = {};
@@ -99,7 +101,15 @@ function assertCoverage(counters, totalRuns) {
 async function compare(worker, request) {
   const typescript = canonicalize(evaluateTypeScript(request));
   const dotnet = canonicalize(await worker.execute(request));
-  return { request, typescript, dotnet, difference: firstDifference(typescript, dotnet) };
+  const comparison = compareWithSolverTolerance(request, typescript, dotnet);
+  toleratedNumericResults += comparison.tolerated.length;
+  return {
+    request,
+    typescript,
+    dotnet,
+    difference: comparison.difference,
+    tolerated: comparison.tolerated
+  };
 }
 
 async function runRequestFiles(worker, directory, label) {
@@ -136,6 +146,9 @@ async function runBoundaries(worker) {
       console.log(result.difference
         ? `Known boundary divergence '${boundary.id}' observed.`
         : `Known boundary divergence '${boundary.id}' is now aligned; tighten the manifest.`);
+    }
+    if (result.tolerated.length > 0) {
+      console.log(`Boundary '${boundary.id}' matched within the 1-ULP derive-value tolerance.`);
     }
   }
   console.log(`Boundary manifest: ${manifest.cases.length} case(s), ${known} documented divergence(s).`);
@@ -231,6 +244,9 @@ async function main() {
       totalRuns += await runProfile(worker, definition, options, counters);
     }
     assertCoverage(counters, totalRuns);
+    if (toleratedNumericResults > 0) {
+      console.log(`${toleratedNumericResults} direct transcendental result(s) matched within 1 ULP.`);
+    }
     console.log(`Generative TypeScript/.NET parity passed for ${totalRuns} case(s).`);
   } finally {
     await worker.close();

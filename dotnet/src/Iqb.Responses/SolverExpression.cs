@@ -216,6 +216,7 @@ internal static class SolverExpression
                 "round" => Round(numbers),
                 "min" => Aggregate(name, numbers, Math.Min),
                 "max" => Aggregate(name, numbers, Math.Max),
+                "gcd" => GreatestCommonDivisor(numbers),
                 "hypot" => Aggregate(name, numbers, Hypot, 0d),
                 _ => throw Error($"Unknown function '{name}'")
             };
@@ -372,6 +373,26 @@ internal static class SolverExpression
         {
             if (values.Count is < 1 or > 2) throw new FormatException("Function 'log' expects one or two arguments.");
             return values.Count == 1 ? Math.Log(values[0]) : Math.Log(values[0], values[1]);
+        }
+
+        private static double GreatestCommonDivisor(IReadOnlyList<double> values)
+        {
+            if (values.Count < 2) throw new FormatException("Function 'gcd' expects at least two arguments.");
+            if (values.Any(value => !double.IsFinite(value) || value != Math.Truncate(value)))
+                throw new FormatException("Function 'gcd' expects finite integer arguments.");
+
+            var result = Math.Abs(values[0]);
+            for (var index = 1; index < values.Count; index++)
+            {
+                var next = Math.Abs(values[index]);
+                while (next != 0)
+                {
+                    var remainder = result % next;
+                    result = next;
+                    next = remainder;
+                }
+            }
+            return result;
         }
 
         private static double Modulo(double value, double divisor) =>

@@ -53,7 +53,7 @@ placeholder, fragment and policy syntax. It also supports the scalar constants
 `pi`/`PI`, `e`/`E`, `tau`, `phi`, `Infinity`, `NaN` and these functions:
 
 - `abs`, `sqrt`, `cbrt`, `ceil`, `floor`, `fix`, `round`, `sign`
-- `min`, `max`, `pow`, `mod`, `square`, `cube`, `nthRoot`
+- `min`, `max`, `gcd`, `pow`, `mod`, `square`, `cube`, `nthRoot`
 - `exp`, `log`, `log10`, `log2`
 - `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, `hypot`
 
@@ -61,7 +61,11 @@ Matrices, units, assignments, user-defined functions, complex values and other
 unrestricted `mathjs` features are not supported. Unsupported syntax and
 non-finite final results produce `DERIVE_ERROR`. Transcendental results can
 differ from V8 by one final IEEE-754 bit because the runtimes use different
-math implementations; the differential boundary manifest tracks this case.
+math implementations. Differential tests allow at most one IEEE-754 ULP for a
+direct, finite result using `exp`, logarithmic, trigonometric or `hypot`
+functions. Status, error and downstream coding results remain exact
+comparisons. `gcd` requires at least two finite integer arguments and remains
+an exact comparison.
 
 ## Number, casing and regular-expression compatibility
 

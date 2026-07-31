@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fc = require('fast-check');
 const { materialize, modelArbitrary } = require('./generators');
+const { compareWithSolverTolerance, ulpDistance } = require('./numeric-comparison');
 const { canonicalJson } = require('./protocol');
 const { WorkerClient } = require('./worker-client');
 
@@ -41,6 +42,60 @@ async function assertWorkerFailureModes() {
 }
 
 async function main() {
+  assert.equal(ulpDistance(1, 1.0000000000000002), 1n);
+  assert.equal(ulpDistance(1, 1.0000000000000004), 2n);
+  assert.equal(ulpDistance(Number.POSITIVE_INFINITY, 1), null);
+
+  const toleranceRequest = {
+    input: {
+      variableCodings: [{
+        sourceType: 'SOLVER',
+        sourceParameters: { solverExpression: 'sin(4)' }
+      }]
+    },
+    calls: [{ op: 'deriveValue', codingIndex: 0 }]
+  };
+  const resultWithValue = value => ({
+    calls: [{
+      op: 'deriveValue',
+      outcome: { kind: 'value', value: { id: 'x', status: 'VALUE_CHANGED', value } },
+      diagnostics: []
+    }]
+  });
+  const oneUlp = compareWithSolverTolerance(
+    toleranceRequest,
+    resultWithValue(1),
+    resultWithValue(1.0000000000000002)
+  );
+  assert.equal(oneUlp.difference, null);
+  assert.equal(oneUlp.tolerated.length, 1);
+  assert.notEqual(
+    compareWithSolverTolerance(
+      toleranceRequest,
+      resultWithValue(1),
+      resultWithValue(1.0000000000000004)
+    ).difference,
+    null
+  );
+  assert.notEqual(
+    compareWithSolverTolerance(
+      { ...toleranceRequest, calls: [{ op: 'code' }] },
+      resultWithValue(1),
+      resultWithValue(1.0000000000000002)
+    ).difference,
+    null
+  );
+  const statusMismatch = resultWithValue(1.0000000000000002);
+  statusMismatch.calls[0].outcome.value.status = 'DERIVE_ERROR';
+  assert.notEqual(
+    compareWithSolverTolerance(
+      toleranceRequest,
+      resultWithValue(1),
+      statusMismatch
+    ).difference,
+    null
+  );
+
   const first = fc.sample(modelArbitrary, { seed: 123456, numRuns: 25 })
     .map(model => canonicalJson(materialize(model, 'portable-valid-scheme').request));
   const second = fc.sample(modelArbitrary, { seed: 123456, numRuns: 25 })

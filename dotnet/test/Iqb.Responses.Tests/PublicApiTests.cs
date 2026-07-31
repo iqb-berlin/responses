@@ -400,6 +400,10 @@ public sealed class PublicApiTests
     [InlineData("sign(-3)", -1d)]
     [InlineData("min(3, 1, 2)", 1d)]
     [InlineData("max(3, 1, 2)", 3d)]
+    [InlineData("gcd(24, 18, 30)", 6d)]
+    [InlineData("gcd(-8, 4)", 4d)]
+    [InlineData("gcd(0, 0)", 0d)]
+    [InlineData("gcd(0, 5)", 5d)]
     [InlineData("pow(2, 3)", 8d)]
     [InlineData("-5 % 3", 1d)]
     [InlineData("mod(-5, 3)", 1d)]
@@ -432,7 +436,9 @@ public sealed class PublicApiTests
     }
 
     [Theory]
-    [InlineData("gcd(8, 4)")]
+    [InlineData("gcd(8)")]
+    [InlineData("gcd(2.5, 1.5)")]
+    [InlineData("gcd(Infinity, 2)")]
     [InlineData("sqrt()")]
     [InlineData("round(1, 16)")]
     [InlineData("min()")]

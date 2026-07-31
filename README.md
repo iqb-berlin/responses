@@ -40,7 +40,7 @@ fragment access, and the documented default/`ERROR`/`INC` policies. Its scalar
 
 - Constants: `pi`/`PI`, `e`/`E`, `tau`, `phi`, `Infinity`, and `NaN`.
 - Numeric functions: `abs`, `sqrt`, `cbrt`, `ceil`, `floor`, `fix`, `round`,
-  `sign`, `min`, `max`, `pow`, `mod`, `square`, `cube`, and `nthRoot`.
+  `sign`, `min`, `max`, `gcd`, `pow`, `mod`, `square`, `cube`, and `nthRoot`.
 - Exponential and logarithmic functions: `exp`, `log`, `log10`, and `log2`.
 - Trigonometric functions: `sin`, `cos`, `tan`, `asin`, `acos`, `atan`,
   `atan2`, and `hypot`.
@@ -49,8 +49,11 @@ Matrices, units, assignments, user-defined functions and other unrestricted
 `mathjs` syntax are not supported. Unknown syntax, complex values and
 non-finite final results produce `DERIVE_ERROR`. Transcendental functions can
 differ from V8 by one final IEEE-754 bit because .NET and JavaScript use
-different platform math implementations; this boundary is reported separately
-by the differential suite.
+different platform math implementations. Direct, finite SOLVER results that
+use `exp`, logarithmic, trigonometric or `hypot` functions may differ by at
+most one IEEE-754 ULP in differential tests. Status, error and downstream
+coding results are still compared exactly. `gcd` requires at least two finite
+integer arguments and is always compared exactly.
 
 Number-to-string conversion and Unicode lowercasing follow JavaScript semantics
 in both runtimes. `MATCH_REGEX` deliberately uses a portable ASCII subset:

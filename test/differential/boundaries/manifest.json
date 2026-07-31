@@ -28,13 +28,13 @@
       }
     },
     {
-      "id": "unsupported-mathjs-gcd",
-      "category": "unsupported-solver-function",
-      "expectation": "known-divergence",
+      "id": "mathjs-gcd-function",
+      "category": "solver-function",
+      "expectation": "must-match",
       "request": {
         "protocolVersion": 1,
         "kind": "case",
-        "id": "boundary:unsupported-mathjs-gcd",
+        "id": "boundary:mathjs-gcd-function",
         "input": {
           "baseVariables": [],
           "variableCodings": [
@@ -55,7 +55,8 @@
     {
       "id": "transcendental-last-bit",
       "category": "floating-point-runtime",
-      "expectation": "known-divergence",
+      "expectation": "must-match",
+      "comparison": "derive-number-1-ulp",
       "request": {
         "protocolVersion": 1,
         "kind": "case",

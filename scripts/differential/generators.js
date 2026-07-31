@@ -23,7 +23,7 @@ const FAULTS = [
 ];
 const SOLVER_FUNCTIONS = [
   'abs', 'sqrt', 'cbrt', 'ceil', 'floor', 'fix', 'round', 'sign',
-  'min', 'max', 'pow', 'mod', 'exp', 'log', 'log10', 'log2',
+  'min', 'max', 'gcd', 'pow', 'mod', 'exp', 'log', 'log10', 'log2',
   'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'atan2', 'hypot',
   'square', 'cube', 'nthRoot'
 ];
@@ -148,6 +148,7 @@ function solverExpressionFor(raw, sourceAliases) {
     sign: `sign(${first})`,
     min: `min(${first}, ${second}, 0)`,
     max: `max(${first}, ${second}, 0)`,
+    gcd: `gcd(${first}, ${second}, 0)`,
     pow: `pow(abs(${first} % 5), ${Math.abs(second) % 4})`,
     mod: `mod(${first}, ${divisor})`,
     exp: `exp(${first} % 5)`,
