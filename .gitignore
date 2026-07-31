@@ -33,6 +33,11 @@ yarn-error.log
 .sass-cache/
 /connect.lock
 /coverage
+/dotnet/**/bin/
+/dotnet/**/obj/
+/dotnet/TestResults/
+/dotnet/artifacts/
+/dotnet/**/coverage.*
 /libpeerconnection.log
 testem.log
 /typings

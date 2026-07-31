@@ -12,6 +12,32 @@ This package contains of type definitions for processing assessment data. Additi
 npm i @iqb/responses
 ```
 
+### .NET 10
+
+The repository also contains the native .NET package `Iqb.Responses`. It uses
+the same camel-case JSON contracts and does not require Node.js at runtime.
+
+```bash
+dotnet add package Iqb.Responses --version 5.2.2-preview.1
+```
+
+```csharp
+using System.Text.Json;
+using Iqb.Responses;
+
+var scheme = CodingScheme.Parse(File.ReadAllText("coding-scheme.json"));
+var responses = JsonSerializer.Deserialize<List<Response>>(
+    File.ReadAllText("responses.json"),
+    IqbJson.Options) ?? [];
+
+var coded = CodingSchemeFactory.Code(responses, scheme.VariableCodings);
+```
+
+The native SOLVER supports numeric literals, `null`, booleans, parentheses,
+arithmetic and comparison operators, ternary expressions, IQB placeholders,
+fragment access, and the documented default/`ERROR`/`INC` policies. Other
+`mathjs` syntax is rejected deterministically with `DERIVE_ERROR`.
+
 ## Documentation
 
 - **[Quick Reference Guide](./QUICK_REFERENCE.md)** - Common operations, examples, and troubleshooting

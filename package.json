@@ -8,6 +8,7 @@
     "test": "jest",
     "test_coding": "jest test/coding",
     "test:coverage": "jest --coverage",
+    "test:differential": "node scripts/verify-dotnet-parity.js",
     "test:package": "node scripts/verify-package.js",
     "test_coding2text": "cd test && ts-node test-code2text case1",
     "test_getBaseVarsList": "cd test && ts-node test-getBaseVarsList get-base-vars-case",
