@@ -134,6 +134,8 @@ internal static class RuleEngine
         var parameters = rule.Parameters ?? [];
         if (ReferenceEquals(value, JavaScriptUndefined))
         {
+            if (rule.Method.StartsWith("NUMERIC_", StringComparison.Ordinal))
+                throw new InvalidOperationException("A numeric rule cannot evaluate an undefined fragment.");
             return rule.Method == "MATCH_REGEX" && FindRegex("undefined", parameters, processing.Contains("IGNORE_CASE"));
         }
         switch (rule.Method)

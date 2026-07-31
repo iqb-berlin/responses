@@ -457,6 +457,45 @@ public sealed class PublicApiTests
         Assert.Equal(ResponseStatus.CodingComplete, result.Status);
     }
 
+    [Fact]
+    public void Invalid_fractional_fragment_with_numeric_rule_reports_a_coding_error()
+    {
+        var coding = Coding("x", "BASE");
+        coding.Fragmenting = "(.)";
+        coding.Codes =
+        [
+            new CodeData
+            {
+                Id = 7d,
+                Type = "UNSET",
+                RuleSets =
+                [
+                    new RuleSet
+                    {
+                        Rules =
+                        [
+                            new CodingRule
+                            {
+                                Method = "NUMERIC_MATCH",
+                                Parameters = ["0"],
+                                Fragment = 0.5d
+                            }
+                        ]
+                    }
+                ]
+            }
+        ];
+        Exception? reported = null;
+
+        var result = CodingFactory.Code(
+            new Response { Id = "x", Status = "VALUE_CHANGED", Value = "0" },
+            coding,
+            error => reported = error);
+
+        Assert.IsType<InvalidOperationException>(reported);
+        Assert.Equal(ResponseStatus.CodingError, result.Status);
+    }
+
     private static VariableCodingData Coding(string id, string sourceType, params string[] sources) => new()
     {
         Id = id,

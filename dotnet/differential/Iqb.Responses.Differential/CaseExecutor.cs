@@ -95,6 +95,7 @@ internal static class CaseExecutor
         RegexMatchTimeoutException => "REGEX_TIMEOUT",
         ArgumentException when error.Message.Contains("regular expression", StringComparison.OrdinalIgnoreCase) => "REGEX_SYNTAX",
         InvalidOperationException when error.Message.Contains("Circular dependency", StringComparison.OrdinalIgnoreCase) => "DEPENDENCY_CYCLE",
+        InvalidOperationException => "INVALID_OPERATION",
         FormatException => "SOLVER_SYNTAX",
         NotSupportedException => "INVALID_OPERATION",
         IndexOutOfRangeException => "INVALID_REQUEST",
