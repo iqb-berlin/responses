@@ -361,6 +361,32 @@ public sealed class PublicApiTests
     [InlineData("-2 + 5", 3d)]
     [InlineData("2 > 1 ? 7 : 9", 7d)]
     [InlineData("false ? 7 : null", null)]
+    [InlineData("sqrt(4)", 2d)]
+    [InlineData("abs(-2)", 2d)]
+    [InlineData("cbrt(-8)", -2d)]
+    [InlineData("ceil(1.2)", 2d)]
+    [InlineData("floor(1.8)", 1d)]
+    [InlineData("fix(-1.8)", -1d)]
+    [InlineData("round(1.005, 2)", 1.01d)]
+    [InlineData("sign(-3)", -1d)]
+    [InlineData("min(3, 1, 2)", 1d)]
+    [InlineData("max(3, 1, 2)", 3d)]
+    [InlineData("pow(2, 3)", 8d)]
+    [InlineData("-5 % 3", 1d)]
+    [InlineData("mod(-5, 3)", 1d)]
+    [InlineData("exp(0)", 1d)]
+    [InlineData("log(e)", 1d)]
+    [InlineData("log10(100)", 2d)]
+    [InlineData("log2(8)", 3d)]
+    [InlineData("sin(0) + cos(0) + tan(0)", 1d)]
+    [InlineData("asin(0) + acos(1) + atan(0) + atan2(0, 1)", 0d)]
+    [InlineData("hypot(3, 4)", 5d)]
+    [InlineData("square(3)", 9d)]
+    [InlineData("cube(3)", 27d)]
+    [InlineData("nthRoot(27, 3)", 3d)]
+    [InlineData("pi > 3 ? 1 : 0", 1d)]
+    [InlineData("tau > 6 ? 1 : 0", 1d)]
+    [InlineData("phi > 1 ? 1 : 0", 1d)]
     public void Solver_supports_documented_expressions(string expression, double? expected)
     {
         var coding = Coding("d", "SOLVER", "a", "b");
@@ -374,6 +400,26 @@ public sealed class PublicApiTests
         {
             Assert.Equal(expected, result.Value);
         }
+    }
+
+    [Theory]
+    [InlineData("gcd(8, 4)")]
+    [InlineData("sqrt()")]
+    [InlineData("round(1, 16)")]
+    [InlineData("min()")]
+    [InlineData("nthRoot(4, 0)")]
+    [InlineData("sqrt(-1)")]
+    [InlineData("Infinity")]
+    [InlineData("[1, 2]")]
+    public void Solver_rejects_unsupported_or_non_finite_results(string expression)
+    {
+        var coding = Coding("d", "SOLVER");
+        coding.SourceParameters!.SolverExpression = expression;
+
+        var result = CodingSchemeFactory.DeriveValue([], coding, []);
+
+        Assert.Equal(ResponseStatus.DeriveError, result.Status);
+        Assert.Null(result.Value);
     }
 
     [Fact]

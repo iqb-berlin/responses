@@ -8,6 +8,7 @@ const {
   BOOLEAN_RULES,
   FAULTS,
   NUMERIC_RULES,
+  SOLVER_FUNCTIONS,
   SOURCE_TYPES,
   STATUSES,
   STRING_RULES,
@@ -70,7 +71,8 @@ function makeCounters() {
     statuses: new Map(),
     values: new Map(),
     arrayPositions: new Map(),
-    faults: new Map()
+    faults: new Map(),
+    solverFunctions: new Map()
   };
 }
 
@@ -81,6 +83,7 @@ function assertCoverage(counters, totalRuns) {
     rules: [...STRING_RULES, ...NUMERIC_RULES, ...BOOLEAN_RULES],
     statuses: STATUSES,
     arrayPositions: ARRAY_POSITIONS,
+    solverFunctions: SOLVER_FUNCTIONS,
     faults: [...FAULTS, 'duplicate', 'unknown', 'missing', 'derived-input', 'status-value', 'alias-id']
   };
   const missing = [];

@@ -119,7 +119,7 @@ internal static class SolverExpression
             {
                 if (Take("*")) left = Number(left, ParseUnary(), (a, b) => a * b);
                 else if (Take("/")) left = Number(left, ParseUnary(), (a, b) => a / b);
-                else if (Take("%")) left = Number(left, ParseUnary(), (a, b) => a % b);
+                else if (Take("%")) left = Number(left, ParseUnary(), Modulo);
                 else return left;
             }
         }
@@ -150,7 +150,76 @@ internal static class SolverExpression
             if (TakeWord("true")) return Value.FromBoolean(true);
             if (TakeWord("false")) return Value.FromBoolean(false);
             if (TakeWord("null")) return Value.Null;
+            if (IsIdentifierStart()) return ParseIdentifier();
             return ParseNumber();
+        }
+
+        private Value ParseIdentifier()
+        {
+            SkipWhiteSpace();
+            var start = _position++;
+            while (_position < text.Length && IsIdentifierPart(text[_position])) _position++;
+            var identifier = text[start.._position];
+            if (Take("(")) return EvaluateFunction(identifier, ParseArguments());
+            return identifier switch
+            {
+                "pi" or "PI" => Value.FromNumber(Math.PI),
+                "e" or "E" => Value.FromNumber(Math.E),
+                "tau" => Value.FromNumber(Math.Tau),
+                "phi" => Value.FromNumber((1d + Math.Sqrt(5d)) / 2d),
+                "Infinity" => Value.FromNumber(double.PositiveInfinity),
+                "NaN" => Value.FromNumber(double.NaN),
+                _ => throw Error($"Unknown symbol '{identifier}'")
+            };
+        }
+
+        private List<Value> ParseArguments()
+        {
+            var arguments = new List<Value>();
+            if (Take(")")) return arguments;
+            while (true)
+            {
+                arguments.Add(ParseTernary());
+                if (Take(")")) return arguments;
+                Require(",");
+            }
+        }
+
+        private Value EvaluateFunction(string name, IReadOnlyList<Value> arguments)
+        {
+            var numbers = arguments.Select(AsNumber).ToArray();
+            double result = name switch
+            {
+                "abs" => Unary(name, numbers, Math.Abs),
+                "sqrt" => Unary(name, numbers, Math.Sqrt),
+                "cbrt" => Unary(name, numbers, Math.Cbrt),
+                "ceil" => Unary(name, numbers, Math.Ceiling),
+                "floor" => Unary(name, numbers, Math.Floor),
+                "fix" => Unary(name, numbers, Math.Truncate),
+                "sign" => Unary(name, numbers, Sign),
+                "exp" => Unary(name, numbers, Math.Exp),
+                "log10" => Unary(name, numbers, Math.Log10),
+                "log2" => Unary(name, numbers, Math.Log2),
+                "sin" => Unary(name, numbers, Math.Sin),
+                "cos" => Unary(name, numbers, Math.Cos),
+                "tan" => Unary(name, numbers, Math.Tan),
+                "asin" => Unary(name, numbers, Math.Asin),
+                "acos" => Unary(name, numbers, Math.Acos),
+                "atan" => Unary(name, numbers, Math.Atan),
+                "square" => Unary(name, numbers, value => value * value),
+                "cube" => Unary(name, numbers, value => value * value * value),
+                "pow" => Binary(name, numbers, Math.Pow),
+                "mod" => Binary(name, numbers, Modulo),
+                "atan2" => Binary(name, numbers, Math.Atan2),
+                "nthRoot" => OneOrTwo(name, numbers, NthRoot, 2d),
+                "log" => Log(numbers),
+                "round" => Round(numbers),
+                "min" => Aggregate(name, numbers, Math.Min),
+                "max" => Aggregate(name, numbers, Math.Max),
+                "hypot" => Aggregate(name, numbers, Hypot, 0d),
+                _ => throw Error($"Unknown function '{name}'")
+            };
+            return Value.FromNumber(result);
         }
 
         private Value ParseNumber()
@@ -228,6 +297,15 @@ internal static class SolverExpression
 
         private FormatException Error(string message) => new($"{message} at position {_position}.");
 
+        private bool IsIdentifierStart()
+        {
+            SkipWhiteSpace();
+            return _position < text.Length && (char.IsAsciiLetter(text[_position]) || text[_position] == '_');
+        }
+
+        private static bool IsIdentifierPart(char character) =>
+            char.IsAsciiLetterOrDigit(character) || character == '_';
+
         private static double AsNumber(Value value) => value.Kind == ValueKind.Number
             ? value.Number
             : throw new FormatException("Numeric operand expected.");
@@ -241,6 +319,96 @@ internal static class SolverExpression
 
         private static Value Compare(Value left, Value right, Func<double, double, bool> operation) =>
             Value.FromBoolean(operation(AsNumber(left), AsNumber(right)));
+
+        private static double Unary(string name, IReadOnlyList<double> values, Func<double, double> operation)
+        {
+            RequireCount(name, values, 1);
+            return operation(values[0]);
+        }
+
+        private static double Binary(string name, IReadOnlyList<double> values, Func<double, double, double> operation)
+        {
+            RequireCount(name, values, 2);
+            return operation(values[0], values[1]);
+        }
+
+        private static double OneOrTwo(
+            string name,
+            IReadOnlyList<double> values,
+            Func<double, double, double> operation,
+            double defaultSecond)
+        {
+            if (values.Count is < 1 or > 2) throw new FormatException($"Function '{name}' expects one or two arguments.");
+            return operation(values[0], values.Count == 2 ? values[1] : defaultSecond);
+        }
+
+        private static double Aggregate(
+            string name,
+            IReadOnlyList<double> values,
+            Func<double, double, double> operation,
+            double? seed = null)
+        {
+            if (values.Count == 0) throw new FormatException($"Function '{name}' expects at least one argument.");
+            var result = seed ?? values[0];
+            var start = seed is null ? 1 : 0;
+            for (var index = start; index < values.Count; index++) result = operation(result, values[index]);
+            return result;
+        }
+
+        private static double Round(IReadOnlyList<double> values)
+        {
+            if (values.Count is < 1 or > 2) throw new FormatException("Function 'round' expects one or two arguments.");
+            var decimals = values.Count == 1 ? 0 : values[1];
+            if (decimals != Math.Truncate(decimals) || decimals is < 0 or > 15)
+                throw new FormatException("The number of decimals must be an integer from 0 through 15.");
+            if (!double.IsFinite(values[0])) return values[0];
+            var textValue = values[0].ToString("R", CultureInfo.InvariantCulture);
+            return decimal.TryParse(textValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var decimalValue)
+                ? (double)Math.Round(decimalValue, (int)decimals, MidpointRounding.AwayFromZero)
+                : Math.Round(values[0], (int)decimals, MidpointRounding.AwayFromZero);
+        }
+
+        private static double Log(IReadOnlyList<double> values)
+        {
+            if (values.Count is < 1 or > 2) throw new FormatException("Function 'log' expects one or two arguments.");
+            return values.Count == 1 ? Math.Log(values[0]) : Math.Log(values[0], values[1]);
+        }
+
+        private static double Modulo(double value, double divisor) =>
+            divisor == 0 ? value : value - divisor * Math.Floor(value / divisor);
+
+        private static double Hypot(double left, double right)
+        {
+            var maximum = Math.Max(Math.Abs(left), Math.Abs(right));
+            if (double.IsInfinity(maximum)) return double.PositiveInfinity;
+            if (maximum == 0) return 0;
+            var minimum = Math.Min(Math.Abs(left), Math.Abs(right));
+            var ratio = minimum / maximum;
+            return maximum * Math.Sqrt(1d + ratio * ratio);
+        }
+
+        private static double NthRoot(double value, double root)
+        {
+            if (root == 0) throw new FormatException("Root must be non-zero.");
+            var inverse = root < 0;
+            var positiveRoot = Math.Abs(root);
+            double result;
+            if (value < 0)
+            {
+                if (positiveRoot != Math.Truncate(positiveRoot) || Math.Abs(positiveRoot % 2) != 1)
+                    return double.NaN;
+                result = -Math.Pow(-value, 1d / positiveRoot);
+            }
+            else result = Math.Pow(value, 1d / positiveRoot);
+            return inverse ? 1d / result : result;
+        }
+
+        private static double Sign(double value) => double.IsNaN(value) ? double.NaN : Math.Sign(value);
+
+        private static void RequireCount(string name, IReadOnlyCollection<double> values, int expected)
+        {
+            if (values.Count != expected) throw new FormatException($"Function '{name}' expects {expected} argument(s).");
+        }
 
         private static bool EqualsValue(Value left, Value right) => left.Kind == right.Kind && left.Kind switch
         {

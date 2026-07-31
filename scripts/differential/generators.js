@@ -21,6 +21,12 @@ const FAULTS = [
   'duplicate-id', 'duplicate-alias', 'missing-source', 'cycle', 'parameter-count',
   'reversed-range', 'invalid-regex', 'fragment-index', 'array-position', 'source-count'
 ];
+const SOLVER_FUNCTIONS = [
+  'abs', 'sqrt', 'cbrt', 'ceil', 'floor', 'fix', 'round', 'sign',
+  'min', 'max', 'pow', 'mod', 'exp', 'log', 'log10', 'log2',
+  'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'atan2', 'hypot',
+  'square', 'cube', 'nthRoot'
+];
 const ASCII = [...'abcXYZ0123 -_,.'];
 
 const asciiString = fc.array(fc.constantFrom(...ASCII), { maxLength: 12 }).map(chars => chars.join(''));
@@ -121,6 +127,46 @@ function ruleFor(type, selector, useFragment) {
   return rule;
 }
 
+function solverExpressionFor(raw, sourceAliases) {
+  const name = pick(SOLVER_FUNCTIONS, raw.ruleSelector);
+  const first = raw.codeId;
+  const second = raw.score;
+  const divisor = Math.abs(second) % 5 + 1;
+  const decimals = Math.abs(second) % 4;
+  const root = Math.abs(second) % 2 + 2;
+  const expressions = {
+    abs: `abs(${first})`,
+    sqrt: `sqrt(abs(${first}))`,
+    cbrt: `cbrt(cube(${first}))`,
+    ceil: `ceil(${first} / 3)`,
+    floor: `floor(${first} / 3)`,
+    fix: `fix(${first} / 3)`,
+    round: `round(${first} / 3, ${decimals})`,
+    sign: `sign(${first})`,
+    min: `min(${first}, ${second}, 0)`,
+    max: `max(${first}, ${second}, 0)`,
+    pow: `pow(abs(${first} % 5), ${Math.abs(second) % 4})`,
+    mod: `mod(${first}, ${divisor})`,
+    exp: `exp(${first} % 5)`,
+    log: `log(exp(${first} % 5))`,
+    log10: `log10(pow(10, abs(${first} % 4)))`,
+    log2: `log2(abs(${first}) + 1)`,
+    sin: 'sin(0)',
+    cos: 'cos(0)',
+    tan: 'tan(0)',
+    asin: `asin((${first} % 3) / 3)`,
+    acos: `acos((${first} % 3) / 3)`,
+    atan: 'atan(0)',
+    atan2: `atan2(0, ${divisor})`,
+    hypot: `hypot(${first}, ${second})`,
+    square: `square(${first})`,
+    cube: `cube(${first})`,
+    nthRoot: `nthRoot(pow(abs(${first} % 5), ${root}), ${root})`
+  };
+  const sourceTerm = sourceAliases.length > 0 ? ` + 0 * \${${sourceAliases[0]}:0:0}` : '';
+  return `${expressions[name]}${sourceTerm}`;
+}
+
 function makeCoding(raw, index, sourceType, type, sources, ids, multiple) {
   const fragmentingEnabled = raw.useFragment && type === 'string' && sourceType === 'BASE';
   const rule = ruleFor(type, raw.ruleSelector, fragmentingEnabled);
@@ -157,9 +203,10 @@ function makeCoding(raw, index, sourceType, type, sources, ids, multiple) {
     ['SORT_ARRAY'], ['REPLAY_REQUIRED']
   ];
   const sourceAliases = sources.map(source => ids[source]);
-  const solverExpression = sourceType === 'SOLVER'
-    ? sourceAliases.map(source => `\${${source}:0:0}`).join(' + ') || '0'
-    : '';
+  let solverExpression = '';
+  if (sourceType === 'SOLVER') {
+    solverExpression = solverExpressionFor(raw, sourceAliases);
+  }
   return {
     id: ids[index],
     alias,
@@ -257,7 +304,9 @@ function materialize(model, profile) {
   const variableCodings = [];
   const baseVariables = [];
   const responses = [];
-  const coverage = { sources: [], rules: [], statuses: [], values: [], arrayPositions: [], faults: [] };
+  const coverage = {
+    sources: [], rules: [], statuses: [], values: [], arrayPositions: [], faults: [], solverFunctions: []
+  };
 
   model.nodes.forEach((raw, index) => {
     const sourceType = sourceTypeFor(raw, index, profile);
@@ -288,6 +337,7 @@ function materialize(model, profile) {
     coverage.rules.push(coding.codes[0].ruleSets[0].rules[0].method);
     coverage.statuses.push(status);
     coverage.values.push(multiple ? 'array' : type);
+    if (sourceType === 'SOLVER') coverage.solverFunctions.push(pick(SOLVER_FUNCTIONS, raw.ruleSelector));
     if (multiple) coverage.arrayPositions.push(coding.codes[0].ruleSets[0].valueArrayPos);
   });
 
@@ -355,9 +405,11 @@ module.exports = {
   FAULTS,
   NUMERIC_RULES,
   SOURCE_TYPES,
+  SOLVER_FUNCTIONS,
   STATUSES,
   STRING_RULES,
   BOOLEAN_RULES,
   materialize,
-  modelArbitrary
+  modelArbitrary,
+  solverExpressionFor
 };

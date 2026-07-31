@@ -49,5 +49,16 @@ base-variable resolution and the SIMPLE/EXTENDED text renderers.
 
 The native parser supports numbers, `null`, `true`/`false`, parentheses,
 arithmetic, comparisons, ternary expressions and the documented IQB
-placeholder, fragment and policy syntax. Unsupported `mathjs` functions or
-non-finite results produce `DERIVE_ERROR`.
+placeholder, fragment and policy syntax. It also supports the scalar constants
+`pi`/`PI`, `e`/`E`, `tau`, `phi`, `Infinity`, `NaN` and these functions:
+
+- `abs`, `sqrt`, `cbrt`, `ceil`, `floor`, `fix`, `round`, `sign`
+- `min`, `max`, `pow`, `mod`, `square`, `cube`, `nthRoot`
+- `exp`, `log`, `log10`, `log2`
+- `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, `hypot`
+
+Matrices, units, assignments, user-defined functions, complex values and other
+unrestricted `mathjs` features are not supported. Unsupported syntax and
+non-finite final results produce `DERIVE_ERROR`. Transcendental results can
+differ from V8 by one final IEEE-754 bit because the runtimes use different
+math implementations; the differential boundary manifest tracks this case.

@@ -1,0 +1,97 @@
+{
+  "protocolVersion": 1,
+  "kind": "case",
+  "id": "regression:solver-scalar-functions",
+  "input": {
+    "baseVariables": [],
+    "variableCodings": [
+      {
+        "id": "roots",
+        "alias": "roots",
+        "sourceType": "SOLVER",
+        "sourceParameters": {
+          "solverExpression": "sqrt(4) + abs(-2) + cbrt(-8)",
+          "processing": []
+        },
+        "deriveSources": [],
+        "codes": []
+      },
+      {
+        "id": "rounding",
+        "alias": "rounding",
+        "sourceType": "SOLVER",
+        "sourceParameters": {
+          "solverExpression": "ceil(1.2) + floor(1.8) + fix(-1.8) + round(1.005, 2) + sign(-3)",
+          "processing": []
+        },
+        "deriveSources": [],
+        "codes": []
+      },
+      {
+        "id": "arithmetic",
+        "alias": "arithmetic",
+        "sourceType": "SOLVER",
+        "sourceParameters": {
+          "solverExpression": "min(3, 1, 2) + max(3, 1, 2) + pow(2, 3) + mod(-5, 3) + (-5 % 3)",
+          "processing": []
+        },
+        "deriveSources": [],
+        "codes": []
+      },
+      {
+        "id": "logarithms",
+        "alias": "logarithms",
+        "sourceType": "SOLVER",
+        "sourceParameters": {
+          "solverExpression": "exp(0) + log(e) + log10(100) + log2(8)",
+          "processing": []
+        },
+        "deriveSources": [],
+        "codes": []
+      },
+      {
+        "id": "trigonometry",
+        "alias": "trigonometry",
+        "sourceType": "SOLVER",
+        "sourceParameters": {
+          "solverExpression": "sin(0) + cos(0) + tan(0) + asin(0) + acos(1) + atan(0) + atan2(0, 1)",
+          "processing": []
+        },
+        "deriveSources": [],
+        "codes": []
+      },
+      {
+        "id": "powers",
+        "alias": "powers",
+        "sourceType": "SOLVER",
+        "sourceParameters": {
+          "solverExpression": "hypot(3, 4) + square(3) + cube(3) + nthRoot(27, 3)",
+          "processing": []
+        },
+        "deriveSources": [],
+        "codes": []
+      },
+      {
+        "id": "constants",
+        "alias": "constants",
+        "sourceType": "SOLVER",
+        "sourceParameters": {
+          "solverExpression": "PI + E + tau + phi > 13 ? 1 : 0",
+          "processing": []
+        },
+        "deriveSources": [],
+        "codes": []
+      }
+    ],
+    "responses": []
+  },
+  "calls": [
+    { "op": "deriveValue", "codingIndex": 0, "sourceResponseIndexes": [] },
+    { "op": "deriveValue", "codingIndex": 1, "sourceResponseIndexes": [] },
+    { "op": "deriveValue", "codingIndex": 2, "sourceResponseIndexes": [] },
+    { "op": "deriveValue", "codingIndex": 3, "sourceResponseIndexes": [] },
+    { "op": "deriveValue", "codingIndex": 4, "sourceResponseIndexes": [] },
+    { "op": "deriveValue", "codingIndex": 5, "sourceResponseIndexes": [] },
+    { "op": "deriveValue", "codingIndex": 6, "sourceResponseIndexes": [] }
+  ]
+}

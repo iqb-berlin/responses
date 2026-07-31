@@ -197,6 +197,8 @@ This diagram shows how data is transformed at each stage of the pipeline:
   - `${VAR:n}` uses numeric default `n` for empty/missing values.
   - `${VAR:INC}` sets the derived response to `CODING_INCOMPLETE` for empty/missing values.
   - `${VAR:n:m}`, `${VAR:n:INC}`, `${VAR:INC:m}`, `${VAR:ERROR:m}` configure empty/missing and non-numeric values separately.
+  - The native .NET implementation additionally supports the documented scalar `mathjs` constants and allowlisted numeric, logarithmic and trigonometric functions.
+  - Matrices, units, assignments and user-defined functions remain outside the native SOLVER contract.
 
 ### 7. **CODING Stage**
 - **Module**: `src/coding-factory.ts`

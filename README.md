@@ -35,8 +35,22 @@ var coded = CodingSchemeFactory.Code(responses, scheme.VariableCodings);
 
 The native SOLVER supports numeric literals, `null`, booleans, parentheses,
 arithmetic and comparison operators, ternary expressions, IQB placeholders,
-fragment access, and the documented default/`ERROR`/`INC` policies. Other
-`mathjs` syntax is rejected deterministically with `DERIVE_ERROR`.
+fragment access, and the documented default/`ERROR`/`INC` policies. Its scalar
+`mathjs` subset also includes:
+
+- Constants: `pi`/`PI`, `e`/`E`, `tau`, `phi`, `Infinity`, and `NaN`.
+- Numeric functions: `abs`, `sqrt`, `cbrt`, `ceil`, `floor`, `fix`, `round`,
+  `sign`, `min`, `max`, `pow`, `mod`, `square`, `cube`, and `nthRoot`.
+- Exponential and logarithmic functions: `exp`, `log`, `log10`, and `log2`.
+- Trigonometric functions: `sin`, `cos`, `tan`, `asin`, `acos`, `atan`,
+  `atan2`, and `hypot`.
+
+Matrices, units, assignments, user-defined functions and other unrestricted
+`mathjs` syntax are not supported. Unknown syntax, complex values and
+non-finite final results produce `DERIVE_ERROR`. Transcendental functions can
+differ from V8 by one final IEEE-754 bit because .NET and JavaScript use
+different platform math implementations; this boundary is reported separately
+by the differential suite.
 
 ### Differential parity testing
 
@@ -46,7 +60,7 @@ automatically minimized and written to `artifacts/differential/`. Replay it with
 `npm run test:differential:generated -- --case <minimized.request.json>`.
 
 Before a stable release, `npm run test:differential:stress` runs 100,000 cases.
-Locale, Unicode, regex-dialect and unsupported `mathjs` boundaries are tracked
+Locale, Unicode, regex-dialect and SOLVER-language boundaries are tracked
 separately in `test/differential/boundaries/manifest.json`.
 
 ## Documentation

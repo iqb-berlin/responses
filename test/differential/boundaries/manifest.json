@@ -2,13 +2,13 @@
   "version": 1,
   "cases": [
     {
-      "id": "unsupported-mathjs-function",
-      "category": "unsupported-solver-grammar",
-      "expectation": "known-divergence",
+      "id": "mathjs-sqrt-function",
+      "category": "solver-function",
+      "expectation": "must-match",
       "request": {
         "protocolVersion": 1,
         "kind": "case",
-        "id": "boundary:unsupported-mathjs-function",
+        "id": "boundary:mathjs-sqrt-function",
         "input": {
           "baseVariables": [],
           "variableCodings": [
@@ -25,6 +25,56 @@
           "responses": [{ "id": "b", "status": "NO_CODING", "value": 1 }]
         },
         "calls": [{ "op": "deriveValue", "codingIndex": 1, "sourceResponseIndexes": [0] }]
+      }
+    },
+    {
+      "id": "unsupported-mathjs-gcd",
+      "category": "unsupported-solver-function",
+      "expectation": "known-divergence",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:unsupported-mathjs-gcd",
+        "input": {
+          "baseVariables": [],
+          "variableCodings": [
+            {
+              "id": "d",
+              "alias": "d",
+              "sourceType": "SOLVER",
+              "deriveSources": [],
+              "sourceParameters": { "solverExpression": "gcd(8, 4)", "processing": [] },
+              "codes": []
+            }
+          ],
+          "responses": []
+        },
+        "calls": [{ "op": "deriveValue", "codingIndex": 0, "sourceResponseIndexes": [] }]
+      }
+    },
+    {
+      "id": "transcendental-last-bit",
+      "category": "floating-point-runtime",
+      "expectation": "known-divergence",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:transcendental-last-bit",
+        "input": {
+          "baseVariables": [],
+          "variableCodings": [
+            {
+              "id": "d",
+              "alias": "d",
+              "sourceType": "SOLVER",
+              "deriveSources": [],
+              "sourceParameters": { "solverExpression": "sin(4)", "processing": [] },
+              "codes": []
+            }
+          ],
+          "responses": []
+        },
+        "calls": [{ "op": "deriveValue", "codingIndex": 0, "sourceResponseIndexes": [] }]
       }
     },
     {

@@ -83,6 +83,11 @@ Solver expressions reference source variables with `${VAR}` or source fragments 
 
 The same policy syntax works for fragments, for example `${VAR[0]:0:INC}`.
 
+The native .NET SOLVER supports scalar `mathjs` constants (`pi`, `e`, `tau`,
+`phi`) and common numeric functions including `sqrt`, `abs`, `round`, `min`,
+`max`, `pow`, `mod`, logarithms and trigonometric functions. The complete
+allowlist and its limitations are documented in the .NET package README.
+
 ### Rule Types
 
 | Rule | Description | Example |
