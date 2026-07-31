@@ -51,6 +51,27 @@ describe('CodingFactory', () => {
         CodingFactory.getValueAsString({} as ResponseValueSingleType)
       ).toBeNull();
     });
+
+    test.each([
+      [1e21, '1e+21'],
+      [1e20, '100000000000000000000'],
+      [1e-6, '0.000001'],
+      [1e-7, '1e-7'],
+      [1000000000000000100, '1000000000000000100'],
+      [-0, '0']
+    ])('formats the number %p with ECMAScript semantics', (value, expected) => {
+      expect(CodingFactory.getValueAsString(value)).toBe(expected);
+    });
+
+    test.each([
+      ['İ', 'i\u0307'],
+      ['ΟΣ', 'ος'],
+      ['ΟΣΑ', 'οσα'],
+      ['AΣ\u0301', 'aς\u0301']
+    ])('uses ECMAScript Unicode lowercasing for %p', (value, expected) => {
+      expect(CodingFactory.getValueAsString(value, ['TO_LOWER_CASE']))
+        .toBe(expected);
+    });
   });
 
   describe('code', () => {
@@ -406,6 +427,31 @@ describe('CodingFactory', () => {
       const result = CodingFactory.code(baseResponse('x'), coding, { onError });
       expect(result.status).toBe('CODING_INCOMPLETE');
       expect(onError).not.toHaveBeenCalled();
+    });
+
+    test('rejects MATCH_REGEX outside the portable subset', () => {
+      const coding = baseCoding();
+      coding.codes = [
+        {
+          id: 1,
+          score: 1,
+          label: '',
+          type: 'FULL_CREDIT',
+          manualInstruction: '',
+          ruleSetOperatorAnd: false,
+          ruleSets: [
+            {
+              ruleOperatorAnd: false,
+              rules: [{ method: 'MATCH_REGEX', parameters: ['\\p{L}+'] }]
+            }
+          ]
+        }
+      ];
+
+      const onError = jest.fn();
+      const result = CodingFactory.code(baseResponse('abc'), coding, { onError });
+      expect(result.status).toBe('CODING_ERROR');
+      expect(onError).toHaveBeenCalledWith(expect.any(TypeError));
     });
 
     test('returns CODING_ERROR if rule evaluation throws (and calls onError)', () => {

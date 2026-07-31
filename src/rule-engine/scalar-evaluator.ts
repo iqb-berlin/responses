@@ -11,6 +11,7 @@ import {
   isEmptyValue,
   transformString
 } from '../value-transform';
+import { createPortableRegex } from '../portable-regex';
 
 function findString(
   value: string,
@@ -39,12 +40,8 @@ function findStringRegEx(
 ): boolean {
   const allStrings = parameters.flatMap(p => p.split(/\r?\n/));
   return allStrings.some(s => {
-    try {
-      const regEx = new RegExp(s, addCaseIgnoreFlag ? 'i' : undefined);
-      return regEx.test(value);
-    } catch (e) {
-      return false;
-    }
+    const regEx = createPortableRegex(s, addCaseIgnoreFlag);
+    return regEx?.test(value) ?? false;
   });
 }
 

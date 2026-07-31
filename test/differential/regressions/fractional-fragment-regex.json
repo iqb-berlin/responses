@@ -1,0 +1,62 @@
+{
+  "protocolVersion": 1,
+  "kind": "case",
+  "id": "regression:fractional-fragment-regex",
+  "input": {
+    "baseVariables": [
+      {
+        "id": "x",
+        "type": "string",
+        "format": "",
+        "multiple": false,
+        "nullable": true,
+        "values": [],
+        "valuesComplete": false,
+        "valuePositionLabels": [],
+        "page": "0"
+      }
+    ],
+    "variableCodings": [
+      {
+        "id": "x",
+        "alias": "x",
+        "label": "",
+        "sourceType": "BASE",
+        "sourceParameters": { "solverExpression": "", "processing": [] },
+        "deriveSources": [],
+        "processing": [],
+        "fragmenting": "(.)",
+        "manualInstruction": "",
+        "codeModel": "RULES_ONLY",
+        "page": "0",
+        "codes": [
+          {
+            "id": 7,
+            "type": "UNSET",
+            "label": "",
+            "score": 0,
+            "manualInstruction": "",
+            "ruleSetOperatorAnd": false,
+            "ruleSets": [
+              {
+                "ruleOperatorAnd": false,
+                "rules": [
+                  {
+                    "method": "MATCH_REGEX",
+                    "parameters": ["^[A-Za-z]*$"],
+                    "fragment": 0.5
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "responses": [{ "id": "x", "status": "VALUE_CHANGED", "value": "0" }]
+  },
+  "calls": [
+    { "op": "validate" },
+    { "op": "singleCode", "codingIndex": 0, "responseIndex": 0 }
+  ]
+}

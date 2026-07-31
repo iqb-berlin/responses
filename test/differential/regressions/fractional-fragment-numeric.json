@@ -1,0 +1,41 @@
+{
+  "protocolVersion": 1,
+  "kind": "case",
+  "id": "regression:fractional-fragment-numeric",
+  "input": {
+    "baseVariables": [],
+    "variableCodings": [
+      {
+        "id": "x",
+        "alias": "x",
+        "sourceType": "BASE",
+        "sourceParameters": { "solverExpression": "", "processing": [] },
+        "deriveSources": [],
+        "processing": [],
+        "fragmenting": "(.)",
+        "codes": [
+          {
+            "id": 7,
+            "type": "UNSET",
+            "ruleSets": [
+              {
+                "rules": [
+                  {
+                    "method": "NUMERIC_MATCH",
+                    "parameters": ["0"],
+                    "fragment": 0.5
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "responses": [{ "id": "x", "status": "VALUE_CHANGED", "value": "0" }]
+  },
+  "calls": [
+    { "op": "validate" },
+    { "op": "singleCode", "codingIndex": 0, "responseIndex": 0 }
+  ]
+}

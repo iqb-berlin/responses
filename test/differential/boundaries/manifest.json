@@ -1,0 +1,192 @@
+{
+  "version": 1,
+  "cases": [
+    {
+      "id": "mathjs-sqrt-function",
+      "category": "solver-function",
+      "expectation": "must-match",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:mathjs-sqrt-function",
+        "input": {
+          "baseVariables": [],
+          "variableCodings": [
+            { "id": "b", "alias": "b", "sourceType": "BASE", "codes": [] },
+            {
+              "id": "d",
+              "alias": "d",
+              "sourceType": "SOLVER",
+              "deriveSources": ["b"],
+              "sourceParameters": { "solverExpression": "sqrt(4)", "processing": [] },
+              "codes": []
+            }
+          ],
+          "responses": [{ "id": "b", "status": "NO_CODING", "value": 1 }]
+        },
+        "calls": [{ "op": "deriveValue", "codingIndex": 1, "sourceResponseIndexes": [0] }]
+      }
+    },
+    {
+      "id": "mathjs-gcd-function",
+      "category": "solver-function",
+      "expectation": "must-match",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:mathjs-gcd-function",
+        "input": {
+          "baseVariables": [],
+          "variableCodings": [
+            {
+              "id": "d",
+              "alias": "d",
+              "sourceType": "SOLVER",
+              "deriveSources": [],
+              "sourceParameters": { "solverExpression": "gcd(8, 4)", "processing": [] },
+              "codes": []
+            }
+          ],
+          "responses": []
+        },
+        "calls": [{ "op": "deriveValue", "codingIndex": 0, "sourceResponseIndexes": [] }]
+      }
+    },
+    {
+      "id": "transcendental-last-bit",
+      "category": "floating-point-runtime",
+      "expectation": "must-match",
+      "comparison": "derive-number-1-ulp",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:transcendental-last-bit",
+        "input": {
+          "baseVariables": [],
+          "variableCodings": [
+            {
+              "id": "d",
+              "alias": "d",
+              "sourceType": "SOLVER",
+              "deriveSources": [],
+              "sourceParameters": { "solverExpression": "sin(4)", "processing": [] },
+              "codes": []
+            }
+          ],
+          "responses": []
+        },
+        "calls": [{ "op": "deriveValue", "codingIndex": 0, "sourceResponseIndexes": [] }]
+      }
+    },
+    {
+      "id": "unicode-property-regex",
+      "category": "regex-dialect",
+      "expectation": "must-match",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:unicode-property-regex",
+        "input": {
+          "baseVariables": [{ "id": "x", "type": "string", "multiple": false, "values": [], "valuePositionLabels": [] }],
+          "variableCodings": [
+            {
+              "id": "x",
+              "alias": "x",
+              "sourceType": "BASE",
+              "codes": [{ "id": 1, "ruleSets": [{ "rules": [{ "method": "MATCH_REGEX", "parameters": ["\\p{L}+"] }] }] }]
+            }
+          ],
+          "responses": [{ "id": "x", "status": "VALUE_CHANGED", "value": "abc" }]
+        },
+        "calls": [{ "op": "validate" }, { "op": "singleCode", "codingIndex": 0, "responseIndex": 0 }]
+      }
+    },
+    {
+      "id": "large-number-format",
+      "category": "numeric-format",
+      "expectation": "must-match",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:large-number-format",
+        "input": {
+          "baseVariables": [],
+          "variableCodings": [],
+          "responses": [{ "id": "x", "status": "VALUE_CHANGED", "value": 1e+21 }]
+        },
+        "calls": [{ "op": "getValueAsString", "responseIndex": 0 }]
+      }
+    },
+    {
+      "id": "unicode-case-folding",
+      "category": "locale-casing",
+      "expectation": "must-match",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:unicode-case-folding",
+        "input": {
+          "baseVariables": [],
+          "variableCodings": [
+            {
+              "id": "x",
+              "alias": "x",
+              "sourceType": "BASE",
+              "processing": ["IGNORE_CASE"],
+              "codes": [{ "id": 1, "ruleSets": [{ "rules": [{ "method": "MATCH", "parameters": ["i̇"] }] }] }]
+            }
+          ],
+          "responses": [{ "id": "x", "status": "VALUE_CHANGED", "value": "İ" }]
+        },
+        "calls": [{ "op": "singleCode", "codingIndex": 0, "responseIndex": 0 }]
+      }
+    },
+    {
+      "id": "locale-array-sorting",
+      "category": "locale-sorting",
+      "expectation": "must-match",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:locale-array-sorting",
+        "input": {
+          "baseVariables": [],
+          "variableCodings": [
+            {
+              "id": "x",
+              "alias": "x",
+              "sourceType": "BASE",
+              "processing": ["SORT_ARRAY"],
+              "codes": [{ "id": 1, "ruleSets": [{ "valueArrayPos": 0, "rules": [{ "method": "MATCH", "parameters": ["ä"] }] }] }]
+            }
+          ],
+          "responses": [{ "id": "x", "status": "VALUE_CHANGED", "value": ["z", "ä"] }]
+        },
+        "calls": [{ "op": "singleCode", "codingIndex": 0, "responseIndex": 0 }]
+      }
+    },
+    {
+      "id": "unicode-normalization",
+      "category": "unicode-normalization",
+      "expectation": "must-match",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:unicode-normalization",
+        "input": {
+          "baseVariables": [],
+          "variableCodings": [
+            {
+              "id": "x",
+              "alias": "x",
+              "sourceType": "BASE",
+              "codes": [{ "id": 1, "ruleSets": [{ "rules": [{ "method": "MATCH", "parameters": ["é"] }] }] }]
+            }
+          ],
+          "responses": [{ "id": "x", "status": "VALUE_CHANGED", "value": "é" }]
+        },
+        "calls": [{ "op": "singleCode", "codingIndex": 0, "responseIndex": 0 }]
+      }
+    }
+  ]
+}

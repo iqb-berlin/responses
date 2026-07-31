@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [main, master, develop]
 
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -69,4 +72,99 @@ jobs:
         with:
           name: dist
           path: dist/
+          retention-days: 30
+
+  dotnet-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install TypeScript reference
+        run: |
+          npm ci
+          npm run prepare_publish
+
+      - name: Restore .NET projects
+        run: dotnet restore dotnet/Iqb.Responses.sln
+
+      - name: Build .NET projects
+        run: dotnet build dotnet/Iqb.Responses.sln --configuration Release --no-restore
+
+      - name: Run parity tests and enforce coverage
+        run: >-
+          dotnet test dotnet/Iqb.Responses.sln
+          --configuration Release
+          --no-build
+          /p:CollectCoverage=true
+          /p:CoverletOutputFormat=cobertura
+          /p:Threshold=90%2c80
+          /p:ThresholdType=line%2cbranch
+          /p:ThresholdStat=total
+
+      - name: Compare TypeScript and .NET results
+        run: npm run test:differential
+
+      - name: Upload differential failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: differential-failure
+          path: artifacts/differential/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Upload .NET coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: dotnet/test/Iqb.Responses.Tests/coverage.cobertura.xml
+          flags: dotnet
+          name: dotnet-coverage
+
+  dotnet-package:
+    runs-on: ubuntu-latest
+    needs: [test, dotnet-test]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore and build package
+        run: |
+          dotnet restore dotnet/src/Iqb.Responses/Iqb.Responses.csproj
+          dotnet build dotnet/src/Iqb.Responses/Iqb.Responses.csproj --configuration Release --no-restore
+
+      - name: Create NuGet package
+        run: dotnet pack dotnet/src/Iqb.Responses/Iqb.Responses.csproj --configuration Release --no-build --output dotnet/artifacts
+
+      - name: Verify package without a project reference
+        run: |
+          dotnet restore dotnet/smoke/Iqb.Responses.Smoke/Iqb.Responses.Smoke.csproj --source dotnet/artifacts
+          dotnet run --project dotnet/smoke/Iqb.Responses.Smoke/Iqb.Responses.Smoke.csproj --configuration Release --no-restore
+
+      - name: Upload NuGet artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: iqb-responses-nuget
+          path: |
+            dotnet/artifacts/*.nupkg
+            dotnet/artifacts/*.snupkg
           retention-days: 30

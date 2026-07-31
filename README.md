@@ -12,6 +12,69 @@ This package contains of type definitions for processing assessment data. Additi
 npm i @iqb/responses
 ```
 
+### .NET 10
+
+The repository also contains the native .NET package `Iqb.Responses`. It uses
+the same camel-case JSON contracts and does not require Node.js at runtime.
+
+```bash
+dotnet add package Iqb.Responses --version 5.2.2-preview.1
+```
+
+```csharp
+using System.Text.Json;
+using Iqb.Responses;
+
+var scheme = CodingScheme.Parse(File.ReadAllText("coding-scheme.json"));
+var responses = JsonSerializer.Deserialize<List<Response>>(
+    File.ReadAllText("responses.json"),
+    IqbJson.Options) ?? [];
+
+var coded = CodingSchemeFactory.Code(responses, scheme.VariableCodings);
+```
+
+The native SOLVER supports numeric literals, `null`, booleans, parentheses,
+arithmetic and comparison operators, ternary expressions, IQB placeholders,
+fragment access, and the documented default/`ERROR`/`INC` policies. Its scalar
+`mathjs` subset also includes:
+
+- Constants: `pi`/`PI`, `e`/`E`, `tau`, `phi`, `Infinity`, and `NaN`.
+- Numeric functions: `abs`, `sqrt`, `cbrt`, `ceil`, `floor`, `fix`, `round`,
+  `sign`, `min`, `max`, `gcd`, `pow`, `mod`, `square`, `cube`, and `nthRoot`.
+- Exponential and logarithmic functions: `exp`, `log`, `log10`, and `log2`.
+- Trigonometric functions: `sin`, `cos`, `tan`, `asin`, `acos`, `atan`,
+  `atan2`, and `hypot`.
+
+Matrices, units, assignments, user-defined functions and other unrestricted
+`mathjs` syntax are not supported. Unknown syntax, complex values and
+non-finite final results produce `DERIVE_ERROR`. Transcendental functions can
+differ from V8 by one final IEEE-754 bit because .NET and JavaScript use
+different platform math implementations. Direct, finite SOLVER results that
+use `exp`, logarithmic, trigonometric or `hypot` functions may differ by at
+most one IEEE-754 ULP in differential tests. Status, error and downstream
+coding results are still compared exactly. `gcd` requires at least two finite
+integer arguments and is always compared exactly.
+
+Number-to-string conversion and Unicode lowercasing follow JavaScript semantics
+in both runtimes. `MATCH_REGEX` deliberately uses a portable ASCII subset:
+character classes, groups, alternation and ordinary quantifiers are supported;
+lookaround, backreferences, Unicode property classes, Unicode/hex escapes and
+non-ASCII pattern text are rejected during validation and produce a controlled
+coding error if validation is bypassed.
+
+### Differential parity testing
+
+`npm run test:differential` compares all checked-in golden vectors and 20,000
+reproducible generated cases with the native .NET implementation. A failure is
+automatically minimized and written to `artifacts/differential/`. Replay it with
+`npm run test:differential:generated -- --case <minimized.request.json>`.
+
+Before a stable release, `npm run test:differential:stress` runs 100,000 cases.
+Locale, Unicode, regex-dialect and SOLVER-language boundaries are tracked
+separately in `test/differential/boundaries/manifest.json`. Large-number
+formatting, Unicode lowercasing and rejection of non-portable regular
+expressions are blocking parity cases.
+
 ## Documentation
 
 - **[Quick Reference Guide](./QUICK_REFERENCE.md)** - Common operations, examples, and troubleshooting

@@ -1,74 +1,44 @@
 import { VariableCodingData } from '@iqbspecs/coding-scheme';
+import fc from 'fast-check';
 import { CodingFactory, CodingSchemeFactory } from '../../src';
 
-describe('Property-style invariants (lightweight fuzz)', () => {
+describe('Property-style invariants', () => {
   test('getValueAsNumber is deterministic for random strings', () => {
-    const randInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
-
     const alphabet = '0123456789 ,.-+abcXYZ\t\n';
-
-    const randomString = (len: number) => {
-      let out = '';
-      for (let i = 0; i < len; i++) {
-        out += alphabet[randInt(0, alphabet.length - 1)];
-      }
-      return out;
-    };
-
-    for (let i = 0; i < 200; i++) {
-      const s = randomString(randInt(0, 40));
-      const a = CodingFactory.getValueAsNumber(s);
-      const b = CodingFactory.getValueAsNumber(s);
-      expect(a).toBe(b);
-    }
+    const randomString = fc.array(fc.constantFrom(...alphabet), { maxLength: 40 })
+      .map(characters => characters.join(''));
+    fc.assert(fc.property(randomString, value => {
+      expect(CodingFactory.getValueAsNumber(value)).toBe(CodingFactory.getValueAsNumber(value));
+    }), { seed: 0x05220010, numRuns: 200 });
   });
 
   test('dependency tree levels are strictly increasing along edges', () => {
     const baseCount = 3;
-    const derivedCount = 8;
-
-    const base = Array.from({ length: baseCount }, (_, i) => CodingFactory.createCodingVariable(`b${i + 1}`)
+    const sourceSelectors = fc.array(
+      fc.tuple(fc.nat(1000), fc.nat(1000)),
+      { minLength: 1, maxLength: 8 }
     );
-
-    const allIds: string[] = base.map(v => v.id);
-    const derived: VariableCodingData[] = Array.from(
-      { length: derivedCount },
-      (_, i) => {
-        const id = `d${i + 1}`;
-        const vc: VariableCodingData = {
-          ...CodingFactory.createCodingVariable(id),
+    fc.assert(fc.property(sourceSelectors, selectors => {
+      const base = Array.from(
+        { length: baseCount },
+        (_, index) => CodingFactory.createCodingVariable(`b${index + 1}`)
+      );
+      const allIds: string[] = base.map(variable => variable.id);
+      const derived: VariableCodingData[] = selectors.map(([first, second], index) => {
+        const variable: VariableCodingData = {
+          ...CodingFactory.createCodingVariable(`d${index + 1}`),
           sourceType: 'SUM_SCORE',
-          deriveSources: [] as string[],
+          deriveSources: [allIds[first % allIds.length], allIds[second % allIds.length]],
           codes: []
         };
-
-        const sourceCount = 2;
-        const sources: string[] = [];
-        for (let j = 0; j < sourceCount; j++) {
-          const pick = allIds[Math.floor(Math.random() * allIds.length)];
-          sources.push(pick);
-        }
-
-        vc.deriveSources = sources;
-        allIds.push(id);
-        return vc;
-      }
-    );
-
-    const tree = CodingSchemeFactory.getVariableDependencyTree([
-      ...base,
-      ...derived
-    ]);
-
-    const levelById = new Map(tree.map(n => [n.id, n.level] as const));
-    tree.forEach(n => {
-      n.sources.forEach(s => {
-        const srcLevel = levelById.get(s);
-        const tgtLevel = levelById.get(n.id);
-        expect(typeof srcLevel).toBe('number');
-        expect(typeof tgtLevel).toBe('number');
-        expect(tgtLevel).toBeGreaterThan(srcLevel as number);
+        allIds.push(variable.id);
+        return variable;
       });
-    });
+      const tree = CodingSchemeFactory.getVariableDependencyTree([...base, ...derived]);
+      const levelById = new Map(tree.map(node => [node.id, node.level] as const));
+      tree.forEach(node => node.sources.forEach(source => {
+        expect(levelById.get(node.id)).toBeGreaterThan(levelById.get(source) as number);
+      }));
+    }), { seed: 0x05220011, numRuns: 100 });
   });
 });
