@@ -226,6 +226,27 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
+    test('rejects MATCH_REGEX outside the portable ASCII subset', () => {
+      const baseVars: VariableInfo[] = [
+        { id: 'v1' }
+      ] as unknown as VariableInfo[];
+      const coding = CodingFactory.createCodingVariable('v1');
+      coding.codes = <CodeData[]>[
+        {
+          id: 1,
+          ruleSets: [
+            {
+              rules: [{ method: 'MATCH_REGEX', parameters: ['\\p{L}+'] }]
+            }
+          ]
+        }
+      ];
+
+      const problems = CodingSchemeFactory.validate(baseVars, [coding]);
+      expect(problems.some(p => p.type === 'RULE_REGEX_INVALID' && p.breaking))
+        .toBe(true);
+    });
+
     test('detects RULE_PARAMETER_INVALID for non-numeric NUMERIC_MIN parameter', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1' }

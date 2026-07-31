@@ -28,6 +28,9 @@ const SOLVER_FUNCTIONS = [
   'square', 'cube', 'nthRoot'
 ];
 const ASCII = [...'abcXYZ0123 -_,.'];
+const NUMBER_FORMAT_BOUNDARIES = [
+  1e21, 1e20, 1e-6, 1e-7, 1000000000000000100
+];
 
 const asciiString = fc.array(fc.constantFrom(...ASCII), { maxLength: 12 }).map(chars => chars.join(''));
 const scalar = fc.oneof(
@@ -356,6 +359,9 @@ function materialize(model, profile) {
     if (input.baseVariables[0]) {
       input.baseVariables[0].multiple = false;
       input.baseVariables[0].valuePositionLabels = [];
+    }
+    if (input.responses[0] && model.faultSelector % 4 === 0) {
+      input.responses[0].value = pick(NUMBER_FORMAT_BOUNDARIES, model.faultSelector);
     }
     const firstRuleSet = input.variableCodings[0]?.codes?.[0]?.ruleSets?.[0];
     if (firstRuleSet) delete firstRuleSet.valueArrayPos;

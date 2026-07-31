@@ -62,3 +62,13 @@ unrestricted `mathjs` features are not supported. Unsupported syntax and
 non-finite final results produce `DERIVE_ERROR`. Transcendental results can
 differ from V8 by one final IEEE-754 bit because the runtimes use different
 math implementations; the differential boundary manifest tracks this case.
+
+## Number, casing and regular-expression compatibility
+
+Number-to-string conversion uses JavaScript thresholds and exponent notation,
+and Unicode lowercasing follows ECMAScript default case conversion. Rule
+`MATCH_REGEX` accepts the shared portable ASCII subset: character classes,
+groups, alternation and ordinary quantifiers are supported. Lookaround,
+backreferences, Unicode property classes, Unicode/hex escapes and non-ASCII
+pattern text are rejected by validation and produce a controlled coding error
+if an unvalidated scheme reaches the rule engine.

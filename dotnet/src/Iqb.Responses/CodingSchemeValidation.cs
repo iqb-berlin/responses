@@ -1,5 +1,3 @@
-using System.Text.RegularExpressions;
-
 namespace Iqb.Responses;
 
 internal static class CodingSchemeValidation
@@ -150,8 +148,8 @@ internal static class CodingSchemeValidation
         {
             foreach (var pattern in parameters.SelectMany(SplitLines))
             {
-                try { _ = new Regex(pattern, RegexOptions.None, TimeSpan.FromMilliseconds(500)); }
-                catch (ArgumentException) { Add(problems, "RULE_REGEX_INVALID", true, id, label, code); }
+                if (PortableRegex.Analyze(pattern) != PortableRegexStatus.Portable)
+                    Add(problems, "RULE_REGEX_INVALID", true, id, label, code);
             }
         }
         if (rule.Method is "NUMERIC_MATCH" or "NUMERIC_LESS_THAN" or "NUMERIC_MORE_THAN" or "NUMERIC_MAX" or "NUMERIC_MIN")

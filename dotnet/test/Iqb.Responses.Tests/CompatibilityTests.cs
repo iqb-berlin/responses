@@ -29,10 +29,42 @@ public sealed class CompatibilityTests
         Assert.Equal("2", ValueTransforms.GetValueAsString(2f));
         Assert.Equal("2", ValueTransforms.GetValueAsString(2));
         Assert.Equal("2", ValueTransforms.GetValueAsString(2L));
+        Assert.Equal("9223372036854776000", ValueTransforms.GetValueAsString(long.MaxValue));
         Assert.Equal("true", ValueTransforms.GetValueAsString(true));
         Assert.Null(ValueTransforms.GetValueAsString(new object()));
         Assert.Equal("abc", ValueTransforms.GetValueAsString(" A B C ", ["REMOVE_ALL_SPACES", "TO_LOWER_CASE"]));
         Assert.Equal("a b", ValueTransforms.GetValueAsString("  a   b ", ["REMOVE_DISPENSABLE_SPACES"]));
+    }
+
+    [Theory]
+    [InlineData(1e21, "1e+21")]
+    [InlineData(1e20, "100000000000000000000")]
+    [InlineData(1e-6, "0.000001")]
+    [InlineData(1e-7, "1e-7")]
+    [InlineData(1_000_000_000_000_000_100d, "1000000000000000100")]
+    [InlineData(-0d, "0")]
+    [InlineData(double.NaN, "NaN")]
+    [InlineData(double.PositiveInfinity, "Infinity")]
+    [InlineData(double.NegativeInfinity, "-Infinity")]
+    public void Number_formatting_matches_ECMAScript(double value, string expected) =>
+        Assert.Equal(expected, ValueTransforms.NumberToString(value));
+
+    [Theory]
+    [InlineData("İ", "i\u0307")]
+    [InlineData("ΟΣ", "ος")]
+    [InlineData("ΟΣΑ", "οσα")]
+    [InlineData("AΣ\u0301", "aς\u0301")]
+    public void Lowercasing_matches_ECMAScript(string value, string expected) =>
+        Assert.Equal(expected, ValueTransforms.GetValueAsString(value, ["TO_LOWER_CASE"]));
+
+    [Fact]
+    public void Portable_regex_analysis_rejects_runtime_specific_patterns()
+    {
+        Assert.Equal(PortableRegexStatus.Portable, PortableRegex.Analyze("^[A-Za-z0-9 _.,-]*$"));
+        Assert.Equal(PortableRegexStatus.Invalid, PortableRegex.Analyze("["));
+        Assert.Equal(PortableRegexStatus.Unsupported, PortableRegex.Analyze("\\p{L}+"));
+        Assert.Equal(PortableRegexStatus.Unsupported, PortableRegex.Analyze("(?=a)"));
+        Assert.Equal(PortableRegexStatus.Unsupported, PortableRegex.Analyze("é"));
     }
 
     [Fact]

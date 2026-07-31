@@ -5,6 +5,7 @@ import {
 } from '@iqbspecs/coding-scheme';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
 import { CodingSchemeProblem } from '../coding-interfaces';
+import { analyzePortableRegex } from '../portable-regex';
 
 type CodingValueType = 'numeric' | 'boolean' | 'string' | 'other' | 'unknown';
 
@@ -523,10 +524,7 @@ export const validateCodingScheme = (
             if (r.method === 'MATCH_REGEX') {
               const patterns = params.flatMap(p => p.split(/\r?\n/));
               patterns.forEach(p => {
-                try {
-                  // eslint-disable-next-line no-new
-                  new RegExp(p);
-                } catch (e) {
+                if (analyzePortableRegex(p) !== 'portable') {
                   pushRuleRegexInvalid(
                     c.alias || c.id,
                     c.label || '',

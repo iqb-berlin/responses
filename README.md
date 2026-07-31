@@ -52,6 +52,13 @@ differ from V8 by one final IEEE-754 bit because .NET and JavaScript use
 different platform math implementations; this boundary is reported separately
 by the differential suite.
 
+Number-to-string conversion and Unicode lowercasing follow JavaScript semantics
+in both runtimes. `MATCH_REGEX` deliberately uses a portable ASCII subset:
+character classes, groups, alternation and ordinary quantifiers are supported;
+lookaround, backreferences, Unicode property classes, Unicode/hex escapes and
+non-ASCII pattern text are rejected during validation and produce a controlled
+coding error if validation is bypassed.
+
 ### Differential parity testing
 
 `npm run test:differential` compares all checked-in golden vectors and 20,000
@@ -61,7 +68,9 @@ automatically minimized and written to `artifacts/differential/`. Replay it with
 
 Before a stable release, `npm run test:differential:stress` runs 100,000 cases.
 Locale, Unicode, regex-dialect and SOLVER-language boundaries are tracked
-separately in `test/differential/boundaries/manifest.json`.
+separately in `test/differential/boundaries/manifest.json`. Large-number
+formatting, Unicode lowercasing and rejection of non-portable regular
+expressions are blocking parity cases.
 
 ## Documentation
 

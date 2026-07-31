@@ -4,7 +4,6 @@ namespace Iqb.Responses;
 
 internal static class RuleEngine
 {
-    private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
     private static readonly object JavaScriptUndefined = new();
 
     public static bool IsMatchRuleSet(
@@ -183,12 +182,11 @@ internal static class RuleEngine
     private static bool FindRegex(object value, IEnumerable<string> parameters, bool ignoreCase)
     {
         var text = ValueTransforms.GetValueAsString(value) ?? string.Empty;
-        var options = ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None;
         return parameters.SelectMany(SplitLines).Any(pattern =>
         {
             try
             {
-                return Regex.IsMatch(text, pattern, options, RegexTimeout);
+                return PortableRegex.Create(pattern, ignoreCase).IsMatch(text);
             }
             catch (ArgumentException)
             {

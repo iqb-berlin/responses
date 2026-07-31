@@ -252,6 +252,35 @@ public sealed class PublicApiTests
     }
 
     [Fact]
+    public void Coding_and_validation_reject_nonportable_match_regex()
+    {
+        var response = new Response { Id = "x", Status = ResponseStatus.ValueChanged, Value = "abc" };
+        var coding = Coding("x", "BASE");
+        coding.Codes =
+        [
+            new CodeData
+            {
+                Id = 1d,
+                RuleSets =
+                [
+                    new RuleSet
+                    {
+                        Rules = [new CodingRule { Method = "MATCH_REGEX", Parameters = ["\\p{L}+"] }]
+                    }
+                ]
+            }
+        ];
+        Exception? reported = null;
+
+        var result = CodingFactory.Code(response, coding, error => reported = error);
+        var problems = CodingSchemeFactory.Validate([Info("x", "string")], [coding]);
+
+        Assert.Equal(ResponseStatus.CodingError, result.Status);
+        Assert.IsType<InvalidOperationException>(reported);
+        Assert.Contains(problems, problem => problem.Type == "RULE_REGEX_INVALID" && problem.Breaking);
+    }
+
+    [Fact]
     public void Intended_incomplete_residual_preserves_the_reference_string_code()
     {
         var coding = Coding("x", "BASE");
