@@ -76,6 +76,7 @@ jobs:
 
   dotnet-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -116,6 +117,15 @@ jobs:
 
       - name: Compare TypeScript and .NET results
         run: npm run test:differential
+
+      - name: Upload differential failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: differential-failure
+          path: artifacts/differential/
+          if-no-files-found: ignore
+          retention-days: 30
 
       - name: Upload .NET coverage
         uses: codecov/codecov-action@v3

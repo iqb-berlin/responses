@@ -5,6 +5,7 @@ namespace Iqb.Responses;
 internal static class RuleEngine
 {
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
+    private static readonly object JavaScriptUndefined = new();
 
     public static bool IsMatchRuleSet(
         object? valueToCheck,
@@ -102,8 +103,10 @@ internal static class RuleEngine
                 return values.Any(member => CheckOneValue(member, rule, processing));
             }
             var fragmentIndex = (int)rule.Fragment.Value;
-            return rule.Fragment.Value == fragmentIndex && fragmentIndex < values.Count &&
-                   CheckOneValue(values[fragmentIndex], rule, processing);
+            var fragment = rule.Fragment.Value == fragmentIndex && fragmentIndex >= 0 && fragmentIndex < values.Count
+                ? values[fragmentIndex]
+                : JavaScriptUndefined;
+            return CheckOneValue(fragment, rule, processing);
         }
         return CheckOneValue(value, rule, processing);
     }
@@ -120,13 +123,19 @@ internal static class RuleEngine
             return fragments.Any(fragment => CheckOneValue(fragment, rule, processing));
         }
         var fragmentIndex = (int)rule.Fragment.Value;
-        return rule.Fragment.Value == fragmentIndex && fragmentIndex < fragments.Count &&
-               CheckOneValue(fragments[fragmentIndex], rule, processing);
+        var fragment = rule.Fragment.Value == fragmentIndex && fragmentIndex >= 0 && fragmentIndex < fragments.Count
+            ? fragments[fragmentIndex]
+            : JavaScriptUndefined;
+        return CheckOneValue(fragment, rule, processing);
     }
 
     private static bool CheckOneValue(object? value, CodingRule rule, IReadOnlyCollection<string> processing)
     {
         var parameters = rule.Parameters ?? [];
+        if (ReferenceEquals(value, JavaScriptUndefined))
+        {
+            return rule.Method == "MATCH_REGEX" && FindRegex("undefined", parameters, processing.Contains("IGNORE_CASE"));
+        }
         switch (rule.Method)
         {
             case "IS_NULL":

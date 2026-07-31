@@ -1,0 +1,36 @@
+{
+  "protocolVersion": 1,
+  "kind": "case",
+  "id": "regression:intended-incomplete-string-code",
+  "input": {
+    "baseVariables": [],
+    "variableCodings": [
+      {
+        "id": "x",
+        "alias": "x",
+        "label": "",
+        "sourceType": "BASE",
+        "sourceParameters": { "solverExpression": "", "processing": [] },
+        "deriveSources": [],
+        "processing": [],
+        "fragmenting": "",
+        "manualInstruction": "",
+        "codeModel": "RULES_ONLY",
+        "page": "0",
+        "codes": [
+          {
+            "id": "INTENDED_INCOMPLETE",
+            "type": "INTENDED_INCOMPLETE",
+            "label": "",
+            "score": 0,
+            "manualInstruction": "",
+            "ruleSetOperatorAnd": false,
+            "ruleSets": []
+          }
+        ]
+      }
+    ],
+    "responses": [{ "id": "x", "status": "VALUE_CHANGED", "value": "unmatched" }]
+  },
+  "calls": [{ "op": "singleCode", "codingIndex": 0, "responseIndex": 0 }]
+}

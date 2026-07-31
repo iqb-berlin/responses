@@ -24,7 +24,7 @@ var result = CodingFactory.Code(new Response
     Value = "correct"
 }, coding);
 
-if (result.Status != ResponseStatus.CodingComplete || result.Code != 1d)
+if (result.Status != ResponseStatus.CodingComplete || !Equals(result.Code, 1d))
 {
     throw new InvalidOperationException("The packaged coding engine returned an unexpected result.");
 }

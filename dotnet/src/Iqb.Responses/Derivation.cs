@@ -145,7 +145,7 @@ internal static class Derivation
     {
         var values = (coding.DeriveSources ?? []).Select(sourceId =>
             responseById.TryGetValue(sourceId, out var response) && response.Code is not null
-                ? ValueTransforms.NumberToString(response.Code.Value)
+                ? CodeAsString(response.Code)
                 : "?").ToList();
         if (HasSourceProcessing(coding, "SORT")) values.Sort(StringComparer.Ordinal);
         return NewResponse(coding, ResponseStatus.ValueChanged, subform, string.Join('_', values));
@@ -161,9 +161,24 @@ internal static class Derivation
         if (sources.Any(source => !responseById.ContainsKey(source))) return Error(coding, subform);
         var value = sources.Sum(source => score
             ? responseById[source].Score ?? 0d
-            : responseById[source].Code ?? 0d);
+            : NumericCode(responseById[source].Code));
         return NewResponse(coding, ResponseStatus.ValueChanged, subform, value);
     }
+
+    private static string CodeAsString(object code) => code switch
+    {
+        double number => ValueTransforms.NumberToString(number),
+        string text => text,
+        _ => code.ToString() ?? string.Empty
+    };
+
+    private static double NumericCode(object? code) => code switch
+    {
+        double number => number,
+        int number => number,
+        long number => number,
+        _ => 0d
+    };
 
     private static Response HandleUniqueValues(VariableCodingData coding, IReadOnlyList<Response> responses, string? subform)
     {

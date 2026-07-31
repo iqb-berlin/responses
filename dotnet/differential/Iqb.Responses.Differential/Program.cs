@@ -1,43 +1,99 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Iqb.Responses;
+using Iqb.Responses.Differential;
 
-if (args.Length != 1)
+if (args.Length == 1 && args[0] == "--jsonl")
 {
-    throw new ArgumentException("Expected one output-file argument.");
+    await RunJsonLines();
+    return;
 }
 
-var repositoryRoot = FindRepositoryRoot();
-var fixtureRoot = Path.Combine(repositoryRoot, "test", "coding");
-var results = new JsonObject();
-
-foreach (var inputPath in Directory.GetFiles(fixtureRoot, "*_input.json", SearchOption.AllDirectories)
-             .Order(StringComparer.Ordinal))
+var fixtureOutput = args.Length switch
 {
-    var folder = Path.GetDirectoryName(inputPath)!;
-    var scheme = CodingScheme.Parse(File.ReadAllText(Path.Combine(folder, "coding-scheme.json")));
-    var input = JsonSerializer.Deserialize<List<Response>>(File.ReadAllText(inputPath), IqbJson.Options)!;
-    results[RelativePath(inputPath)] = JsonSerializer.SerializeToNode(
-        CodingSchemeFactory.Code(input, scheme.VariableCodings),
-        IqbJson.Options);
-}
+    1 => args[0],
+    2 when args[0] == "--fixtures" => args[1],
+    _ => throw new ArgumentException("Expected --jsonl or an output-file argument.")
+};
 
-foreach (var textPath in Directory.GetFiles(fixtureRoot, "coding-scheme.asText.json", SearchOption.AllDirectories)
-             .Order(StringComparer.Ordinal))
-{
-    var folder = Path.GetDirectoryName(textPath)!;
-    var scheme = CodingScheme.Parse(File.ReadAllText(Path.Combine(folder, "coding-scheme.json")));
-    results[RelativePath(textPath)] = JsonSerializer.SerializeToNode(
-        CodingSchemeTextFactory.AsText(scheme.VariableCodings),
-        IqbJson.Options);
-}
-
-File.WriteAllText(args[0], results.ToJsonString(IqbJson.Options));
+RunFixtures(fixtureOutput);
 return;
 
-string RelativePath(string path) => Path.GetRelativePath(repositoryRoot, path).Replace('\\', '/');
+async Task RunJsonLines()
+{
+    var ready = new DifferentialEnvelope
+    {
+        ProtocolVersion = 1,
+        Kind = "ready",
+        Capabilities = CaseExecutor.Capabilities
+    };
+    await Console.Out.WriteLineAsync(JsonSerializer.Serialize(ready, IqbJson.Options));
+    await Console.Out.FlushAsync();
 
-string FindRepositoryRoot()
+    string? line;
+    while ((line = await Console.In.ReadLineAsync()) is not null)
+    {
+        DifferentialEnvelope response;
+        if (line.Length > 2 * 1024 * 1024)
+        {
+            response = DifferentialEnvelope.InvalidRequest(null, "Request exceeds the 2 MiB limit.");
+        }
+        else
+        {
+            try
+            {
+                var request = JsonSerializer.Deserialize<DifferentialRequest>(line, IqbJson.Options);
+                response = request is null
+                    ? DifferentialEnvelope.InvalidRequest(null, "Request is empty.")
+                    : CaseExecutor.Execute(request);
+            }
+            catch (JsonException error)
+            {
+                response = DifferentialEnvelope.InvalidRequest(null, error.Message);
+            }
+            catch (Exception error)
+            {
+                response = DifferentialEnvelope.Unexpected(null, error);
+            }
+        }
+        await Console.Out.WriteLineAsync(JsonSerializer.Serialize(response, IqbJson.Options));
+        await Console.Out.FlushAsync();
+    }
+}
+
+void RunFixtures(string outputPath)
+{
+    var repositoryRoot = FindRepositoryRoot();
+    var fixtureRoot = Path.Combine(repositoryRoot, "test", "coding");
+    var results = new JsonObject();
+
+    foreach (var inputPath in Directory.GetFiles(fixtureRoot, "*_input.json", SearchOption.AllDirectories)
+                 .Order(StringComparer.Ordinal))
+    {
+        var folder = Path.GetDirectoryName(inputPath)!;
+        var scheme = CodingScheme.Parse(File.ReadAllText(Path.Combine(folder, "coding-scheme.json")));
+        var input = JsonSerializer.Deserialize<List<Response>>(File.ReadAllText(inputPath), IqbJson.Options)!;
+        results[RelativePath(repositoryRoot, inputPath)] = JsonSerializer.SerializeToNode(
+            CodingSchemeFactory.Code(input, scheme.VariableCodings),
+            IqbJson.Options);
+    }
+
+    foreach (var textPath in Directory.GetFiles(fixtureRoot, "coding-scheme.asText.json", SearchOption.AllDirectories)
+                 .Order(StringComparer.Ordinal))
+    {
+        var folder = Path.GetDirectoryName(textPath)!;
+        var scheme = CodingScheme.Parse(File.ReadAllText(Path.Combine(folder, "coding-scheme.json")));
+        results[RelativePath(repositoryRoot, textPath)] = JsonSerializer.SerializeToNode(
+            CodingSchemeTextFactory.AsText(scheme.VariableCodings),
+            IqbJson.Options);
+    }
+
+    File.WriteAllText(outputPath, results.ToJsonString(IqbJson.Options));
+}
+
+static string RelativePath(string root, string path) => Path.GetRelativePath(root, path).Replace('\\', '/');
+
+static string FindRepositoryRoot()
 {
     var current = new DirectoryInfo(Directory.GetCurrentDirectory());
     while (current is not null && !File.Exists(Path.Combine(current.FullName, "package.json")))

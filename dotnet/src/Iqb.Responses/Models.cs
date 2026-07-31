@@ -20,8 +20,9 @@ public sealed class Response
     public string? Subform { get; set; }
 
     [JsonPropertyName("code")]
+    [JsonConverter(typeof(ScalarUnionJsonConverter))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public double? Code { get; set; }
+    public object? Code { get; set; }
 
     [JsonPropertyName("score")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

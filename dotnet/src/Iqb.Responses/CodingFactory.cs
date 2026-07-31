@@ -80,7 +80,7 @@ public static class CodingFactory
                 {
                     continue;
                 }
-                ApplyCode(result, code);
+                ApplyCode(result, code, false);
                 return result;
             }
         }
@@ -96,11 +96,11 @@ public static class CodingFactory
             result.Status = ResponseStatus.CodingIncomplete;
             return result;
         }
-        ApplyCode(result, residual);
+        ApplyCode(result, residual, true);
         return result;
     }
 
-    private static void ApplyCode(Response response, CodeData code)
+    private static void ApplyCode(Response response, CodeData code, bool isResidual)
     {
         var id = code.Id is string text ? text : null;
         if (id == ResponseStatus.Invalid)
@@ -113,7 +113,7 @@ public static class CodingFactory
         if (code.Type == ResponseStatus.IntendedIncomplete || id == ResponseStatus.IntendedIncomplete)
         {
             response.Status = ResponseStatus.IntendedIncomplete;
-            response.Code = NumericCode(code.Id);
+            response.Code = isResidual ? code.Id : 0d;
             response.Score = code.Score ?? 0;
             return;
         }

@@ -252,6 +252,29 @@ public sealed class PublicApiTests
     }
 
     [Fact]
+    public void Intended_incomplete_residual_preserves_the_reference_string_code()
+    {
+        var coding = Coding("x", "BASE");
+        coding.Codes =
+        [
+            new CodeData
+            {
+                Id = ResponseStatus.IntendedIncomplete,
+                Type = ResponseStatus.IntendedIncomplete,
+                RuleSets = []
+            }
+        ];
+        var result = CodingFactory.Code(
+            new Response { Id = "x", Status = ResponseStatus.ValueChanged, Value = "unmatched" },
+            coding);
+
+        Assert.Equal(ResponseStatus.IntendedIncomplete, result.Status);
+        Assert.Equal(ResponseStatus.IntendedIncomplete, result.Code);
+        var json = JsonSerializer.Serialize(result, IqbJson.Options);
+        Assert.Equal(json, JsonSerializer.Serialize(JsonSerializer.Deserialize<Response>(json, IqbJson.Options), IqbJson.Options));
+    }
+
+    [Fact]
     public void Complete_coding_is_non_mutating_and_safe_for_parallel_calls()
     {
         var coding = Coding("x", "BASE");
@@ -351,6 +374,41 @@ public sealed class PublicApiTests
         {
             Assert.Equal(expected, result.Value);
         }
+    }
+
+    [Fact]
+    public void Invalid_fractional_fragment_follows_the_JavaScript_runtime()
+    {
+        var coding = Coding("x", "BASE");
+        coding.Fragmenting = "(.)";
+        coding.Codes =
+        [
+            new CodeData
+            {
+                Id = 7d,
+                Type = "UNSET",
+                RuleSets =
+                [
+                    new RuleSet
+                    {
+                        Rules =
+                        [
+                            new CodingRule
+                            {
+                                Method = "MATCH_REGEX",
+                                Parameters = ["^[A-Za-z]*$"],
+                                Fragment = 0.5d
+                            }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        var result = CodingFactory.Code(new Response { Id = "x", Status = "VALUE_CHANGED", Value = "0" }, coding);
+
+        Assert.Equal(7d, result.Code);
+        Assert.Equal(ResponseStatus.CodingComplete, result.Status);
     }
 
     private static VariableCodingData Coding(string id, string sourceType, params string[] sources) => new()

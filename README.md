@@ -38,6 +38,17 @@ arithmetic and comparison operators, ternary expressions, IQB placeholders,
 fragment access, and the documented default/`ERROR`/`INC` policies. Other
 `mathjs` syntax is rejected deterministically with `DERIVE_ERROR`.
 
+### Differential parity testing
+
+`npm run test:differential` compares all checked-in golden vectors and 20,000
+reproducible generated cases with the native .NET implementation. A failure is
+automatically minimized and written to `artifacts/differential/`. Replay it with
+`npm run test:differential:generated -- --case <minimized.request.json>`.
+
+Before a stable release, `npm run test:differential:stress` runs 100,000 cases.
+Locale, Unicode, regex-dialect and unsupported `mathjs` boundaries are tracked
+separately in `test/differential/boundaries/manifest.json`.
+
 ## Documentation
 
 - **[Quick Reference Guide](./QUICK_REFERENCE.md)** - Common operations, examples, and troubleshooting
