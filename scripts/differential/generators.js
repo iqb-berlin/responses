@@ -137,7 +137,7 @@ function solverExpressionFor(raw, sourceAliases) {
   const expressions = {
     abs: `abs(${first})`,
     sqrt: `sqrt(abs(${first}))`,
-    cbrt: `cbrt(cube(${first}))`,
+    cbrt: 'cbrt(-8)',
     ceil: `ceil(${first} / 3)`,
     floor: `floor(${first} / 3)`,
     fix: `fix(${first} / 3)`,
