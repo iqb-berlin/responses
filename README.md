@@ -193,6 +193,9 @@ Status strings used by this package include (among others) `VALUE_CHANGED`, `COD
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 5.2.3
+- `varInfoAsText` benennt die Formate der Chemie-Widgets aus VariableInfo 2.1: `CHEM_ELEMENT_SYMBOLS` als „Chemische Elementsymbole (durch Leerzeichen getrennt)“, `CHEM_MOLECULE` als „Molekül mit Bild (JSON)“. Bisher erschienen sie als `unbekannt "…"`. Die Schlüssel sind großgeschrieben, weil das Studio Formate, die VariableInfo 1.x nicht kennt, unverändert durchreicht.
+
 ### 5.2.2
 - Ein von einem SOLVER-Ausdruck explizit zurückgegebenes `null` wird als `VALUE_CHANGED` weitergegeben und kann über `IS_NULL` oder `RESIDUAL_AUTO` kodiert werden.
 - `NaN`, positive und negative Unendlichkeit sowie andere nichtnumerische SOLVER-Ergebnisse führen weiterhin zu `DERIVE_ERROR`.

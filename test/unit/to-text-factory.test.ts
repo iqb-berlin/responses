@@ -98,6 +98,23 @@ describe('ToTextFactory', () => {
       expect(lines.join('\n')).toContain('geschlossenes Format');
       expect(lines.join('\n')).toContain('Variable ist auf Seite "P1"');
     });
+
+    test.each([
+      ['CHEM_ELEMENT_SYMBOLS', 'string', 'String/Text', 'Chemische Elementsymbole (durch Leerzeichen getrennt)'],
+      ['CHEM_MOLECULE', 'json', 'Daten im JSON-Format', 'Molekül mit Bild (JSON)']
+    ])('names the chemistry widget format %s', (format, type, typeText, formatText) => {
+      const varInfo = {
+        id: 'v1',
+        type,
+        format,
+        multiple: false,
+        nullable: false,
+        values: [],
+        valuePositionLabels: []
+      } as unknown as VariableInfo;
+
+      expect(ToTextFactory.varInfoAsText(varInfo)[0]).toBe(`Datentyp: ${typeText}; Format: ${formatText}`);
+    });
   });
 
   describe('codeAsText', () => {
