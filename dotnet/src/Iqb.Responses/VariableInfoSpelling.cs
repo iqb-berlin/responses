@@ -41,5 +41,5 @@ public static class VariableInfoSpelling
 
     // Deserialized JSON can carry null despite the annotation; it passes through like any unknown value.
     private static string LookUp(IReadOnlyDictionary<string, string> table, string value) =>
-        value is not null && table.TryGetValue(value, out var v2) ? v2 : value;
+        value is not null && table.TryGetValue(value, out var v2) ? v2 : value!;
 }
