@@ -193,6 +193,10 @@ Status strings used by this package include (among others) `VALUE_CHANGED`, `COD
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 5.3.0
+- `type` und `format` einer VariableInfo werden in beiden Schreibweisen verstanden: 1.x (`no-value`, `ggb-file`) und 2.x (`NO_VALUE`, `GGB_FILE`). Das betrifft die Validierung des Coding-Schemes und `varInfoAsText`. Bisher galten großgeschriebene Typen bei der Prüfung als unbekannt: Regeln auf `NUMBER`, `BOOLEAN` oder `STRING` meldeten `RULE_PARAMETER_INVALID`, `BASE_NO_VALUE` auf `NO_VALUE` meldete `INVALID_SOURCE`, und die Anzeige zeigte `unbekannt "…"`.
+- Neu exportiert: `normalizeVariableInfoType` und `normalizeVariableInfoFormat` bringen einen Wert in die Schreibweise von 2.x. Werte in 2.x-Schreibweise und unbekannte Werte bleiben unverändert. Gedacht für Vergleiche, nicht zum Umschreiben gespeicherter Daten: Ältere Leser verstehen nur die 1.x-Schreibweise.
+
 ### 5.2.3
 - `varInfoAsText` benennt die Formate der Chemie-Widgets aus VariableInfo 2.1: `CHEM_ELEMENT_SYMBOLS` als „Chemische Elementsymbole (durch Leerzeichen getrennt)“, `CHEM_MOLECULE` als „Molekül mit Bild (JSON)“. Bisher erschienen sie als `unbekannt "…"`. Die Schlüssel sind großgeschrieben, weil das Studio Formate, die VariableInfo 1.x nicht kennt, unverändert durchreicht.
 

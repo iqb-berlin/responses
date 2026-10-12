@@ -5,6 +5,7 @@ import {
 } from '@iqbspecs/coding-scheme';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
 import { CodingSchemeProblem } from '../coding-interfaces';
+import { normalizeVariableInfoType } from '../normalize/variable-info-spelling';
 
 type CodingValueType = 'numeric' | 'boolean' | 'string' | 'other' | 'unknown';
 
@@ -116,26 +117,28 @@ export const validateCodingScheme = (
   const getBaseVariableValueShape = (
     varInfo: VariableInfo | undefined
   ): CodingValueShape => {
-    if (varInfo?.type === 'no-value') {
+    const type = varInfo?.type ? normalizeVariableInfoType(varInfo.type) : undefined;
+
+    if (type === 'NO_VALUE') {
       return { valueType: 'string', multiple: true };
     }
 
     const multiple = varInfo?.multiple;
     const valuePositionLabels = varInfo?.valuePositionLabels;
 
-    if (!varInfo?.type) {
+    if (!type) {
       return { valueType: 'unknown', multiple, valuePositionLabels };
     }
 
-    if (['integer', 'number'].includes(varInfo.type)) {
+    if (['INTEGER', 'NUMBER'].includes(type)) {
       return { valueType: 'numeric', multiple, valuePositionLabels };
     }
 
-    if (varInfo.type === 'boolean') {
+    if (type === 'BOOLEAN') {
       return { valueType: 'boolean', multiple, valuePositionLabels };
     }
 
-    if (varInfo.type === 'string') {
+    if (type === 'STRING') {
       return { valueType: 'string', multiple, valuePositionLabels };
     }
 
@@ -352,7 +355,7 @@ export const validateCodingScheme = (
       }
     } else if (c.sourceType === 'BASE_NO_VALUE') {
       const noValueVarInfo = baseVarById.get(c.id);
-      if (noValueVarInfo && noValueVarInfo.type !== 'no-value') {
+      if (noValueVarInfo && normalizeVariableInfoType(noValueVarInfo.type) !== 'NO_VALUE') {
         problems.push({
           type: 'INVALID_SOURCE',
           breaking: true,

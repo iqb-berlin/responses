@@ -15,7 +15,9 @@ describe('Public API (exports)', () => {
       'ResponseCoder',
       'SchemeCoder',
       'ToTextFactory',
-      'VariableList'
+      'VariableList',
+      'normalizeVariableInfoFormat',
+      'normalizeVariableInfoType'
     ]);
   });
 });

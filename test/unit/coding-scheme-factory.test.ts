@@ -389,6 +389,57 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
+    describe('base variables in VariableInfo 2.x spelling', () => {
+      const codingWithRule = (rule: { method: string, parameters?: string[] }): VariableCodingData => {
+        const coding = CodingFactory.createCodingVariable('v1');
+        coding.codes = <CodeData[]>[
+          {
+            id: 1,
+            score: 1,
+            label: '',
+            type: 'FULL_CREDIT',
+            manualInstruction: '',
+            ruleSetOperatorAnd: false,
+            ruleSets: [{ ruleOperatorAnd: false, valueArrayPos: 0, rules: [rule] }]
+          }
+        ];
+        return coding;
+      };
+      const ruleProblems = (type: string, rule: { method: string, parameters?: string[] }) => (
+        CodingSchemeFactory.validate(
+          [{ id: 'v1', type }] as unknown as VariableInfo[],
+          [codingWithRule(rule)]
+        ).filter(p => ['RULE_PARAMETER_INVALID', 'RULESET_VALUE_ARRAY_POS_INVALID'].includes(p.type))
+      );
+
+      test.each([
+        ['INTEGER', { method: 'NUMERIC_MATCH', parameters: ['1'] }],
+        ['NUMBER', { method: 'NUMERIC_MATCH', parameters: ['1'] }],
+        ['BOOLEAN', { method: 'NUMERIC_MATCH', parameters: ['1'] }],
+        ['STRING', { method: 'IS_TRUE' }],
+        ['NO_VALUE', { method: 'IS_TRUE' }]
+      ])('accepts %s like its 1.x spelling', (type, rule) => {
+        expect(ruleProblems(type, rule)).toEqual([]);
+      });
+
+      test('still rejects numeric rules on ATTACHMENT', () => {
+        expect(ruleProblems('ATTACHMENT', { method: 'NUMERIC_MATCH', parameters: ['1'] })).not.toEqual([]);
+      });
+
+      test('accepts BASE_NO_VALUE pointing to a VarInfo of type NO_VALUE', () => {
+        const coding: VariableCodingData = {
+          ...CodingFactory.createCodingVariable('v1'),
+          sourceType: 'BASE_NO_VALUE'
+        } as VariableCodingData;
+
+        const problems = CodingSchemeFactory.validate(
+          [{ id: 'v1', type: 'NO_VALUE' }] as unknown as VariableInfo[],
+          [coding]
+        );
+        expect(problems.some(p => p.type === 'INVALID_SOURCE')).toBe(false);
+      });
+    });
+
     test('detects INVALID_SOURCE for duplicate coding ids', () => {
       const baseVars: VariableInfo[] = [] as unknown as VariableInfo[];
       const v1 = CodingFactory.createCodingVariable('v1');
