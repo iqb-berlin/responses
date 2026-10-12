@@ -3,31 +3,32 @@ namespace Iqb.Responses;
 /// <summary>Formats coding definitions, rules and variable information as German text.</summary>
 public static class ToTextFactory
 {
+    // Keyed by the VariableInfo 2.x spelling; values in 1.x spelling are
+    // normalized before the lookup.
     private static readonly IReadOnlyDictionary<string, string> TypeText = new Dictionary<string, string>
     {
-        ["string"] = "String/Text",
-        ["integer"] = "Ganze Zahl",
-        ["number"] = "Zahl (Fließkomma)",
-        ["boolean"] = "Ja/Nein",
-        ["attachment"] = "Datei",
-        ["json"] = "Daten im JSON-Format",
-        ["no-value"] = "Ohne Antwortwert"
+        ["STRING"] = "String/Text",
+        ["INTEGER"] = "Ganze Zahl",
+        ["NUMBER"] = "Zahl (Fließkomma)",
+        ["BOOLEAN"] = "Ja/Nein",
+        ["ATTACHMENT"] = "Datei",
+        ["JSON"] = "Daten im JSON-Format",
+        ["NO_VALUE"] = "Ohne Antwortwert"
     };
     private static readonly IReadOnlyDictionary<string, string> FormatText = new Dictionary<string, string>
     {
-        ["text-selection"] = "Textmarkierung",
-        ["image"] = "Bild",
-        ["capture-image"] = "Foto",
-        ["audio"] = "Sprachaufnahme",
-        ["ggb-file"] = "GeoGebra-Definition",
-        ["ggb-variable"] = "GeoGebra-Variable",
-        ["non-negative"] = "Nicht negativ",
-        ["latex"] = "Mathematische Formel im LaTeX-Format",
-        ["math-ml"] = "Mathematische Formel im Html-Format, MathML eingebettet",
-        ["math-table"] = "Tabelle mit Zahlen für Rechenkästchen (JSON)",
-        ["math-text-mix"] = "Text und mathematische Formeln gemischt",
-        // Added in VariableInfo 2.1, which has no 1.x spelling for them: the studio
-        // passes formats unknown to 1.x through unchanged, so they arrive as written.
+        ["TEXT_SELECTION"] = "Textmarkierung",
+        ["IMAGE"] = "Bild",
+        ["CAPTURE_IMAGE"] = "Foto",
+        ["AUDIO"] = "Sprachaufnahme",
+        ["GGB_FILE"] = "GeoGebra-Definition",
+        ["GGB_VARIABLE"] = "GeoGebra-Variable",
+        ["NON_NEGATIVE"] = "Nicht negativ",
+        ["LATEX"] = "Mathematische Formel im LaTeX-Format",
+        ["MATH_ML"] = "Mathematische Formel im Html-Format, MathML eingebettet",
+        ["MATH_TABLE"] = "Tabelle mit Zahlen für Rechenkästchen (JSON)",
+        ["MATH_TEXT_MIX"] = "Text und mathematische Formeln gemischt",
+        // Added in VariableInfo 2.1, which has no 1.x spelling for them.
         ["CHEM_ELEMENT_SYMBOLS"] = "Chemische Elementsymbole (durch Leerzeichen getrennt)",
         ["CHEM_MOLECULE"] = "Molekül mit Bild (JSON)"
     };
@@ -237,8 +238,8 @@ public static class ToTextFactory
     /// <summary>Formats variable metadata as display-ready lines.</summary>
     public static List<string> VarInfoAsText(VariableInfo info)
     {
-        var type = TypeText.GetValueOrDefault(info.Type, $"unbekannt \"{info.Type}\"");
-        var format = info.Format.Length > 0 ? $"; Format: {FormatText.GetValueOrDefault(info.Format, $"unbekannt \"{info.Format}\"")}" : string.Empty;
+        var type = TypeText.GetValueOrDefault(VariableInfoSpelling.NormalizeType(info.Type), $"unbekannt \"{info.Type}\"");
+        var format = info.Format.Length > 0 ? $"; Format: {FormatText.GetValueOrDefault(VariableInfoSpelling.NormalizeFormat(info.Format), $"unbekannt \"{info.Format}\"")}" : string.Empty;
         var result = new List<string> { $"Datentyp: {type}{format}{(info.Multiple ? "; Liste/mehrfach" : string.Empty)}{(info.Nullable ? "; \"null\"-Wert möglich" : string.Empty)}" };
         if (info.Values.Count > 0)
         {

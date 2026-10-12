@@ -1,5 +1,6 @@
 export * from './coding-interfaces';
 export * from './variable-list';
+export * from './normalize/variable-info-spelling';
 export * from './coding-scheme-factory';
 export * from './presentation';
 export * from './coding-factory';
