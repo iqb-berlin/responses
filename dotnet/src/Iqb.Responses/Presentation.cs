@@ -25,7 +25,11 @@ public static class ToTextFactory
         ["latex"] = "Mathematische Formel im LaTeX-Format",
         ["math-ml"] = "Mathematische Formel im Html-Format, MathML eingebettet",
         ["math-table"] = "Tabelle mit Zahlen für Rechenkästchen (JSON)",
-        ["math-text-mix"] = "Text und mathematische Formeln gemischt"
+        ["math-text-mix"] = "Text und mathematische Formeln gemischt",
+        // Added in VariableInfo 2.1, which has no 1.x spelling for them: the studio
+        // passes formats unknown to 1.x through unchanged, so they arrive as written.
+        ["CHEM_ELEMENT_SYMBOLS"] = "Chemische Elementsymbole (durch Leerzeichen getrennt)",
+        ["CHEM_MOLECULE"] = "Molekül mit Bild (JSON)"
     };
     private static readonly IReadOnlyDictionary<string, string> RuleText = new Dictionary<string, string>
     {

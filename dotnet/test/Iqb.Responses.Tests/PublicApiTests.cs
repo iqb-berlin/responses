@@ -542,6 +542,17 @@ public sealed class PublicApiTests
         Codes = []
     };
 
+    [Theory]
+    [InlineData("CHEM_ELEMENT_SYMBOLS", "string", "Datentyp: String/Text; Format: Chemische Elementsymbole (durch Leerzeichen getrennt)")]
+    [InlineData("CHEM_MOLECULE", "json", "Datentyp: Daten im JSON-Format; Format: Molekül mit Bild (JSON)")]
+    public void Chemistry_widget_formats_are_named(string format, string type, string expected)
+    {
+        var info = Info("value", type);
+        info.Format = format;
+
+        Assert.Equal(expected, ToTextFactory.VarInfoAsText(info)[0]);
+    }
+
     private static VariableInfo Info(string id, string type, bool multiple = false) => new()
     {
         Id = id,
