@@ -553,6 +553,56 @@ public sealed class PublicApiTests
         Assert.Equal(expected, ToTextFactory.VarInfoAsText(info)[0]);
     }
 
+    [Theory]
+    [InlineData("no-value", "NO_VALUE")]
+    [InlineData("coded", "CODED")]
+    [InlineData("NO_VALUE", "NO_VALUE")]
+    [InlineData("", "")]
+    [InlineData("ggb-file", "ggb-file")]
+    [InlineData("Fancy-Type", "Fancy-Type")]
+    public void VariableInfo_type_is_normalized_to_the_2x_spelling(string type, string expected) =>
+        Assert.Equal(expected, VariableInfoSpelling.NormalizeType(type));
+
+    [Theory]
+    [InlineData("ggb-file", "GGB_FILE")]
+    [InlineData("math-text-mix", "MATH_TEXT_MIX")]
+    [InlineData("GGB_FILE", "GGB_FILE")]
+    [InlineData("CHEM_MOLECULE", "CHEM_MOLECULE")]
+    [InlineData("", "")]
+    [InlineData("no-value", "no-value")]
+    public void VariableInfo_format_is_normalized_to_the_2x_spelling(string format, string expected) =>
+        Assert.Equal(expected, VariableInfoSpelling.NormalizeFormat(format));
+
+    [Theory]
+    [InlineData("string", "STRING", "text-selection", "TEXT_SELECTION")]
+    [InlineData("number", "NUMBER", "ggb-file", "GGB_FILE")]
+    [InlineData("no-value", "NO_VALUE", "math-table", "MATH_TABLE")]
+    public void VariableInfo_text_is_the_same_in_both_spellings(string typeV1, string typeV2, string formatV1, string formatV2)
+    {
+        var v1 = Info("value", typeV1);
+        v1.Format = formatV1;
+        var v2 = Info("value", typeV2);
+        v2.Format = formatV2;
+
+        var v1Text = ToTextFactory.VarInfoAsText(v1)[0];
+        Assert.DoesNotContain("unbekannt", v1Text);
+        Assert.Equal(v1Text, ToTextFactory.VarInfoAsText(v2)[0]);
+    }
+
+    [Fact]
+    public void Validation_reads_the_2x_spelling_of_base_variable_types()
+    {
+        var number = Coding("number", "BASE");
+        number.Codes = [new CodeData { Id = 1d, RuleSets = [new RuleSet { Rules = [new CodingRule { Method = "NUMERIC_MATCH", Parameters = ["1"] }] }] }];
+        var noValue = Coding("no-value", "BASE_NO_VALUE");
+
+        var problems = CodingSchemeFactory.Validate(
+            [Info("number", "NUMBER"), Info("no-value", "NO_VALUE")],
+            [number, noValue]);
+
+        Assert.DoesNotContain(problems, item => item.Type is "RULE_PARAMETER_INVALID" or "INVALID_SOURCE");
+    }
+
     private static VariableInfo Info(string id, string type, bool multiple = false) => new()
     {
         Id = id,

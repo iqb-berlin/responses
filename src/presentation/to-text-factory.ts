@@ -10,30 +10,32 @@ import { ResponseValueSingleType } from '@iqbspecs/response/response.interface';
 import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
 import { CodeAsText, CodingToTextMode } from '../coding-interfaces';
 import { CodingFactory } from '../coding-factory';
+import { normalizeVariableInfoFormat, normalizeVariableInfoType } from '../normalize/variable-info-spelling';
 
-const VARINFO_TYPE_TEXT = {
-  string: 'String/Text',
-  integer: 'Ganze Zahl',
-  number: 'Zahl (Fließkoma)',
-  boolean: 'Ja/Nein',
-  attachment: 'Datei',
-  json: 'Daten im JSON-Format',
-  'no-value': 'Ohne Antwortwert'
+// Keyed by the VariableInfo 2.x spelling; values in 1.x spelling are
+// normalized before the lookup.
+const VARINFO_TYPE_TEXT: Readonly<Record<string, string>> = {
+  STRING: 'String/Text',
+  INTEGER: 'Ganze Zahl',
+  NUMBER: 'Zahl (Fließkoma)',
+  BOOLEAN: 'Ja/Nein',
+  ATTACHMENT: 'Datei',
+  JSON: 'Daten im JSON-Format',
+  NO_VALUE: 'Ohne Antwortwert'
 };
-const VARINFO_FORMAT_TEXT = {
-  'text-selection': 'Textmarkierung',
-  image: 'Bild',
-  'capture-image': 'Foto',
-  audio: 'Sprachaufnahme',
-  'ggb-file': 'GeoGebra-Definition',
-  'ggb-variable': 'GeoGebra-Variable',
-  'non-negative': 'Nicht negativ',
-  latex: 'Mathematische Formel im LaTeX-Format',
-  'math-ml': 'Mathematische Formel im Html-Format, MathML eingebettet',
-  'math-table': 'Tabelle mit Zahlen für Rechenkästchen (JSON)',
-  'math-text-mix': 'Text und mathematische Formeln gemischt',
-  // Added in VariableInfo 2.1, which has no 1.x spelling for them: the studio
-  // passes formats unknown to 1.x through unchanged, so they arrive as written.
+const VARINFO_FORMAT_TEXT: Readonly<Record<string, string>> = {
+  TEXT_SELECTION: 'Textmarkierung',
+  IMAGE: 'Bild',
+  CAPTURE_IMAGE: 'Foto',
+  AUDIO: 'Sprachaufnahme',
+  GGB_FILE: 'GeoGebra-Definition',
+  GGB_VARIABLE: 'GeoGebra-Variable',
+  NON_NEGATIVE: 'Nicht negativ',
+  LATEX: 'Mathematische Formel im LaTeX-Format',
+  MATH_ML: 'Mathematische Formel im Html-Format, MathML eingebettet',
+  MATH_TABLE: 'Tabelle mit Zahlen für Rechenkästchen (JSON)',
+  MATH_TEXT_MIX: 'Text und mathematische Formeln gemischt',
+  // Added in VariableInfo 2.1, which has no 1.x spelling for them.
   CHEM_ELEMENT_SYMBOLS: 'Chemische Elementsymbole (durch Leerzeichen getrennt)',
   CHEM_MOLECULE: 'Molekül mit Bild (JSON)'
 };
@@ -523,11 +525,11 @@ export abstract class ToTextFactory {
     // Helper function: Determine data type and format
     const buildTypeString = (): string => {
       const typeText =
-        VARINFO_TYPE_TEXT[varInfo.type as keyof typeof VARINFO_TYPE_TEXT] ||
+        VARINFO_TYPE_TEXT[normalizeVariableInfoType(varInfo.type)] ||
         `unbekannt "${varInfo.type}"`;
       const formatText = varInfo.format ?
         `; Format: ${
-          VARINFO_FORMAT_TEXT[varInfo.format] ||
+          VARINFO_FORMAT_TEXT[normalizeVariableInfoFormat(varInfo.format)] ||
             `unbekannt "${varInfo.format}"`
         }` :
         '';

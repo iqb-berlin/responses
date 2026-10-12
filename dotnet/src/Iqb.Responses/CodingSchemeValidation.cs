@@ -87,7 +87,7 @@ internal static class CodingSchemeValidation
         }
         if (coding.SourceType == "BASE_NO_VALUE")
         {
-            if (baseById.TryGetValue(coding.Id, out var info) && info.Type != "no-value")
+            if (baseById.TryGetValue(coding.Id, out var info) && VariableInfoSpelling.NormalizeType(info.Type) != "NO_VALUE")
                 Add(problems, "INVALID_SOURCE", true, publicId, label);
             if (!baseIds.Contains(coding.Id)) Add(problems, "SOURCE_MISSING", true, publicId, label);
             return;
@@ -186,12 +186,12 @@ internal static class CodingSchemeValidation
         };
     }
 
-    private static ValueShape ShapeOf(VariableInfo info) => info.Type switch
+    private static ValueShape ShapeOf(VariableInfo info) => VariableInfoSpelling.NormalizeType(info.Type) switch
     {
-        "no-value" => new ValueShape("string", true, []),
-        "integer" or "number" => new ValueShape("numeric", info.Multiple, info.ValuePositionLabels),
-        "boolean" => new ValueShape("boolean", info.Multiple, info.ValuePositionLabels),
-        "string" => new ValueShape("string", info.Multiple, info.ValuePositionLabels),
+        "NO_VALUE" => new ValueShape("string", true, []),
+        "INTEGER" or "NUMBER" => new ValueShape("numeric", info.Multiple, info.ValuePositionLabels),
+        "BOOLEAN" => new ValueShape("boolean", info.Multiple, info.ValuePositionLabels),
+        "STRING" => new ValueShape("string", info.Multiple, info.ValuePositionLabels),
         _ => new ValueShape("other", info.Multiple, info.ValuePositionLabels)
     };
 

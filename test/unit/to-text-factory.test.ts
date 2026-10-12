@@ -115,6 +115,49 @@ describe('ToTextFactory', () => {
 
       expect(ToTextFactory.varInfoAsText(varInfo)[0]).toBe(`Datentyp: ${typeText}; Format: ${formatText}`);
     });
+
+    test.each([
+      ['string', 'STRING', 'text-selection', 'TEXT_SELECTION'],
+      ['integer', 'INTEGER', 'image', 'IMAGE'],
+      ['number', 'NUMBER', 'capture-image', 'CAPTURE_IMAGE'],
+      ['boolean', 'BOOLEAN', 'audio', 'AUDIO'],
+      ['attachment', 'ATTACHMENT', 'ggb-file', 'GGB_FILE'],
+      ['json', 'JSON', 'ggb-variable', 'GGB_VARIABLE'],
+      ['no-value', 'NO_VALUE', 'non-negative', 'NON_NEGATIVE'],
+      ['string', 'STRING', 'latex', 'LATEX'],
+      ['string', 'STRING', 'math-ml', 'MATH_ML'],
+      ['json', 'JSON', 'math-table', 'MATH_TABLE'],
+      ['string', 'STRING', 'math-text-mix', 'MATH_TEXT_MIX']
+    ])('names %s/%s with format %s/%s the same in both spellings', (typeV1, typeV2, formatV1, formatV2) => {
+      const asText = (type: string, format: string) => ToTextFactory.varInfoAsText({
+        id: 'v1',
+        type,
+        format,
+        multiple: false,
+        nullable: false,
+        values: [],
+        valuePositionLabels: []
+      } as unknown as VariableInfo)[0];
+
+      const v1Text = asText(typeV1, formatV1);
+      expect(v1Text).not.toContain('unbekannt');
+      expect(asText(typeV2, formatV2)).toBe(v1Text);
+    });
+
+    test('shows an unknown type and format as written', () => {
+      const varInfo = {
+        id: 'v1',
+        type: 'Fancy-Type',
+        format: 'fancy_format',
+        multiple: false,
+        nullable: false,
+        values: [],
+        valuePositionLabels: []
+      } as unknown as VariableInfo;
+
+      expect(ToTextFactory.varInfoAsText(varInfo)[0])
+        .toBe('Datentyp: unbekannt "Fancy-Type"; Format: unbekannt "fancy_format"');
+    });
   });
 
   describe('codeAsText', () => {
