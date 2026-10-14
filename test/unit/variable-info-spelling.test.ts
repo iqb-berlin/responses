@@ -22,7 +22,9 @@ const FORMATS: [string, string][] = [
   ['math-ml', 'MATH_ML'],
   ['math-table', 'MATH_TABLE'],
   ['math-text-mix', 'MATH_TEXT_MIX'],
-  ['ggb-variable', 'GGB_VARIABLE']
+  ['ggb-variable', 'GGB_VARIABLE'],
+  ['chem-element-symbols', 'CHEM_ELEMENT_SYMBOLS'],
+  ['chem-molecule', 'CHEM_MOLECULE']
 ];
 
 describe('VariableInfo spelling', () => {
@@ -36,7 +38,7 @@ describe('VariableInfo spelling', () => {
     expect(normalizeVariableInfoFormat(v2)).toBe(v2);
   });
 
-  test.each(['', 'CHEM_ELEMENT_SYMBOLS', 'CHEM_MOLECULE', 'Fancy-Format', 'constructor', '__proto__'])(
+  test.each(['', 'Fancy-Format', 'constructor', '__proto__'])(
     'leaves format "%s" unchanged',
     format => {
       expect(normalizeVariableInfoFormat(format)).toBe(format);

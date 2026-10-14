@@ -545,6 +545,8 @@ public sealed class PublicApiTests
     [Theory]
     [InlineData("CHEM_ELEMENT_SYMBOLS", "string", "Datentyp: String/Text; Format: Chemische Elementsymbole (durch Leerzeichen getrennt)")]
     [InlineData("CHEM_MOLECULE", "json", "Datentyp: Daten im JSON-Format; Format: Molekül mit Bild (JSON)")]
+    [InlineData("chem-element-symbols", "string", "Datentyp: String/Text; Format: Chemische Elementsymbole (durch Leerzeichen getrennt)")]
+    [InlineData("chem-molecule", "json", "Datentyp: Daten im JSON-Format; Format: Molekül mit Bild (JSON)")]
     public void Chemistry_widget_formats_are_named(string format, string type, string expected)
     {
         var info = Info("value", type);
@@ -568,6 +570,7 @@ public sealed class PublicApiTests
     [InlineData("math-text-mix", "MATH_TEXT_MIX")]
     [InlineData("GGB_FILE", "GGB_FILE")]
     [InlineData("CHEM_MOLECULE", "CHEM_MOLECULE")]
+    [InlineData("chem-molecule", "CHEM_MOLECULE")]
     [InlineData("", "")]
     [InlineData("no-value", "no-value")]
     public void VariableInfo_format_is_normalized_to_the_2x_spelling(string format, string expected) =>

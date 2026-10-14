@@ -30,7 +30,9 @@ public static class VariableInfoSpelling
         ["math-ml"] = "MATH_ML",
         ["math-table"] = "MATH_TABLE",
         ["math-text-mix"] = "MATH_TEXT_MIX",
-        ["ggb-variable"] = "GGB_VARIABLE"
+        ["ggb-variable"] = "GGB_VARIABLE",
+        ["chem-element-symbols"] = "CHEM_ELEMENT_SYMBOLS",
+        ["chem-molecule"] = "CHEM_MOLECULE"
     };
 
     /// <summary>Returns the 2.x spelling of a type; 2.x and unknown values are returned unchanged.</summary>

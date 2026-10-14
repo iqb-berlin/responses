@@ -256,6 +256,10 @@ Status strings used by this package include (among others) `VALUE_CHANGED`, `COD
 
 ## Versionsänderungen npm-package `@iqb/responses`
 
+### 5.3.1
+- `normalizeVariableInfoFormat` versteht die Formate der Chemie-Widgets auch in 1.x-Schreibweise: `chem-element-symbols` und `chem-molecule`. Das Studio schreibt sie so in die Unit-XML, weil die Unit-XSD nur kleingeschriebene Formate zulässt. `varInfoAsText` benennt sie damit wie `CHEM_ELEMENT_SYMBOLS` und `CHEM_MOLECULE`; bisher hätte es `unbekannt "…"` angezeigt.
+- .NET-Port: dasselbe in `VariableInfoSpelling.NormalizeFormat`.
+
 ### 5.3.0
 - `type` und `format` einer VariableInfo werden in beiden Schreibweisen verstanden: 1.x (`no-value`, `ggb-file`) und 2.x (`NO_VALUE`, `GGB_FILE`). Das betrifft die Validierung des Coding-Schemes und `varInfoAsText`. Bisher galten großgeschriebene Typen bei der Prüfung als unbekannt: Regeln auf `NUMBER`, `BOOLEAN` oder `STRING` meldeten `RULE_PARAMETER_INVALID`, `BASE_NO_VALUE` auf `NO_VALUE` meldete `INVALID_SOURCE`, und die Anzeige zeigte `unbekannt "…"`.
 - Neu exportiert: `normalizeVariableInfoType` und `normalizeVariableInfoFormat` bringen einen Wert in die Schreibweise von 2.x. Werte in 2.x-Schreibweise und unbekannte Werte bleiben unverändert. Gedacht für Vergleiche, nicht zum Umschreiben gespeicherter Daten: Ältere Leser verstehen nur die 1.x-Schreibweise.

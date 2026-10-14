@@ -2,8 +2,9 @@
 // (`no-value`, `ggb-file`), 2.x in upper case with underscores (`NO_VALUE`,
 // `GGB_FILE`). Both occur side by side: stored units keep the list their editor
 // wrote, and not every editor moves to 2.x. 2.x has exactly the values of 1.x,
-// so mapping 1.x to 2.x is lossless; the reverse is not (the chemistry formats
-// of 2.1 have no 1.x spelling).
+// so mapping 1.x to 2.x is lossless. The chemistry formats of 2.1 never had a
+// 1.x spelling; readers that only take 1.x (the unit XSD) get them by the same
+// rule, lower case with hyphens (`chem-molecule`).
 //
 // Normalize for decisions and lookups only. Data a consumer stores or passes on
 // keeps the spelling it came with, or an older reader would get values it
@@ -31,7 +32,9 @@ const FORMAT_V1_TO_V2: Readonly<Record<string, string>> = {
   'math-ml': 'MATH_ML',
   'math-table': 'MATH_TABLE',
   'math-text-mix': 'MATH_TEXT_MIX',
-  'ggb-variable': 'GGB_VARIABLE'
+  'ggb-variable': 'GGB_VARIABLE',
+  'chem-element-symbols': 'CHEM_ELEMENT_SYMBOLS',
+  'chem-molecule': 'CHEM_MOLECULE'
 };
 
 const lookUp = (table: Readonly<Record<string, string>>, value: string): string => (
