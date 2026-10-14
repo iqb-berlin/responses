@@ -101,7 +101,9 @@ describe('ToTextFactory', () => {
 
     test.each([
       ['CHEM_ELEMENT_SYMBOLS', 'string', 'String/Text', 'Chemische Elementsymbole (durch Leerzeichen getrennt)'],
-      ['CHEM_MOLECULE', 'json', 'Daten im JSON-Format', 'Molekül mit Bild (JSON)']
+      ['CHEM_MOLECULE', 'json', 'Daten im JSON-Format', 'Molekül mit Bild (JSON)'],
+      ['chem-element-symbols', 'string', 'String/Text', 'Chemische Elementsymbole (durch Leerzeichen getrennt)'],
+      ['chem-molecule', 'json', 'Daten im JSON-Format', 'Molekül mit Bild (JSON)']
     ])('names the chemistry widget format %s', (format, type, typeText, formatText) => {
       const varInfo = {
         id: 'v1',
