@@ -1,0 +1,95 @@
+// Copied into a fresh tarball consumer by verify-package.js.
+import assert from 'node:assert/strict';
+import { readdirSync, readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { join } from 'node:path';
+import * as esm from '@iqb/responses';
+import { CodingScheme } from '@iqbspecs/coding-scheme';
+
+const require = createRequire(import.meta.url);
+const commonjs = require('@iqb/responses');
+const reference = require('@iqb/responses-reference');
+assert.equal(require('@iqb/responses-reference/package.json').version, '5.3.1');
+assert.deepEqual(Object.keys(esm).sort(), [...Object.keys(commonjs)].sort());
+assert.ok(import.meta.resolve('@iqb/responses').endsWith('/esm/index.js'));
+assert.ok(require.resolve('@iqb/responses').endsWith('/responses/index.js'));
+
+for (const path of ['coding-factory', 'coding-factory.js', 'value-transform',
+  'derive/derive-value', 'presentation', 'presentation/to-text-factory']) {
+  const imported = await import(`@iqb/responses/${path}`);
+  const required = require(`@iqb/responses/${path}`);
+  assert.deepEqual(Object.keys(imported).sort(), Object.keys(required).sort(), path);
+}
+
+const base = { id: 'a', alias: 'A', sourceType: 'BASE', codes: [] };
+const expressions = [
+  '${A}+1', 'round(${A}/3,2)', 'ceil(${A})', '${A}==0 ? 1:0',
+  'abs(complex(${A},4))', 'number(unit(${A},"cm"),"mm")',
+  'sum([${A},1,2])', 'number(bignumber("0.1")+bignumber("0.2"))',
+  'number(fraction(1,3))', 'det([[1,2],[3,4]])', 'null', '${A}/0', '${A}+'
+];
+let derivations = 0;
+const statuses = {};
+for (const expression of expressions) {
+  for (const value of [0, 1e-15, 3, -5, null, 'abc']) {
+    for (const status of ['VALUE_CHANGED', 'CODING_COMPLETE', 'INVALID']) {
+      const target = { id: 'd', alias: 'D', sourceType: 'SOLVER', deriveSources: ['a'],
+        sourceParameters: { processing: [], solverExpression: expression } };
+      const args = [[base, target], target, [{ id: 'a', status, value }]];
+      const result = esm.CodingSchemeFactory.deriveValue(...structuredClone(args));
+      statuses[result.status] = (statuses[result.status] || 0) + 1;
+      assert.deepEqual(result,
+        commonjs.CodingSchemeFactory.deriveValue(...structuredClone(args)),
+        JSON.stringify({ expression, value, status }));
+      assert.deepEqual(result, reference.CodingSchemeFactory.deriveValue(...structuredClone(args)),
+        `published 5.3.1: ${JSON.stringify({ expression, value, status })}`);
+      derivations += 1;
+    }
+  }
+}
+
+// Comparing two emit formats alone could hide a shared packaging error.
+const solver = expression => esm.CodingSchemeFactory.deriveValue([base, {
+  id: 'd', alias: 'D', sourceType: 'SOLVER', deriveSources: ['a'],
+  sourceParameters: { processing: [], solverExpression: expression }
+}], { id: 'd', alias: 'D', sourceType: 'SOLVER', deriveSources: ['a'],
+  sourceParameters: { processing: [], solverExpression: expression }
+}, [{ id: 'a', status: 'VALUE_CHANGED', value: 3 }]);
+assert.equal(solver('sum([${A},1,2])').value, 6);
+assert.equal(solver('abs(complex(${A},4))').value, 5);
+assert.equal(solver('number(unit(${A},"cm"),"mm")').value, 30);
+assert.equal(solver('number(bignumber("0.1")+bignumber("0.2"))').value, 0.3);
+
+assert.ok(statuses.VALUE_CHANGED > 0, 'SOLVER expressions must actually evaluate');
+assert.ok(statuses.DERIVE_ERROR > 0, 'error paths must also run');
+
+let fixtures = 0;
+function checkFolder(folder) {
+  const files = readdirSync(folder, { withFileTypes: true });
+  const scheme = files.find(file => file.name === 'coding-scheme.json');
+  if (scheme) {
+    const raw = JSON.parse(readFileSync(join(folder, scheme.name), 'utf8'));
+    const variables = new CodingScheme(raw.variableCodings).variableCodings;
+    for (const file of files.filter(item => item.name.endsWith('_input.json'))) {
+      const input = JSON.parse(readFileSync(join(folder, file.name), 'utf8'));
+      const actual = esm.CodingSchemeFactory.code(structuredClone(input), structuredClone(variables));
+      const other = commonjs.CodingSchemeFactory.code(structuredClone(input), structuredClone(variables));
+      const expected = JSON.parse(readFileSync(join(folder,
+        file.name.replace('_input.json', '_outcome.json')), 'utf8'));
+      assert.deepEqual(actual, other, join(folder, file.name));
+      assert.deepEqual(actual,
+        reference.CodingSchemeFactory.code(structuredClone(input), structuredClone(variables)),
+        `published 5.3.1: ${join(folder, file.name)}`);
+      assert.deepEqual(JSON.parse(JSON.stringify(actual)), expected, `golden: ${join(folder, file.name)}`);
+      fixtures += 1;
+    }
+    assert.deepEqual(esm.CodingSchemeTextFactory.asText(variables, 'EXTENDED'),
+      commonjs.CodingSchemeTextFactory.asText(variables, 'EXTENDED'));
+  }
+  for (const file of files.filter(item => item.isDirectory())) checkFolder(join(folder, file.name));
+}
+checkFolder(process.argv[2]);
+assert.ok(fixtures > 0, 'golden coding fixtures must run');
+console.log(JSON.stringify({ esmCommonjsDerivations: derivations, publishedReference: '5.3.1',
+  goldenFixtures: fixtures, statuses,
+  deepImports: true, fullMathFeatures: true }));
