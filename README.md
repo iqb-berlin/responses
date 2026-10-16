@@ -254,6 +254,24 @@ const lines = ToTextFactory.varInfoAsText(varInfo);
 
 Status strings used by this package include (among others) `VALUE_CHANGED`, `CODING_COMPLETE`, `CODING_INCOMPLETE`, `CODING_ERROR`, `DERIVE_ERROR`, `INVALID`, `NO_CODING`, `UNSET`, ...
 
+## JavaScript module formats
+
+The package provides native ESM for `import` and the existing CommonJS files for
+`require`. The package root and existing file subpaths such as
+`@iqb/responses/coding-factory` and `@iqb/responses/value-transform.js` select the
+appropriate format automatically. The `presentation` directory entry also
+remains available. Type declarations support classic Node resolution, NodeNext
+and bundlers.
+
+The ESM build imports the full mathjs `evaluate` API. It preserves SOLVER
+functions, configuration and tolerances; it does not substitute the reduced
+`mathjs/number` entry. ESM lets browser bundlers remove unused module exports.
+
+`npm run prepare_publish` builds both formats from the same TypeScript source.
+`npm run test:package` installs the tarball in a fresh consumer and checks both
+runtime formats, subpaths, type resolution, SOLVER results and golden coding
+fixtures. Building and verifying the package does not publish it to npm.
+
 ## Versionsänderungen npm-package `@iqb/responses`
 
 ### 5.3.1
