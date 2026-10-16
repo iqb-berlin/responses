@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const { execFileSync } = require('node:child_process');
 const {
+  copyFileSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -61,7 +62,8 @@ try {
       '--no-audit',
       '--no-fund',
       '--package-lock=false',
-      tarballPath
+      tarballPath,
+      '@iqb/responses-reference@npm:@iqb/responses@5.3.1'
     ],
     { cwd: consumerDirectory, stdio: 'inherit' }
   );
@@ -70,13 +72,21 @@ try {
     "const responses = require('@iqb/responses');",
     "for (const name of ['CodingFactory', 'CodingSchemeFactory', 'VariableList']) {",
     "  if (typeof responses[name] !== 'function') {",
-    "    throw new Error(`Missing public export: ${name}`);",
+    "    throw new Error('Missing public export: ' + name);",
     '  }',
     '}'
   ].join('\n');
   execFileSync(process.execPath, ['-e', runtimeCheck], {
     cwd: consumerDirectory,
     stdio: 'inherit'
+  });
+
+  copyFileSync(
+    join(repositoryRoot, 'scripts/verify-esm-consumer.mjs'),
+    join(consumerDirectory, 'verify-esm-consumer.mjs')
+  );
+  execFileSync(process.execPath, ['verify-esm-consumer.mjs', join(repositoryRoot, 'test/coding')], {
+    cwd: consumerDirectory, stdio: 'inherit'
   });
 
   writeFileSync(
@@ -111,6 +121,36 @@ try {
   execFileSync(process.execPath, [typescriptCompiler, '--project', 'tsconfig.json'], {
     cwd: consumerDirectory,
     stdio: 'inherit'
+  });
+
+  const source = [
+    "import { CodingFactory, CodingSchemeFactory } from '@iqb/responses';",
+    "import { CodingAsText } from '@iqb/responses/coding-interfaces';",
+    "import { transformValue } from '@iqb/responses/value-transform.js';",
+    "import { ToTextFactory } from '@iqb/responses/presentation';",
+    'void CodingFactory; void CodingSchemeFactory; void transformValue; void ToTextFactory;',
+    'const variables: CodingAsText[] = []; void variables;'
+  ].join('\n');
+  [
+    ['node-esm', 'mts', 'NodeNext', 'NodeNext'],
+    ['node-cjs', 'cts', 'NodeNext', 'NodeNext'],
+    ['browser', 'mts', 'ES2020', 'bundler']
+  ].forEach(([name, extension, module, moduleResolution]) => {
+    writeFileSync(join(consumerDirectory, `${name}.${extension}`), source);
+    writeFileSync(join(consumerDirectory, `${name}.json`), JSON.stringify({
+      compilerOptions: {
+        module,
+        moduleResolution,
+        noEmit: true,
+        strict: true,
+        skipLibCheck: false,
+        target: 'ES2020'
+      },
+      files: [`${name}.${extension}`]
+    }));
+    execFileSync(process.execPath, [typescriptCompiler, '--project', `${name}.json`], {
+      cwd: consumerDirectory, stdio: 'inherit'
+    });
   });
 } finally {
   rmSync(temporaryRoot, { recursive: true, force: true });
