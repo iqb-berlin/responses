@@ -6,6 +6,35 @@ This package contains of type definitions for processing assessment data. Additi
 - [Iqb specifications](https://iqb-specifications.github.io/)
 - [Ausführliche Darstellungen zum Kodieren](https://iqb-berlin.github.io/tba-info/coding/response-status.html)
 
+## Partial credit with empty sources (5.4)
+
+For `SUM_SCORE`, `SUM_CODE` and `CONCAT_CODE`, set either or both of these
+options on the **derived** variable in `sourceParameters.processing`:
+
+- `TAKE_DISPLAYED_AS_ZERO_IF_PARTIAL`: use a neutral contribution for sources
+  with status `DISPLAYED`, including checkbox defaults such as `false`.
+- `TAKE_EMPTY_AS_ZERO_IF_PARTIAL`: use a neutral contribution for `INVALID`
+  sources whose value is exactly `null`, `""` or `[]`. `false`, `0` and nonempty
+  invalid answers are not empty.
+
+Both options are disabled by default. With at least one `CODING_COMPLETE`
+source, enabled partials contribute score/code `0` to sums or placeholder `x`
+to concatenation. `0_x` therefore remains distinct from `0_0`. A derived text
+value containing `x` can be coded with ordinary text rules and numeric code IDs.
+`SORT` also sorts placeholders. Pending answers are never replaced: a pending
+answer plus otherwise coded or allowed partial sources yields `DERIVE_PENDING`,
+including when no answer has completed coding yet. Existing error precedence
+still applies.
+
+Without a completed or pending answer, aggregation remains unchanged: all
+`DISPLAYED` stays `DISPLAYED`; all empty `INVALID`, or a mix of `DISPLAYED` and
+empty `INVALID`, stays `INVALID`. There is no automatic zero score or `x_x`.
+Only the contribution to this derivation changes. Source status, value, code
+and score, sibling derivations, base-variable normalization (including
+`TAKE_EMPTY_AS_VALID`) and SOLVER policies remain unchanged.
+
+The options require `@iqbspecs/coding-scheme` 3.5.0 or later.
+
 ## Installation
 
 ```bash
