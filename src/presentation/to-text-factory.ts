@@ -417,6 +417,19 @@ export abstract class ToTextFactory {
       default:
         returnText = 'Unbekannte Quelle';
     }
+    if (['SUM_SCORE', 'SUM_CODE', 'CONCAT_CODE'].includes(sourceType)) {
+      const replacement = sourceType === 'CONCAT_CODE' ? 'x' : '0';
+      const partialDescriptions: string[] = [];
+      if (parameters?.processing?.includes('TAKE_DISPLAYED_AS_ZERO_IF_PARTIAL')) {
+        partialDescriptions.push(`angezeigte Quellantworten als ${replacement}`);
+      }
+      if (parameters?.processing?.includes('TAKE_EMPTY_AS_ZERO_IF_PARTIAL')) {
+        partialDescriptions.push(`leere ungültige Quellantworten als ${replacement}`);
+      }
+      if (partialDescriptions.length > 0) {
+        returnText += ` (bei mindestens einer regulär kodierten Teilantwort: ${partialDescriptions.join('; ')})`;
+      }
+    }
     return returnText;
   }
 

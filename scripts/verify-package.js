@@ -61,7 +61,8 @@ try {
       '--no-audit',
       '--no-fund',
       '--package-lock=false',
-      tarballPath
+      tarballPath,
+      ...(process.env.IQB_CODING_SCHEME_TARBALL ? [resolve(process.env.IQB_CODING_SCHEME_TARBALL)] : [])
     ],
     { cwd: consumerDirectory, stdio: 'inherit' }
   );
@@ -70,8 +71,16 @@ try {
     "const responses = require('@iqb/responses');",
     "for (const name of ['CodingFactory', 'CodingSchemeFactory', 'VariableList']) {",
     "  if (typeof responses[name] !== 'function') {",
-    "    throw new Error(`Missing public export: ${name}`);",
+    "    throw new Error('Missing public export: ' + name);",
     '  }',
+    '}',
+    "const sources = [{id: 'a', status: 'CODING_COMPLETE', value: false, code: 0, score: 0},",
+    "  {id: 'b', status: 'DISPLAYED', value: null}];",
+    "const coding = {id: 'derived', sourceType: 'CONCAT_CODE', deriveSources: ['a', 'b'],",
+    "  sourceParameters: {processing: ['TAKE_DISPLAYED_AS_ZERO_IF_PARTIAL']}};",
+    'const result = responses.CodingSchemeFactory.deriveValue([], coding, sources);',
+    "if (result.status !== 'VALUE_CHANGED' || result.value !== '0_x' || sources[1].status !== 'DISPLAYED') {",
+    "  throw new Error('Packaged partial-credit derivation failed');",
     '}'
   ].join('\n');
   execFileSync(process.execPath, ['-e', runtimeCheck], {
