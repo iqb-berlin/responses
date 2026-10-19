@@ -17,6 +17,17 @@ internal static class Derivation
         IReadOnlyList<Response> sourceResponses)
     {
         var subform = sourceResponses.FirstOrDefault(response => response.Subform is not null)?.Subform;
+        var partialSourceIds = GetPartialSourceIds(coding, sourceResponses);
+        if (partialSourceIds.Count > 0)
+        {
+            sourceResponses = sourceResponses.Select(response => partialSourceIds.Contains(response.Id)
+                ? new Response
+                {
+                    Id = response.Id, Subform = response.Subform, Value = null,
+                    Status = ResponseStatus.CodingComplete, Code = 0d, Score = 0d
+                }
+                : response).ToList();
+        }
         var codingById = variableCodings.LastById(item => item.Id);
         var precedence = new (string From, string To)[]
         {
@@ -33,6 +44,12 @@ internal static class Derivation
             {
                 return NewResponse(coding, mapping.To, subform);
             }
+        }
+
+        if (partialSourceIds.Count > 0)
+        {
+            var presentIds = sourceResponses.Select(response => response.Id).ToHashSet();
+            if ((coding.DeriveSources ?? []).Any(id => !presentIds.Contains(id))) return Error(coding, subform);
         }
 
         var hasPending = sourceResponses.Any(response =>
@@ -62,13 +79,28 @@ internal static class Derivation
         {
             "MANUAL" => HandleManual(coding, sourceResponses, subform),
             "COPY_VALUE" => HandleCopyValue(coding, sourceResponses, subform),
-            "CONCAT_CODE" => HandleConcatCode(coding, responseById, subform),
+            "CONCAT_CODE" => HandleConcatCode(coding, responseById, partialSourceIds, subform),
             "SUM_CODE" => HandleSum(coding, responseById, subform, score: false),
             "SUM_SCORE" => HandleSum(coding, responseById, subform, score: true),
             "UNIQUE_VALUES" => HandleUniqueValues(coding, sourceResponses, subform),
             "SOLVER" => HandleSolver(variableCodings, coding, responseById, subform),
             _ => Error(coding, subform)
         };
+    }
+
+    private static HashSet<string> GetPartialSourceIds(VariableCodingData coding, IReadOnlyList<Response> sources)
+    {
+        var declaredSources = (coding.DeriveSources ?? []).ToHashSet();
+        sources = sources.Where(response => declaredSources.Contains(response.Id)).ToList();
+        if (coding.SourceType is not ("CONCAT_CODE" or "SUM_CODE" or "SUM_SCORE") ||
+            !sources.Any(response => response.Status is ResponseStatus.CodingComplete or
+                ResponseStatus.CodingIncomplete or ResponseStatus.DerivePending)) return [];
+
+        return sources.Where(response =>
+            response.Status == ResponseStatus.Displayed && HasSourceProcessing(coding, "TAKE_DISPLAYED_AS_ZERO_IF_PARTIAL") ||
+            response.Status == ResponseStatus.Invalid && (response.Value is null || ValueTransforms.IsEmptyValue(response.Value)) &&
+                HasSourceProcessing(coding, "TAKE_EMPTY_AS_ZERO_IF_PARTIAL"))
+            .Select(response => response.Id).ToHashSet();
     }
 
     private static bool AppliesPrecedence(
@@ -141,9 +173,11 @@ internal static class Derivation
     private static Response HandleConcatCode(
         VariableCodingData coding,
         IReadOnlyDictionary<string, Response> responseById,
+        IReadOnlySet<string> partialSourceIds,
         string? subform)
     {
         var values = (coding.DeriveSources ?? []).Select(sourceId =>
+            partialSourceIds.Contains(sourceId) ? "x" :
             responseById.TryGetValue(sourceId, out var response) && response.Code is not null
                 ? CodeAsString(response.Code)
                 : "?").ToList();
