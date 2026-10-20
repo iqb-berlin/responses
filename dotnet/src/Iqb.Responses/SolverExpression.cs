@@ -35,6 +35,7 @@ internal static class SolverExpression
     {
         private int _position;
         private int _depth;
+        private bool _evaluate = true;
 
         public Value ParseExpression() => ParseTernary();
 
@@ -52,15 +53,16 @@ internal static class SolverExpression
             Enter();
             try
             {
-                var condition = ParseEquality();
+                var condition = ParseComparison();
                 if (!Take("?"))
                 {
                     return condition;
                 }
-                var whenTrue = ParseTernary();
+                var takeTrue = _evaluate && AsBoolean(condition);
+                var whenTrue = ParseBranch(_evaluate && takeTrue);
                 Require(":");
-                var whenFalse = ParseTernary();
-                return AsBoolean(condition) ? whenTrue : whenFalse;
+                var whenFalse = ParseBranch(_evaluate && !takeTrue);
+                return takeTrue ? whenTrue : whenFalse;
             }
             finally
             {
@@ -68,36 +70,58 @@ internal static class SolverExpression
             }
         }
 
-        private Value ParseEquality()
+        private Value ParseBranch(bool evaluate)
         {
-            var left = ParseComparison();
-            while (true)
+            var previous = _evaluate;
+            _evaluate = evaluate;
+            try
             {
-                if (Take("=="))
-                {
-                    left = Value.FromBoolean(EqualsValue(left, ParseComparison()));
-                }
-                else if (Take("!="))
-                {
-                    left = Value.FromBoolean(!EqualsValue(left, ParseComparison()));
-                }
-                else
-                {
-                    return left;
-                }
+                return ParseTernary();
+            }
+            finally
+            {
+                _evaluate = previous;
             }
         }
 
         private Value ParseComparison()
         {
             var left = ParseAdditive();
+            var hasComparison = false;
+            var matches = true;
             while (true)
             {
-                if (Take("<=")) left = Compare(left, ParseAdditive(), (a, b) => a <= b);
-                else if (Take(">=")) left = Compare(left, ParseAdditive(), (a, b) => a >= b);
-                else if (Take("<")) left = Compare(left, ParseAdditive(), (a, b) => a < b);
-                else if (Take(">")) left = Compare(left, ParseAdditive(), (a, b) => a > b);
-                else return left;
+                var operation = Take("==") ? "==" : Take("!=") ? "!=" :
+                    Take("<=") ? "<=" : Take(">=") ? ">=" :
+                    Take("<") ? "<" : Take(">") ? ">" : null;
+                if (operation is null) return hasComparison ? Value.FromBoolean(matches) : left;
+
+                var previous = _evaluate;
+                Value right;
+                _evaluate = previous && matches;
+                try
+                {
+                    right = ParseAdditive();
+                }
+                finally
+                {
+                    _evaluate = previous;
+                }
+                if (_evaluate && matches)
+                {
+                    matches = operation switch
+                    {
+                        "==" => EqualsValue(left, right),
+                        "!=" => !EqualsValue(left, right),
+                        "<=" => AsNumber(left) <= AsNumber(right),
+                        ">=" => AsNumber(left) >= AsNumber(right),
+                        "<" => AsNumber(left) < AsNumber(right),
+                        _ => AsNumber(left) > AsNumber(right)
+                    };
+                }
+                // mathjs compares adjacent operands and short-circuits a false chain.
+                left = right;
+                hasComparison = true;
             }
         }
 
@@ -126,17 +150,25 @@ internal static class SolverExpression
 
         private Value ParseUnary()
         {
-            if (Take("+")) return Value.FromNumber(AsNumber(ParseUnary()));
-            if (Take("-")) return Value.FromNumber(-AsNumber(ParseUnary()));
+            if (Take("+"))
+            {
+                var operand = ParseUnary();
+                return _evaluate ? Value.FromNumber(AsNumber(operand)) : Value.Null;
+            }
+            if (Take("-"))
+            {
+                var operand = ParseUnary();
+                return _evaluate ? Value.FromNumber(-AsNumber(operand)) : Value.Null;
+            }
             return ParsePower();
         }
 
         private Value ParsePower()
         {
             var left = ParsePrimary();
-            return Take("^")
-                ? Value.FromNumber(Math.Pow(AsNumber(left), AsNumber(ParseUnary())))
-                : left;
+            if (!Take("^")) return left;
+            var right = ParseUnary();
+            return _evaluate ? Value.FromNumber(Math.Pow(AsNumber(left), AsNumber(right))) : Value.Null;
         }
 
         private Value ParsePrimary()
@@ -160,7 +192,12 @@ internal static class SolverExpression
             var start = _position++;
             while (_position < text.Length && IsIdentifierPart(text[_position])) _position++;
             var identifier = text[start.._position];
-            if (Take("(")) return EvaluateFunction(identifier, ParseArguments());
+            if (Take("("))
+            {
+                var arguments = ParseArguments();
+                return _evaluate ? EvaluateFunction(identifier, arguments) : Value.Null;
+            }
+            if (!_evaluate) return Value.Null;
             return identifier switch
             {
                 "pi" or "PI" => Value.FromNumber(Math.PI),
@@ -315,11 +352,8 @@ internal static class SolverExpression
             ? value.Boolean
             : throw new FormatException("Boolean condition expected.");
 
-        private static Value Number(Value left, Value right, Func<double, double, double> operation) =>
-            Value.FromNumber(operation(AsNumber(left), AsNumber(right)));
-
-        private static Value Compare(Value left, Value right, Func<double, double, bool> operation) =>
-            Value.FromBoolean(operation(AsNumber(left), AsNumber(right)));
+        private Value Number(Value left, Value right, Func<double, double, double> operation) =>
+            _evaluate ? Value.FromNumber(operation(AsNumber(left), AsNumber(right))) : Value.Null;
 
         private static double Unary(string name, IReadOnlyList<double> values, Func<double, double> operation)
         {

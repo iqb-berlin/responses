@@ -138,6 +138,37 @@ public sealed class ReviewRegressionTests
         Assert.Equal(matches ? ResponseStatus.CodingComplete : ResponseStatus.CodingIncomplete, Code(value, coding).Status);
     }
 
+    [Theory]
+    [InlineData("true ? 1 : nthRoot(4,0)", 1d)]
+    [InlineData("false ? gcd(1.5,2) : 2", 2d)]
+    [InlineData("true ? (false ? nthRoot(4,0) : 3) : gcd(1.5,2)", 3d)]
+    [InlineData("false ? -null ^ null + null * null : 4", 4d)]
+    [InlineData("true ? 1 : missing(2)", 1d)]
+    [InlineData("1 < 2 < 3 ? 1 : 0", 1d)]
+    [InlineData("3 > 2 >= 2 ? 1 : 0", 1d)]
+    [InlineData("1 < 2 > 3 ? 1 : 0", 0d)]
+    [InlineData("1 == 1 == 1 ? 1 : 0", 1d)]
+    [InlineData("1 < 2 == 2 ? 1 : 0", 1d)]
+    [InlineData("3 < 2 < nthRoot(4,0) ? 1 : 0", 0d)]
+    [InlineData("3 < 2 < missing(1) ? 1 : 0", 0d)]
+    [InlineData("false ? missing : 5", 5d)]
+    [InlineData("false ? +null : 6", 6d)]
+    public void Solver_executes_only_selected_branches_and_compares_adjacent_operands(string expression, double expected)
+    {
+        var coding = CodingFactory.CreateBaseCodingVariable("d", "SOLVER");
+        coding.SourceParameters!.SolverExpression = expression;
+        var result = CodingSchemeFactory.DeriveValue([coding], coding, []);
+        Assert.Equal(ResponseStatus.ValueChanged, result.Status);
+        Assert.Equal(expected, result.Value);
+    }
+
+    [Fact]
+    public void Unselected_solver_branches_still_require_valid_syntax()
+    {
+        Assert.Throws<FormatException>(() => SolverExpression.Evaluate("true ? 1 : (2 + )"));
+        Assert.Throws<FormatException>(() => SolverExpression.Evaluate("false ? (2 + ) : 1"));
+    }
+
     [Fact]
     public void Validation_accepts_empty_alias_without_throwing()
     {

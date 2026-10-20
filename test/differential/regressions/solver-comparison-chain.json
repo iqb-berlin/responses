@@ -1,0 +1,34 @@
+{
+  "protocolVersion": 1,
+  "kind": "case",
+  "id": "regression:solver-comparison-chain",
+  "input": {
+    "baseVariables": [],
+    "variableCodings": [
+      {
+        "id": "d",
+        "alias": "d",
+        "label": "",
+        "sourceType": "SOLVER",
+        "sourceParameters": {
+          "solverExpression": "1 < 2 < 3 ? 1 : 0",
+          "processing": []
+        },
+        "deriveSources": [],
+        "processing": [],
+        "fragmenting": "",
+        "manualInstruction": "",
+        "codeModel": "RULES_ONLY",
+        "codes": []
+      }
+    ],
+    "responses": []
+  },
+  "calls": [
+    {
+      "op": "deriveValue",
+      "codingIndex": 0,
+      "sourceResponseIndexes": []
+    }
+  ]
+}
