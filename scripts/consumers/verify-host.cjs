@@ -49,7 +49,7 @@ async function main() {
     writeFileSync(join(report, 'bundle-stats.json'), metadata);
     const inputs = Object.keys(JSON.parse(metadata).inputs || {});
     assert.ok(inputs.length > 0, 'Angular statistics must contain actual bundle inputs');
-    const responsesInputs = inputs.filter(file => file.includes('@iqb/responses/') && file.endsWith('.js'));
+    const responsesInputs = inputs.filter(file => /@iqb\/responses\/(?!node_modules\/).*\.js$/.test(file));
     record('candidate', { responses: hostRequire('@iqb/responses/package.json').version,
       moduleFormat: responsesInputs.length ? 'esm' : 'not-in-bundle', responsesInputs, ...size() });
     console.log('Responses bundle inputs:', responsesInputs);
