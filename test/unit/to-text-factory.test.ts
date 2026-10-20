@@ -61,6 +61,19 @@ describe('ToTextFactory', () => {
   });
 
   describe('varInfoAsText', () => {
+    test.each(['number', 'NUMBER'])('spells the floating-point label correctly for %s', type => {
+      const varInfo = {
+        id: 'v1',
+        type,
+        multiple: false,
+        nullable: false,
+        values: [],
+        valuePositionLabels: []
+      } as unknown as VariableInfo;
+
+      expect(ToTextFactory.varInfoAsText(varInfo)).toEqual(['Datentyp: Zahl (Fließkomma)']);
+    });
+
     test('renders type/format/multiple/nullable and values', () => {
       const varInfo: VariableInfo = {
         id: 'v1',

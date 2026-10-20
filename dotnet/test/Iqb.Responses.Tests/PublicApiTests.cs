@@ -585,6 +585,12 @@ public sealed class PublicApiTests
         Assert.Equal(expected, VariableInfoSpelling.NormalizeFormat(format));
 
     [Theory]
+    [InlineData("number")]
+    [InlineData("NUMBER")]
+    public void VariableInfo_floating_point_label_is_spelled_correctly(string type) =>
+        Assert.Equal(["Datentyp: Zahl (Fließkomma)"], ToTextFactory.VarInfoAsText(Info("value", type)));
+
+    [Theory]
     [InlineData("string", "STRING", "text-selection", "TEXT_SELECTION")]
     [InlineData("number", "NUMBER", "ggb-file", "GGB_FILE")]
     [InlineData("no-value", "NO_VALUE", "math-table", "MATH_TABLE")]
