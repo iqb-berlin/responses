@@ -253,7 +253,7 @@ public static class ToTextFactory
     {
         var type = TypeText.GetValueOrDefault(VariableInfoSpelling.NormalizeType(info.Type), $"unbekannt \"{info.Type}\"");
         var format = info.Format.Length > 0 ? $"; Format: {FormatText.GetValueOrDefault(VariableInfoSpelling.NormalizeFormat(info.Format), $"unbekannt \"{info.Format}\"")}" : string.Empty;
-        var result = new List<string> { $"Datentyp: {type}{format}{(info.Multiple ? "; Liste/mehrfach" : string.Empty)}{(info.Nullable ? "; \"null\"-Wert möglich" : string.Empty)}" };
+        var result = new List<string> { $"Datentyp: {type}{format}{(info.Multiple == true ? "; Liste/mehrfach" : string.Empty)}{(info.Nullable ? "; \"null\"-Wert möglich" : string.Empty)}" };
         if (info.Values.Count > 0)
         {
             var values = info.Values.Select(item =>
@@ -284,10 +284,10 @@ public static class CodingSchemeTextFactory
     public static List<CodingAsText> AsText(IReadOnlyList<VariableCodingData> codings, string mode = "EXTENDED") =>
         codings.Select(coding => new CodingAsText
         {
-            Id = coding.Alias ?? coding.Id,
+            Id = coding.PublicIdentifier,
             Label = coding.Label ?? string.Empty,
             Source = ToTextFactory.SourceAsText(
-                coding.Alias ?? coding.Id,
+                coding.PublicIdentifier,
                 coding.SourceType,
                 (coding.DeriveSources ?? []).Select(source => codings.FirstOrDefault(item => item.Alias == source)?.Alias ?? source).ToList(),
                 coding.SourceParameters),

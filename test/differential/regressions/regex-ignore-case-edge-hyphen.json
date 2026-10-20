@@ -1,0 +1,152 @@
+{
+  "calls": [
+    {
+      "op": "normalizeScheme"
+    },
+    {
+      "op": "validate"
+    },
+    {
+      "op": "dependencyTree"
+    },
+    {
+      "op": "code"
+    },
+    {
+      "aliases": [],
+      "op": "getBaseVarsList"
+    },
+    {
+      "mode": "SIMPLE",
+      "op": "schemeText"
+    },
+    {
+      "mode": "EXTENDED",
+      "op": "schemeText"
+    }
+  ],
+  "id": "regression:regex-ignore-case-edge-hyphen",
+  "input": {
+    "baseVariables": [
+      {
+        "format": "",
+        "id": "v0",
+        "multiple": true,
+        "nullable": true,
+        "page": "0",
+        "type": "string",
+        "valuePositionLabels": [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4"
+        ],
+        "values": [],
+        "valuesComplete": false
+      }
+    ],
+    "responses": [
+      {
+        "id": "v0",
+        "status": "INTENDED_INCOMPLETE",
+        "subform": "s0",
+        "value": []
+      },
+      {
+        "id": "v1",
+        "status": "UNSET",
+        "subform": "s0",
+        "value": null
+      }
+    ],
+    "variableCodings": [
+      {
+        "alias": "v0",
+        "codeModel": "RULES_ONLY",
+        "codes": [
+          {
+            "id": 0,
+            "label": "",
+            "manualInstruction": "",
+            "ruleSetOperatorAnd": false,
+            "ruleSets": [
+              {
+                "ruleOperatorAnd": false,
+                "rules": [
+                  {
+                    "method": "MATCH",
+                    "parameters": [
+                      "abc",
+                      "0"
+                    ]
+                  }
+                ],
+                "valueArrayPos": "ANY"
+              }
+            ],
+            "score": 0,
+            "type": "UNSET"
+          }
+        ],
+        "deriveSources": [],
+        "fragmenting": "",
+        "id": "v0",
+        "label": "",
+        "manualInstruction": "",
+        "page": "0",
+        "processing": [],
+        "sourceParameters": {
+          "processing": [],
+          "solverExpression": ""
+        },
+        "sourceType": "BASE"
+      },
+      {
+        "alias": "v1",
+        "codeModel": "RULES_ONLY",
+        "codes": [
+          {
+            "id": 0,
+            "label": "",
+            "manualInstruction": "",
+            "ruleSetOperatorAnd": false,
+            "ruleSets": [
+              {
+                "ruleOperatorAnd": false,
+                "rules": [
+                  {
+                    "method": "MATCH_REGEX",
+                    "parameters": [
+                      "^[A-Za-z0-9 _.,-]*$"
+                    ]
+                  }
+                ]
+              }
+            ],
+            "score": 0,
+            "type": "UNSET"
+          }
+        ],
+        "deriveSources": [
+          "v0"
+        ],
+        "fragmenting": "",
+        "id": "v1",
+        "label": "",
+        "manualInstruction": "",
+        "page": "0",
+        "processing": [
+          "IGNORE_CASE"
+        ],
+        "sourceParameters": {
+          "processing": [],
+          "solverExpression": ""
+        },
+        "sourceType": "CONCAT_CODE"
+      }
+    ]
+  },
+  "kind": "case",
+  "protocolVersion": 1
+}

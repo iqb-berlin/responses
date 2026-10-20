@@ -1,0 +1,68 @@
+{
+  "protocolVersion": 1,
+  "kind": "case",
+  "id": "regression:named-fragment-order",
+  "input": {
+    "baseVariables": [
+      {
+        "id": "v",
+        "type": "STRING",
+        "multiple": false
+      }
+    ],
+    "variableCodings": [
+      {
+        "id": "v",
+        "alias": "v",
+        "label": "",
+        "sourceType": "BASE",
+        "sourceParameters": {
+          "solverExpression": "",
+          "processing": []
+        },
+        "deriveSources": [],
+        "processing": [],
+        "fragmenting": "(?<first>a)(b)",
+        "manualInstruction": "",
+        "codeModel": "RULES_ONLY",
+        "codes": [
+          {
+            "id": 1,
+            "type": "FULL_CREDIT",
+            "score": 1,
+            "ruleSets": [
+              {
+                "rules": [
+                  {
+                    "method": "MATCH",
+                    "parameters": [
+                      "a"
+                    ],
+                    "fragment": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "responses": [
+      {
+        "id": "v",
+        "status": "VALUE_CHANGED",
+        "value": "ab"
+      }
+    ]
+  },
+  "calls": [
+    {
+      "op": "validate"
+    },
+    {
+      "op": "singleCode",
+      "responseIndex": 0,
+      "codingIndex": 0
+    }
+  ]
+}

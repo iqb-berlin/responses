@@ -1,0 +1,30 @@
+{
+  "protocolVersion": 1,
+  "kind": "case",
+  "id": "regression:number-ecmascript-whitespace",
+  "input": {
+    "variableCodings": [],
+    "responses": [
+      {
+        "id": "v",
+        "status": "VALUE_CHANGED",
+        "value": "12"
+      },
+      {
+        "id": "v",
+        "status": "VALUE_CHANGED",
+        "value": "﻿1"
+      }
+    ]
+  },
+  "calls": [
+    {
+      "op": "getValueAsNumber",
+      "responseIndex": 0
+    },
+    {
+      "op": "getValueAsNumber",
+      "responseIndex": 1
+    }
+  ]
+}

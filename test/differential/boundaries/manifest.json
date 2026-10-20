@@ -215,6 +215,273 @@
         },
         "calls": [{ "op": "singleCode", "codingIndex": 0, "responseIndex": 0 }]
       }
+    },
+    {
+      "id": "unsupported-fragment-lookahead",
+      "category": "fragment-regex",
+      "expectation": "runtime-specific",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:unsupported-fragment-lookahead",
+        "input": {
+          "baseVariables": [
+            {
+              "id": "v",
+              "type": "STRING"
+            }
+          ],
+          "variableCodings": [
+            {
+              "id": "v",
+              "alias": "v",
+              "label": "",
+              "sourceType": "BASE",
+              "sourceParameters": {
+                "solverExpression": "",
+                "processing": []
+              },
+              "deriveSources": [],
+              "processing": [],
+              "fragmenting": "(?=a)(a)",
+              "manualInstruction": "",
+              "codeModel": "RULES_ONLY",
+              "codes": [
+                {
+                  "id": 1,
+                  "type": "FULL_CREDIT",
+                  "score": 1,
+                  "ruleSets": [
+                    {
+                      "rules": [
+                        {
+                          "method": "MATCH",
+                          "parameters": [
+                            "a"
+                          ],
+                          "fragment": 0
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "responses": [
+            {
+              "id": "v",
+              "status": "VALUE_CHANGED",
+              "value": "a"
+            }
+          ]
+        },
+        "calls": [
+          {
+            "op": "validate"
+          },
+          {
+            "op": "singleCode",
+            "responseIndex": 0,
+            "codingIndex": 0
+          }
+        ]
+      },
+      "expectedCalls": {
+        "typescript": [
+          {
+            "op": "validate",
+            "outcome": {
+              "kind": "value",
+              "value": []
+            },
+            "diagnostics": []
+          },
+          {
+            "op": "singleCode",
+            "outcome": {
+              "kind": "value",
+              "value": {
+                "id": "v",
+                "status": "CODING_COMPLETE",
+                "value": "a",
+                "code": 1,
+                "score": 1
+              }
+            },
+            "diagnostics": []
+          }
+        ],
+        "dotnet": [
+          {
+            "op": "validate",
+            "outcome": {
+              "kind": "value",
+              "value": [
+                {
+                  "type": "FRAGMENT_REGEX_UNSUPPORTED",
+                  "breaking": true,
+                  "variableId": "v",
+                  "variableLabel": ""
+                }
+              ]
+            },
+            "diagnostics": []
+          },
+          {
+            "op": "singleCode",
+            "outcome": {
+              "kind": "value",
+              "value": {
+                "id": "v",
+                "status": "CODING_ERROR",
+                "value": "a"
+              }
+            },
+            "diagnostics": [
+              {
+                "phase": "singleCode",
+                "category": "INVALID_OPERATION"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "invalid-fragment-pattern",
+      "category": "fragment-regex",
+      "expectation": "runtime-specific",
+      "request": {
+        "protocolVersion": 1,
+        "kind": "case",
+        "id": "boundary:invalid-fragment-pattern",
+        "input": {
+          "baseVariables": [
+            {
+              "id": "v",
+              "type": "STRING"
+            }
+          ],
+          "variableCodings": [
+            {
+              "id": "v",
+              "alias": "v",
+              "label": "",
+              "sourceType": "BASE",
+              "sourceParameters": {
+                "solverExpression": "",
+                "processing": []
+              },
+              "deriveSources": [],
+              "processing": [],
+              "fragmenting": "[",
+              "manualInstruction": "",
+              "codeModel": "RULES_ONLY",
+              "codes": [
+                {
+                  "id": 1,
+                  "type": "FULL_CREDIT",
+                  "score": 1,
+                  "ruleSets": [
+                    {
+                      "rules": [
+                        {
+                          "method": "MATCH",
+                          "parameters": [
+                            "a"
+                          ],
+                          "fragment": 0
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          "responses": [
+            {
+              "id": "v",
+              "status": "VALUE_CHANGED",
+              "value": "a"
+            }
+          ]
+        },
+        "calls": [
+          {
+            "op": "validate"
+          },
+          {
+            "op": "singleCode",
+            "responseIndex": 0,
+            "codingIndex": 0
+          }
+        ]
+      },
+      "expectedCalls": {
+        "typescript": [
+          {
+            "op": "validate",
+            "outcome": {
+              "kind": "value",
+              "value": []
+            },
+            "diagnostics": []
+          },
+          {
+            "op": "singleCode",
+            "outcome": {
+              "kind": "value",
+              "value": {
+                "id": "v",
+                "status": "CODING_ERROR",
+                "value": "a"
+              }
+            },
+            "diagnostics": [
+              {
+                "phase": "singleCode",
+                "category": "REGEX_SYNTAX"
+              }
+            ]
+          }
+        ],
+        "dotnet": [
+          {
+            "op": "validate",
+            "outcome": {
+              "kind": "value",
+              "value": [
+                {
+                  "type": "FRAGMENT_REGEX_INVALID",
+                  "breaking": true,
+                  "variableId": "v",
+                  "variableLabel": ""
+                }
+              ]
+            },
+            "diagnostics": []
+          },
+          {
+            "op": "singleCode",
+            "outcome": {
+              "kind": "value",
+              "value": {
+                "id": "v",
+                "status": "CODING_ERROR",
+                "value": "a"
+              }
+            },
+            "diagnostics": [
+              {
+                "phase": "singleCode",
+                "category": "REGEX_SYNTAX"
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

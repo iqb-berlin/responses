@@ -1,0 +1,67 @@
+{
+  "protocolVersion": 1,
+  "kind": "case",
+  "id": "regression:regex-dot-line-terminator",
+  "input": {
+    "baseVariables": [
+      {
+        "id": "v",
+        "type": "STRING",
+        "multiple": false
+      }
+    ],
+    "variableCodings": [
+      {
+        "id": "v",
+        "alias": "v",
+        "label": "",
+        "sourceType": "BASE",
+        "sourceParameters": {
+          "solverExpression": "",
+          "processing": []
+        },
+        "deriveSources": [],
+        "processing": [],
+        "fragmenting": "",
+        "manualInstruction": "",
+        "codeModel": "RULES_ONLY",
+        "codes": [
+          {
+            "id": 1,
+            "type": "FULL_CREDIT",
+            "score": 1,
+            "ruleSets": [
+              {
+                "rules": [
+                  {
+                    "method": "MATCH_REGEX",
+                    "parameters": [
+                      "^.$"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "responses": [
+      {
+        "id": "v",
+        "status": "VALUE_CHANGED",
+        "value": "\r"
+      }
+    ]
+  },
+  "calls": [
+    {
+      "op": "validate"
+    },
+    {
+      "op": "singleCode",
+      "responseIndex": 0,
+      "codingIndex": 0
+    }
+  ]
+}

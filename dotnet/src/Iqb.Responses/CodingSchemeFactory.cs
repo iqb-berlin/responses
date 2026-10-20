@@ -115,7 +115,7 @@ public static class CodingSchemeFactory
             if (coding is null) return;
             if (coding.SourceType == "BASE")
             {
-                var alias = coding.Alias ?? coding.Id;
+                var alias = coding.PublicIdentifier;
                 if (!result.Contains(alias, StringComparer.Ordinal)) result.Add(alias);
                 return;
             }
@@ -253,7 +253,7 @@ public static class CodingSchemeFactory
     private static List<Response> MapIdToAlias(IEnumerable<Response> responses, IReadOnlyList<VariableCodingData> codings)
     {
         var names = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var coding in codings) names[coding.Id] = coding.Alias ?? coding.Id;
+        foreach (var coding in codings) names[coding.Id] = coding.PublicIdentifier;
         return responses.Select(response =>
         {
             var copy = IqbJson.Clone(response);
@@ -292,7 +292,7 @@ public static class CodingSchemeFactory
         IReadOnlyList<VariableCodingData> codings)
     {
         var aliases = codings.Where(coding => coding.SourceType is not ("BASE" or "BASE_NO_VALUE"))
-            .Select(coding => coding.Alias ?? coding.Id).ToHashSet();
+            .Select(coding => coding.PublicIdentifier).ToHashSet();
         var seen = new HashSet<(string Id, string? Subform)>();
         var firstSubform = subforms.Values.FirstOrDefault();
         return responses.Where(response => seen.Add((response.Id, response.Subform))).Where(response =>

@@ -6,8 +6,6 @@ namespace Iqb.Responses;
 
 internal static partial class ValueTransforms
 {
-    private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(500);
-
     public static string NumberToString(double value)
     {
         if (double.IsNaN(value)) return "NaN";
@@ -69,7 +67,7 @@ internal static partial class ValueTransforms
             case bool flag:
                 return flag ? 1d : 0d;
             case string text:
-                var normalized = WhiteSpaceRegex().Replace(text.Trim(), string.Empty).Replace(',', '.');
+                var normalized = WhiteSpaceRegex().Replace(text, string.Empty).Replace(',', '.');
                 if (!StrictNumberRegex().IsMatch(normalized))
                 {
                     return null;
@@ -88,7 +86,7 @@ internal static partial class ValueTransforms
         {
             return null;
         }
-        var match = ParseFloatRegex().Match(text.TrimStart());
+        var match = ParseFloatRegex().Match(EcmaScript.TrimStart(text));
         return match.Success && double.TryParse(match.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var value)
             ? value
             : null;
@@ -117,7 +115,7 @@ internal static partial class ValueTransforms
                 else if (processing.Contains("REMOVE_DISPENSABLE_SPACES") ||
                          processing.Contains("IGNORE_DISPENSABLE_SPACES"))
                 {
-                    text = WhiteSpaceRegex().Replace(text.Trim(), " ");
+                    text = WhiteSpaceRegex().Replace(EcmaScript.Trim(text), " ");
                 }
                 if (processing.Contains("TO_LOWER_CASE"))
                 {
@@ -138,7 +136,8 @@ internal static partial class ValueTransforms
             {
                 return new List<object?>();
             }
-            return match.Groups.Cast<Group>().Skip(1).Select(group => (object?)group.Value).ToList();
+            return match.Groups.Cast<Group>().Skip(1)
+                .Select(group => group.Success ? (object?)group.Value : EcmaScript.Undefined).ToList();
         }
 
         if (processing.Contains("REMOVE_ALL_SPACES") || processing.Contains("IGNORE_ALL_SPACES"))
@@ -147,7 +146,7 @@ internal static partial class ValueTransforms
         }
         if (processing.Contains("REMOVE_DISPENSABLE_SPACES") || processing.Contains("IGNORE_DISPENSABLE_SPACES"))
         {
-            value = WhiteSpaceRegex().Replace(value.Trim(), " ");
+            value = WhiteSpaceRegex().Replace(EcmaScript.Trim(value), " ");
         }
         if (processing.Contains("IGNORE_CASE") || processing.Contains("TO_LOWER_CASE"))
         {
@@ -160,7 +159,7 @@ internal static partial class ValueTransforms
     {
         Regex? regex = string.IsNullOrEmpty(fragmenting)
             ? null
-            : new Regex(fragmenting, RegexOptions.None, RegexTimeout);
+            : PortableRegex.Create(fragmenting, ignoreCase: false, allowNamedCaptures: true);
 
         if (value is IEnumerable<object?> sequence)
         {
@@ -237,7 +236,7 @@ internal static partial class ValueTransforms
 
     public static List<object?> AsArray(object value) => ((IEnumerable<object?>)value).ToList();
 
-    [GeneratedRegex(@"\s+")]
+    [GeneratedRegex("[" + EcmaScript.WhiteSpaceRanges + "]+")]
     private static partial Regex WhiteSpaceRegex();
 
     [GeneratedRegex(@"^[-+]?\d+(\.\d+)?$")]

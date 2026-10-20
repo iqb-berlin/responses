@@ -12,6 +12,9 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
 
     strategy:
       matrix:
@@ -43,9 +46,13 @@ jobs:
         run: npm run test:toolchain
 
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
-          file: ./coverage/lcov.info
+          files: ./coverage/lcov.info
+          disable_search: true
+          fail_ci_if_error: true
+          # Public fork PRs retain tokenless uploads; owned branches authenticate with OIDC.
+          use_oidc: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
           flags: unittests
           name: codecov-umbrella
         if: matrix.node-version == '24.x'
@@ -103,6 +110,9 @@ jobs:
   dotnet-test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -154,9 +164,12 @@ jobs:
           retention-days: 30
 
       - name: Upload .NET coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
         with:
-          file: dotnet/test/Iqb.Responses.Tests/coverage.cobertura.xml
+          files: dotnet/test/Iqb.Responses.Tests/coverage.cobertura.xml
+          disable_search: true
+          fail_ci_if_error: true
+          use_oidc: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
           flags: dotnet
           name: dotnet-coverage
 

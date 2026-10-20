@@ -1,0 +1,55 @@
+{
+  "protocolVersion": 1,
+  "kind": "case",
+  "id": "regression:solver-nested-unselected-ternary",
+  "input": {
+    "baseVariables": [],
+    "variableCodings": [
+      {
+        "id": "d",
+        "alias": "d",
+        "label": "",
+        "sourceType": "SOLVER",
+        "sourceParameters": {
+          "solverExpression": "true ? 7 : (false ? gcd(1.5,2) : nthRoot(4,0))",
+          "processing": []
+        },
+        "deriveSources": [],
+        "processing": [],
+        "fragmenting": "",
+        "manualInstruction": "",
+        "codeModel": "RULES_ONLY",
+        "codes": []
+      },
+      {
+        "id": "e",
+        "alias": "e",
+        "label": "",
+        "sourceType": "SOLVER",
+        "sourceParameters": {
+          "solverExpression": "false ? (true ? nthRoot(4,0) : gcd(1.5,2)) : 8",
+          "processing": []
+        },
+        "deriveSources": [],
+        "processing": [],
+        "fragmenting": "",
+        "manualInstruction": "",
+        "codeModel": "RULES_ONLY",
+        "codes": []
+      }
+    ],
+    "responses": []
+  },
+  "calls": [
+    {
+      "op": "deriveValue",
+      "codingIndex": 0,
+      "sourceResponseIndexes": []
+    },
+    {
+      "op": "deriveValue",
+      "codingIndex": 1,
+      "sourceResponseIndexes": []
+    }
+  ]
+}

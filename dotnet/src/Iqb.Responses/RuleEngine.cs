@@ -4,8 +4,6 @@ namespace Iqb.Responses;
 
 internal static class RuleEngine
 {
-    private static readonly object JavaScriptUndefined = new();
-
     public static bool IsMatchRuleSet(
         object? valueToCheck,
         RuleSet ruleSet,
@@ -104,7 +102,7 @@ internal static class RuleEngine
             var fragmentIndex = (int)rule.Fragment.Value;
             var fragment = rule.Fragment.Value == fragmentIndex && fragmentIndex >= 0 && fragmentIndex < values.Count
                 ? values[fragmentIndex]
-                : JavaScriptUndefined;
+                : EcmaScript.Undefined;
             return CheckOneValue(fragment, rule, processing);
         }
         return CheckOneValue(value, rule, processing);
@@ -124,14 +122,14 @@ internal static class RuleEngine
         var fragmentIndex = (int)rule.Fragment.Value;
         var fragment = rule.Fragment.Value == fragmentIndex && fragmentIndex >= 0 && fragmentIndex < fragments.Count
             ? fragments[fragmentIndex]
-            : JavaScriptUndefined;
+            : EcmaScript.Undefined;
         return CheckOneValue(fragment, rule, processing);
     }
 
     private static bool CheckOneValue(object? value, CodingRule rule, IReadOnlyCollection<string> processing)
     {
         var parameters = rule.Parameters ?? [];
-        if (ReferenceEquals(value, JavaScriptUndefined))
+        if (ReferenceEquals(value, EcmaScript.Undefined))
         {
             if (rule.Method.StartsWith("NUMERIC_", StringComparison.Ordinal))
                 throw new InvalidOperationException("A numeric rule cannot evaluate an undefined fragment.");
