@@ -42,6 +42,15 @@ The `Consumer qualification` workflow installs the candidate npm tarball into
 fresh Studio and Kodierbox checkouts. Review its pinned host commits before each
 release. Each host runs its frontend and backend checks sequentially on Node 22:
 
+For a release, start the workflow manually with `candidate_ref` set to the full
+Responses commit SHA. The package job resolves that candidate once, and the host
+jobs check out the same resolved commit for the consumer harness. Download the
+`consumer-candidate` artifact and retain its exact `.tgz`, `SHA256SUMS.txt` and
+`release-candidate.json`; publish this tested tarball after release approval.
+The metadata records the candidate commit, workflow commit, run id and package
+integrity. Each `qualification-*` artifact also records the host commit and
+verifies that its candidate archive matches this checksum.
+
 The pinned Studio baseline has two missing optional peer dependencies in its
 lockfile, so its original `npm ci` fails before Responses is changed. The explicit
 `studio-optional-peers.patch` adds only those two development entries before
