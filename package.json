@@ -2,7 +2,7 @@
   "name": "@iqb/responses",
   "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
   "license": "MIT",
-  "version": "5.3.1",
+  "version": "5.4.0",
   "description": "Automatic coding.",
   "scripts": {
     "test": "jest",
@@ -16,7 +16,7 @@
     "test:package": "node scripts/verify-package.js",
     "test_coding2text": "cd test && ts-node test-code2text case1",
     "test_getBaseVarsList": "cd test && ts-node test-getBaseVarsList get-base-vars-case",
-    "prepare_publish": "rm -rf dist/* && tsc --module commonjs && cp ./package_npm.json ./dist/package.json && cp ./README.md ./dist",
+    "prepare_publish": "node scripts/build-package.js",
     "npm_publish": "cd dist && npm publish --access public",
     "lint": "eslint \"**/*.ts\"",
     "lint:fix": "eslint \"**/*.ts\" --fix"
@@ -60,10 +60,11 @@
     "fast-check": "^4.9.0",
     "jest": "^30.2.0",
     "ts-jest": "^29.1.2",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "typescript": "5.4.5"
   },
   "dependencies": {
-    "@iqbspecs/coding-scheme": "^3.4.1",
+    "@iqbspecs/coding-scheme": "^3.5.0",
     "@iqbspecs/response": "^2.0.0",
     "@iqbspecs/variable-info": "^1.3.0",
     "mathjs": "^15.1.0"
