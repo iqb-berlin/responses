@@ -64,6 +64,26 @@ assert.ok(statuses.VALUE_CHANGED > 0, 'SOLVER expressions must actually evaluate
 assert.ok(statuses.DERIVE_ERROR > 0, 'error paths must also run');
 
 const engines = { esm, commonjs, reference };
+const legacyInfo = { id: ' old ', type: 'string', format: 'ggb-file', multiple: false,
+  nullable: false, values: [], valuePositionLabels: [], page: 'P1', visualAnchor: 'widget' };
+const currentInfo = { ...legacyInfo, id: ' current ', type: 'STRING', format: 'GGB_FILE' };
+for (const [name, engine] of Object.entries({ esm, commonjs })) {
+  const infos = Object.freeze([Object.freeze(legacyInfo), Object.freeze(currentInfo)]);
+  const before = JSON.stringify(infos);
+  assert.deepEqual(new engine.VariableList(infos).variables, new reference.VariableList(infos).variables, name);
+  assert.deepEqual(engine.ToTextFactory.varInfoAsText(legacyInfo),
+    reference.ToTextFactory.varInfoAsText(legacyInfo), name);
+  assert.deepEqual(engine.ToTextFactory.varInfoAsText(currentInfo),
+    engine.ToTextFactory.varInfoAsText(legacyInfo), name);
+  assert.deepEqual(engine.ToTextFactory.varInfoAsText({ id: 'minimal', type: 'STRING',
+    values: [{ value: 'A' }] }), ['Datentyp: String/Text', 'Mögliche Werte: "A"'], name);
+  for (const type of ['STRING', 'INTEGER', 'NUMBER', 'BOOLEAN', 'ATTACHMENT', 'JSON', 'NO_VALUE', 'CODED']) {
+    const minimal = Object.freeze({ id: 'minimal', type });
+    assert.equal(engine.ToTextFactory.varInfoAsText(minimal).length, 1, `${name}: ${type}`);
+    assert.deepEqual(new engine.VariableList([minimal]).variables, [minimal], `${name}: ${type}`);
+  }
+  assert.equal(JSON.stringify(infos), before, `${name}: VariableInfo inputs must remain unchanged`);
+}
 const regexCases = [
   ['^[äöü]+$', 'äöü'], ['^(?=abc$)abc$', 'abc'], ['(?<=a)b', 'ab'],
   ['^(ab)\\1$', 'abab'], ['^\\u00e4$', 'ä'], ['^\\x61$', 'a']

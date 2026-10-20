@@ -3,7 +3,7 @@ import {
   RuleMethodParameterCount,
   VariableCodingData
 } from '@iqbspecs/coding-scheme';
-import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
+import { VariableInfoInput } from '../variable-info';
 import { CodingSchemeProblem } from '../coding-interfaces';
 import { normalizeVariableInfoType } from '../normalize/variable-info-spelling';
 
@@ -12,14 +12,14 @@ type CodingValueType = 'numeric' | 'boolean' | 'string' | 'other' | 'unknown';
 type CodingValueShape = {
   valueType: CodingValueType;
   multiple?: boolean;
-  valuePositionLabels?: string[];
+  valuePositionLabels?: readonly string[];
 };
 
 export const validateCodingScheme = (
-  baseVariables: VariableInfo[],
+  baseVariables: readonly VariableInfoInput[],
   variableCodings: VariableCodingData[]
 ): CodingSchemeProblem[] => {
-  const baseVarById = new Map<string, VariableInfo>();
+  const baseVarById = new Map<string, VariableInfoInput>();
   const problems: CodingSchemeProblem[] = [];
   const numericRuleMethods: RuleMethod[] = [
     'NUMERIC_MATCH',
@@ -115,7 +115,7 @@ export const validateCodingScheme = (
   );
 
   const getBaseVariableValueShape = (
-    varInfo: VariableInfo | undefined
+    varInfo: VariableInfoInput | undefined
   ): CodingValueShape => {
     const type = varInfo?.type ? normalizeVariableInfoType(varInfo.type) : undefined;
 
