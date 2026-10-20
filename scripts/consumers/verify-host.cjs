@@ -47,10 +47,14 @@ async function main() {
     assert.ok(stats, 'Angular must emit its build statistics');
     const metadata = readFileSync(stats, 'utf8');
     writeFileSync(join(report, 'bundle-stats.json'), metadata);
-    record('candidate', { responses: hostRequire('@iqb/responses/package.json').version, ...size() });
-    console.log('Responses bundle inputs:', Object.keys(JSON.parse(metadata).inputs || {})
-      .filter(file => file.includes('@iqb/responses')));
-    assert.ok(metadata.includes('@iqb/responses/esm/'), 'The real host frontend must use Responses ESM');
+    const inputs = Object.keys(JSON.parse(metadata).inputs || {});
+    assert.ok(inputs.length > 0, 'Angular statistics must contain actual bundle inputs');
+    const responsesInputs = inputs.filter(file => file.includes('@iqb/responses/') && file.endsWith('.js'));
+    record('candidate', { responses: hostRequire('@iqb/responses/package.json').version,
+      moduleFormat: responsesInputs.length ? 'esm' : 'not-in-bundle', responsesInputs, ...size() });
+    console.log('Responses bundle inputs:', responsesInputs);
+    assert.ok(responsesInputs.every(file => file.includes('@iqb/responses/esm/')),
+      'Any Responses JavaScript included by the real host frontend must use ESM');
   } else if (mode === 'startup') {
     const child = spawn(process.execPath, ['--require', join(__dirname, 'initialize-test-database.cjs'),
       resolve(root, 'dist/apps', process.argv[3], 'main.js')], { cwd: root, env: process.env });

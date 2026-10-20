@@ -44,7 +44,9 @@ repair must be reconsidered when updating the pinned Studio commit.
   coding, native JavaScript regex features, full SOLVER functions, VariableInfo
   normalization, chemistry labels and the floating-point type text.
 - Run affected coding/Codebook tests, build the frontend and backend, and verify
-  that the real frontend build includes the ESM entrypoints.
+  that any Responses JavaScript in the real frontend uses ESM entrypoints.
+  A host that does not include Responses at runtime is reported explicitly;
+  the separate browser harness still verifies its ESM consumer behavior.
 - Start the built backend against disposable PostgreSQL and Redis services.
   Only this smoke test synchronizes entity schemas into its isolated database.
   It checks application startup, not production migrations or deployed data.
