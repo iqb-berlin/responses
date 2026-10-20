@@ -1,13 +1,8 @@
 name: Consumer qualification
-run-name: Consumer qualification · ${{ inputs.candidate_ref || github.head_ref || github.ref_name }}
+run-name: Consumer qualification · ${{ github.head_ref || github.ref_name }}
 
 on:
   workflow_dispatch:
-    inputs:
-      candidate_ref:
-        description: Responses commit or ref to qualify; use the full commit SHA for a release
-        required: true
-        default: master
   pull_request:
     branches: [master]
     paths:
@@ -21,13 +16,11 @@ permissions:
 jobs:
   package:
     runs-on: ubuntu-latest
-    outputs:
-      candidate_sha: ${{ steps.candidate.outputs.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-          ref: ${{ inputs.candidate_ref || github.sha }}
+          ref: ${{ github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -36,15 +29,12 @@ jobs:
       - run: npm run prepare_publish
       - run: mkdir candidate && npm pack ./dist --pack-destination candidate
       - name: Record the exact candidate and package checksum
-        id: candidate
-        env:
-          CANDIDATE_REF: ${{ inputs.candidate_ref || github.sha }}
         run: |
           node <<'NODE'
           const assert = require('node:assert/strict');
           const { execFileSync } = require('node:child_process');
           const { createHash } = require('node:crypto');
-          const { appendFileSync, readFileSync, readdirSync, writeFileSync } = require('node:fs');
+          const { readFileSync, readdirSync, writeFileSync } = require('node:fs');
           const files = readdirSync('candidate').filter(file => file.endsWith('.tgz'));
           assert.equal(files.length, 1);
           const filename = files[0];
@@ -54,7 +44,7 @@ jobs:
           const checksum = createHash('sha256').update(bytes).digest('hex');
           const metadata = {
             repository: process.env.GITHUB_REPOSITORY,
-            requestedRef: process.env.CANDIDATE_REF,
+            requestedRef: process.env.GITHUB_REF,
             commit: sha,
             workflowCommit: process.env.GITHUB_WORKFLOW_SHA,
             runId: process.env.GITHUB_RUN_ID,
@@ -67,7 +57,6 @@ jobs:
           };
           writeFileSync('candidate/release-candidate.json', JSON.stringify(metadata, null, 2) + '\n');
           writeFileSync('candidate/SHA256SUMS.txt', `${checksum}  ${filename}\n`);
-          appendFileSync(process.env.GITHUB_OUTPUT, `sha=${sha}\n`);
           console.log(JSON.stringify(metadata, null, 2));
           NODE
       - uses: actions/upload-artifact@v4
@@ -84,14 +73,10 @@ jobs:
       matrix:
         include:
           - name: studio
-            repository: iqb-berlin/studio-lite
-            ref: 448ecb6bbf349d5e25948c87d0d5165d59b97d28
             backend: api
             frontendTests: (export-coding-book|coding-report|unit-preview).*spec
             backendTests: (download-docx|download-workspaces|workspace.service).*spec
           - name: coding-box
-            repository: iqb-berlin/coding-box
-            ref: df946eb3212cc18909c57c5a3d93a8191d8d0618
             backend: backend
             frontendTests: (export-coding-book|coding-scheme.service|coding-management.service).*spec
             backendTests: (coding.module|codebook-generator.class|codebook-docx-generator|test-person-coding.processor).*spec
@@ -136,11 +121,21 @@ jobs:
         with:
           path: responses
           persist-credentials: false
-          ref: ${{ needs.package.outputs.candidate_sha }}
-      - uses: actions/checkout@v4
+          ref: ${{ github.sha }}
+      - name: Checkout the pinned Studio host
+        if: matrix.name == 'studio'
+        uses: actions/checkout@v4
         with:
-          repository: ${{ matrix.repository }}
-          ref: ${{ matrix.ref }}
+          repository: iqb-berlin/studio-lite
+          ref: 448ecb6bbf349d5e25948c87d0d5165d59b97d28
+          path: host
+          persist-credentials: false
+      - name: Checkout the pinned Kodierbox host
+        if: matrix.name == 'coding-box'
+        uses: actions/checkout@v4
+        with:
+          repository: iqb-berlin/coding-box
+          ref: df946eb3212cc18909c57c5a3d93a8191d8d0618
           path: host
           persist-credentials: false
       - uses: actions/download-artifact@v4
