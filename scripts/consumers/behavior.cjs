@@ -41,9 +41,36 @@ module.exports = responses => {
     check(ToTextFactory.varInfoAsText({ id: 'a', type, values: [], valuePositionLabels: [] })[0] ===
       'Datentyp: Zahl (Fließkomma)', `floating-point label: ${type}`);
   }
+  for (const type of ['STRING', 'INTEGER', 'NUMBER', 'BOOLEAN', 'ATTACHMENT', 'JSON', 'NO_VALUE', 'CODED']) {
+    const info = Object.freeze({ id: 'minimal', type });
+    const text = ToTextFactory.varInfoAsText(info);
+    check(text.length === 1, `minimal VariableInfo: ${type}`);
+    // CODED keeps its previous fallback text; this migration does not change its presentation.
+    check(type === 'CODED' ? text[0] === 'Datentyp: unbekannt "CODED"' : !text[0].includes('unbekannt'),
+      `minimal VariableInfo text: ${type}`);
+  }
+  const legacy = Object.freeze({ id: ' old ', type: 'string', format: 'ggb-file', multiple: false,
+    nullable: false, values: [], valuePositionLabels: [], page: 'P1', visualAnchor: 'widget' });
+  const current = Object.freeze({ ...legacy, id: ' current ', type: 'STRING', format: 'GGB_FILE' });
+  const mixed = Object.freeze([legacy, current]);
+  const before = JSON.stringify(mixed);
+  check(JSON.stringify(ToTextFactory.varInfoAsText(current)) ===
+    JSON.stringify(ToTextFactory.varInfoAsText(legacy)), 'legacy/current page formatting');
+  const cleaned = new responses.VariableList(mixed).variables;
+  check(cleaned[0].id === 'old' && cleaned[0].type === 'string' &&
+    cleaned[1].id === 'current' && cleaned[1].type === 'STRING' &&
+    cleaned.every(info => info.page === 'P1' && info.visualAnchor === 'widget'), 'mixed VariableInfo list');
+  const minimalValues = { id: 'value', type: 'STRING', values: [{ value: 'A' }] };
+  check(ToTextFactory.varInfoAsText(minimalValues)[1] === 'Mögliche Werte: "A"', 'optional value labels');
+  const state = Object.freeze({ id: 'state', type: 'NO_VALUE' });
+  const stateCoding = CodingFactory.createCodingVariable('state');
+  stateCoding.sourceType = 'BASE_NO_VALUE';
+  check(CodingSchemeFactory.validate([state], [stateCoding]).length === 0, 'minimal NO_VALUE validation');
+  check(JSON.stringify(mixed) === before, 'VariableInfo payload changed');
   check(responses.normalizeVariableInfoType('no-value') === 'NO_VALUE', 'type normalization');
   check(responses.normalizeVariableInfoFormat('ggb-file') === 'GGB_FILE', 'format normalization');
   check(responses.normalizeVariableInfoType('Custom-Type') === 'Custom-Type', 'unknown type');
-  return { regex: 6, solver: 4, chemistry: 4, floatingPoint: 2, normalization: 3 };
+  return { regex: 6, solver: 4, chemistry: 4, floatingPoint: 2, normalization: 3,
+    variableInfo: { minimalTypes: 8, mixedLegacyCurrent: true, optionalLabels: true, noValue: true } };
 };
 

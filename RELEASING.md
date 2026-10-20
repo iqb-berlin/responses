@@ -14,7 +14,9 @@ Validate the exact commit intended for the release:
 2. Run `npm run prepare_publish` and `npm run test:package`. The latter installs
    the produced tarball in an independent consumer, checks public exports and
    TypeScript resolution, and exercises partial credit and the regex behavior
-   retained from 5.4.0.
+   retained from 5.4.0. VariableInfo checks compile actual published 1.3/1.4/2.1
+   declarations against the candidate in classic Node, NodeNext ESM/CommonJS and
+   bundler modes, including previous public API assignments and mutable legacy lists.
 3. Confirm both package manifests agree on the version and runtime dependencies,
    and check the consuming application's affected flows before publication.
 4. Require successful CI on that commit. After publication, verify the registry
@@ -42,7 +44,9 @@ repair must be reconsidered when updating the pinned Studio commit.
 - Build the unchanged frontend as the bundle-size reference.
 - Install the exact candidate and exercise CommonJS plus bundled browser ESM:
   coding, native JavaScript regex features, full SOLVER functions, VariableInfo
-  normalization, chemistry labels and the floating-point type text.
+  normalization, chemistry labels and the floating-point type text. Also check
+  minimal 2.1 data, optional value labels, mixed legacy/current lists, legacy
+  page/anchor retention and NO_VALUE validation without rewriting payloads.
 - Run affected coding/Codebook tests, build the frontend and backend, and verify
   that any Responses JavaScript in the real frontend uses ESM entrypoints.
   A host that does not include Responses at runtime is reported explicitly;
