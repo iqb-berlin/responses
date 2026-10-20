@@ -7,7 +7,7 @@ import {
   VariableSourceParameters
 } from '@iqbspecs/coding-scheme';
 import { ResponseValueSingleType } from '@iqbspecs/response/response.interface';
-import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
+import { VariableInfoInput } from '../variable-info';
 import { CodeAsText, CodingToTextMode } from '../coding-interfaces';
 import { CodingFactory } from '../coding-factory';
 import { normalizeVariableInfoFormat, normalizeVariableInfoType } from '../normalize/variable-info-spelling';
@@ -532,8 +532,10 @@ export abstract class ToTextFactory {
     };
   }
 
-  static varInfoAsText(varInfo: VariableInfo): string[] {
+  static varInfoAsText(varInfo: VariableInfoInput): string[] {
     const returnText: string[] = [];
+    const values = varInfo.values ?? [];
+    const valuePositionLabels = varInfo.valuePositionLabels ?? [];
 
     // Helper function: Determine data type and format
     const buildTypeString = (): string => {
@@ -553,7 +555,7 @@ export abstract class ToTextFactory {
 
     // Helper function to display possible values.
     const buildValueString = (): string => {
-      const valuesText = varInfo.values
+      const valuesText = values
         .map(v => {
           let valueString: string;
           if (typeof v.value === 'number') {
@@ -572,13 +574,13 @@ export abstract class ToTextFactory {
 
     returnText.push(buildTypeString());
 
-    if (varInfo.values.length > 0) {
+    if (values.length > 0) {
       returnText.push(buildValueString());
     }
 
-    if (varInfo.valuePositionLabels?.length > 0) {
+    if (valuePositionLabels.length > 0) {
       returnText.push(
-        `Bezeichnungen der Werte-Positionen in der Liste: ${varInfo.valuePositionLabels.join(
+        `Bezeichnungen der Werte-Positionen in der Liste: ${valuePositionLabels.join(
           '; '
         )}`
       );

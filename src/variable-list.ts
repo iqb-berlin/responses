@@ -1,11 +1,17 @@
-import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
+import { LegacyVariableInfo, VariableInfoInput } from './variable-info';
 
-export class VariableList {
-  variables: VariableInfo[] = [];
+// Preserve the old, mutable 1.x output contract, including inferred empty lists.
+// For new inputs retain their metadata, widening ids because trimming can change them.
+type ListEntry<T> = [T] extends [never] ? LegacyVariableInfo :
+  T extends LegacyVariableInfo ? LegacyVariableInfo :
+    T extends VariableInfoInput ? Omit<T, 'id'> & { id: string } : never;
 
-  constructor(varInfos: VariableInfo[] | null) {
-    const input = Array.isArray(varInfos) ? varInfos : [];
-    const uniqueById = new Map<string, VariableInfo>();
+export class VariableList<T extends VariableInfoInput = LegacyVariableInfo> {
+  variables: ListEntry<T>[] = [];
+
+  constructor(varInfos: readonly T[] | null) {
+    const input: readonly T[] = Array.isArray(varInfos) ? varInfos : [];
+    const uniqueById = new Map<string, ListEntry<T>>();
 
     input.forEach(v => {
       const candidate = v as unknown as { id?: unknown };
@@ -14,9 +20,9 @@ export class VariableList {
       if (!id) return;
       if (!uniqueById.has(id)) {
         uniqueById.set(id, {
-          ...(v as unknown as Record<string, unknown>),
+          ...v,
           id
-        } as unknown as VariableInfo);
+        } as unknown as ListEntry<T>);
       }
     });
 
