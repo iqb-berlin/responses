@@ -46,8 +46,11 @@ async function main() {
     const stats = frontendFiles().find(file => file.endsWith('/stats.json'));
     assert.ok(stats, 'Angular must emit its build statistics');
     const metadata = readFileSync(stats, 'utf8');
-    assert.ok(metadata.includes('@iqb/responses/esm/'), 'The real host frontend must use Responses ESM');
+    writeFileSync(join(report, 'bundle-stats.json'), metadata);
     record('candidate', { responses: hostRequire('@iqb/responses/package.json').version, ...size() });
+    console.log('Responses bundle inputs:', Object.keys(JSON.parse(metadata).inputs || {})
+      .filter(file => file.includes('@iqb/responses')));
+    assert.ok(metadata.includes('@iqb/responses/esm/'), 'The real host frontend must use Responses ESM');
   } else if (mode === 'startup') {
     const child = spawn(process.execPath, ['--require', join(__dirname, 'initialize-test-database.cjs'),
       resolve(root, 'dist/apps', process.argv[3], 'main.js')], { cwd: root, env: process.env });

@@ -32,6 +32,13 @@ The `Consumer qualification` workflow installs the candidate npm tarball into
 fresh Studio and Kodierbox checkouts. Review its pinned host commits before each
 release. Each host runs its frontend and backend checks sequentially on Node 22:
 
+The pinned Studio baseline has two missing optional peer dependencies in its
+lockfile, so its original `npm ci` fails before Responses is changed. The explicit
+`studio-optional-peers.patch` adds only those two development entries before
+both baseline and candidate checks; all previously locked versions are retained.
+Its exact diff is included in the qualification artifact. This temporary baseline
+repair must be reconsidered when updating the pinned Studio commit.
+
 - Build the unchanged frontend as the bundle-size reference.
 - Install the exact candidate and exercise CommonJS plus bundled browser ESM:
   coding, native JavaScript regex features, full SOLVER functions, VariableInfo

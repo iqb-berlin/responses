@@ -17,6 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -89,11 +91,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           path: responses
+          persist-credentials: false
       - uses: actions/checkout@v4
         with:
           repository: ${{ matrix.repository }}
           ref: ${{ matrix.ref }}
           path: host
+          persist-credentials: false
       - uses: actions/download-artifact@v4
         with:
           name: consumer-candidate
@@ -101,8 +105,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: host/package-lock.json
+      - name: Repair the pinned Studio baseline's missing optional peers
+        if: matrix.name == 'studio'
+        run: |
+          mkdir qualification
+          git apply ../responses/scripts/consumers/studio-optional-peers.patch
+          git diff -- package-lock.json > qualification/baseline-lock-repair.patch
       - name: Install unchanged host dependencies
         run: npm ci --no-audit --no-fund
       - name: Build baseline frontend
@@ -111,6 +119,8 @@ jobs:
         run: node ../responses/scripts/consumers/verify-host.cjs baseline
       - name: Install the exact candidate tarball
         run: npm install --ignore-scripts --no-audit --no-fund ../candidate/*.tgz
+      - name: Clear baseline compiler and task caches
+        run: rm -rf .angular/cache .nx dist/apps/frontend
       - name: Check CommonJS and browser ESM behavior
         run: node ../responses/scripts/consumers/verify-host.cjs runtime
       - name: Test frontend coding and Codebook consumers
@@ -121,7 +131,7 @@ jobs:
         run: node ../responses/scripts/consumers/verify-host.cjs bundle
       - name: Test backend coding and Codebook consumers
         env:
-          NODE_OPTIONS: --experimental-vm-modules --max-old-space-size=6144
+          NODE_OPTIONS: ${{ matrix.name == 'studio' && '--experimental-vm-modules --max-old-space-size=6144' || '--max-old-space-size=6144' }}
         run: npx nx test ${{ matrix.backend }} --runInBand --testPathPatterns='${{ matrix.backendTests }}'
       - name: Build backend
         run: npx nx build ${{ matrix.backend }} --configuration=production
