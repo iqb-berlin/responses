@@ -9,7 +9,7 @@ import { CodingScheme } from '@iqbspecs/coding-scheme';
 const require = createRequire(import.meta.url);
 const commonjs = require('@iqb/responses');
 const reference = require('@iqb/responses-reference');
-assert.equal(require('@iqb/responses-reference/package.json').version, '5.3.1');
+assert.equal(require('@iqb/responses-reference/package.json').version, '5.4.0');
 assert.deepEqual(Object.keys(esm).sort(), [...Object.keys(commonjs)].sort());
 assert.ok(import.meta.resolve('@iqb/responses').endsWith('/esm/index.js'));
 assert.ok(require.resolve('@iqb/responses').endsWith('/responses/index.js'));
@@ -42,7 +42,7 @@ for (const expression of expressions) {
         commonjs.CodingSchemeFactory.deriveValue(...structuredClone(args)),
         JSON.stringify({ expression, value, status }));
       assert.deepEqual(result, reference.CodingSchemeFactory.deriveValue(...structuredClone(args)),
-        `published 5.3.1: ${JSON.stringify({ expression, value, status })}`);
+        `published 5.4.0: ${JSON.stringify({ expression, value, status })}`);
       derivations += 1;
     }
   }
@@ -63,6 +63,48 @@ assert.equal(solver('number(bignumber("0.1")+bignumber("0.2"))').value, 0.3);
 assert.ok(statuses.VALUE_CHANGED > 0, 'SOLVER expressions must actually evaluate');
 assert.ok(statuses.DERIVE_ERROR > 0, 'error paths must also run');
 
+const engines = { esm, commonjs, reference };
+const regexCases = [
+  ['^[äöü]+$', 'äöü'], ['^(?=abc$)abc$', 'abc'], ['(?<=a)b', 'ab'],
+  ['^(ab)\\1$', 'abab'], ['^\\u00e4$', 'ä'], ['^\\x61$', 'a']
+];
+for (const [pattern, value] of regexCases) {
+  for (const [name, engine] of Object.entries(engines)) {
+    const coding = engine.CodingFactory.createCodingVariable('text');
+    coding.codes = [{ id: 1, type: 'FULL_CREDIT', score: 1,
+      ruleSets: [{ rules: [{ method: 'MATCH_REGEX', parameters: [pattern] }] }] }];
+    const info = [{ id: 'text', type: 'string', multiple: false, values: [], valuePositionLabels: [] }];
+    assert.deepEqual(engine.CodingSchemeFactory.validate(info, [coding]), [], `${name}: ${pattern}`);
+    const response = { id: 'text', status: 'VALUE_CHANGED', value };
+    assert.deepEqual(engine.CodingFactory.code(response, coding),
+      { ...response, status: 'CODING_COMPLETE', code: 1, score: 1 }, `${name}: ${pattern}`);
+  }
+}
+
+let partialCreditCases = 0;
+for (const sourceType of ['SUM_SCORE', 'SUM_CODE', 'CONCAT_CODE']) {
+  for (const partial of [
+    { status: 'DISPLAYED', value: null, option: 'TAKE_DISPLAYED_AS_ZERO_IF_PARTIAL' },
+    ...[null, '', []].map(value =>
+      ({ status: 'INVALID', value, option: 'TAKE_EMPTY_AS_ZERO_IF_PARTIAL' }))
+  ]) {
+    const coding = { id: 'd', sourceType, deriveSources: ['a', 'b'],
+      sourceParameters: { processing: [partial.option] } };
+    const sources = [{ id: 'a', status: 'CODING_COMPLETE', value: false, code: 0, score: 0 },
+      { id: 'b', status: partial.status, value: partial.value }];
+    const expected = reference.CodingSchemeFactory.deriveValue([], coding, structuredClone(sources));
+    assert.equal(expected.status, 'VALUE_CHANGED');
+    assert.equal(expected.value, sourceType === 'CONCAT_CODE' ? '0_x' : 0);
+    for (const [name, engine] of Object.entries(engines)) {
+      const input = structuredClone(sources);
+      assert.deepEqual(engine.CodingSchemeFactory.deriveValue([], coding, input), expected,
+        `${name}: ${sourceType}, ${partial.option}`);
+      assert.deepEqual(input, sources, `${name}: partial-credit sources must remain unchanged`);
+    }
+    partialCreditCases++;
+  }
+}
+
 let fixtures = 0;
 function checkFolder(folder) {
   const files = readdirSync(folder, { withFileTypes: true });
@@ -79,7 +121,7 @@ function checkFolder(folder) {
       assert.deepEqual(actual, other, join(folder, file.name));
       assert.deepEqual(actual,
         reference.CodingSchemeFactory.code(structuredClone(input), structuredClone(variables)),
-        `published 5.3.1: ${join(folder, file.name)}`);
+        `published 5.4.0: ${join(folder, file.name)}`);
       assert.deepEqual(JSON.parse(JSON.stringify(actual)), expected, `golden: ${join(folder, file.name)}`);
       fixtures += 1;
     }
@@ -90,6 +132,7 @@ function checkFolder(folder) {
 }
 checkFolder(process.argv[2]);
 assert.ok(fixtures > 0, 'golden coding fixtures must run');
-console.log(JSON.stringify({ esmCommonjsDerivations: derivations, publishedReference: '5.3.1',
+console.log(JSON.stringify({ esmCommonjsDerivations: derivations, publishedReference: '5.4.0',
   goldenFixtures: fixtures, statuses,
+  partialCreditCases, stableRegexCases: regexCases.length,
   deepImports: true, fullMathFeatures: true }));

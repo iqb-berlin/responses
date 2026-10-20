@@ -1,8 +1,10 @@
 # Iqb.Responses
 
-Native .NET 10 implementation of the IQB response coding engine. The package
-accepts the same camel-case JSON models as `@iqb/responses` and has no Node.js
-runtime dependency.
+Preview of the native .NET 10 implementation of the IQB response coding engine.
+The package accepts the same camel-case JSON models as `@iqb/responses` and has
+no Node.js runtime dependency. Its narrower regex and SOLVER contracts do not
+establish full behavioral parity with the stable JavaScript package. The two
+packages have independent versions and release decisions.
 
 ## Installation
 
@@ -71,8 +73,16 @@ an exact comparison.
 
 Number-to-string conversion uses JavaScript thresholds and exponent notation,
 and Unicode lowercasing follows ECMAScript default case conversion. Rule
-`MATCH_REGEX` accepts the shared portable ASCII subset: character classes,
+`MATCH_REGEX` in this preview accepts a portable ASCII subset: character classes,
 groups, alternation and ordinary quantifiers are supported. Lookaround,
 backreferences, Unicode property classes, Unicode/hex escapes and non-ASCII
-pattern text are rejected by validation and produce a controlled coding error
-if an unvalidated scheme reaches the rule engine.
+pattern text produce the .NET-specific validation problem
+`RULE_REGEX_UNSUPPORTED` with `breaking = true`. If an unvalidated scheme
+reaches the rule engine, it returns `CODING_ERROR` and reports a
+`NotSupportedException` through the error callback. Syntactically invalid
+patterns within the subset produce `RULE_REGEX_INVALID` during validation.
+
+These restrictions apply only to this .NET preview. The JavaScript package
+retains its native `RegExp` behavior, including non-ASCII patterns, lookaround,
+backreferences and Unicode/hex escapes. Applications must validate a scheme
+against the engine that will execute it.

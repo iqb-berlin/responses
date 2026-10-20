@@ -226,7 +226,7 @@ describe('CodingSchemeFactory', () => {
       ).toBe(true);
     });
 
-    test('rejects MATCH_REGEX outside the portable ASCII subset', () => {
+    test('validates legacy property escapes using JavaScript without a Unicode flag', () => {
       const baseVars: VariableInfo[] = [
         { id: 'v1' }
       ] as unknown as VariableInfo[];
@@ -244,7 +244,7 @@ describe('CodingSchemeFactory', () => {
 
       const problems = CodingSchemeFactory.validate(baseVars, [coding]);
       expect(problems.some(p => p.type === 'RULE_REGEX_INVALID' && p.breaking))
-        .toBe(true);
+        .toBe(false);
     });
 
     test('detects RULE_PARAMETER_INVALID for non-numeric NUMERIC_MIN parameter', () => {

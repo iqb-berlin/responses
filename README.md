@@ -6,6 +6,47 @@ This package contains of type definitions for processing assessment data. Additi
 - [Iqb specifications](https://iqb-specifications.github.io/)
 - [Ausführliche Darstellungen zum Kodieren](https://iqb-berlin.github.io/tba-info/coding/response-status.html)
 
+## Partial credit with empty sources (5.4)
+
+For `SUM_SCORE`, `SUM_CODE` and `CONCAT_CODE`, set either or both of these
+options on the **derived** variable in `sourceParameters.processing`:
+
+- `TAKE_DISPLAYED_AS_ZERO_IF_PARTIAL`: use a neutral contribution for sources
+  with status `DISPLAYED`, including checkbox defaults such as `false`.
+- `TAKE_EMPTY_AS_ZERO_IF_PARTIAL`: use a neutral contribution for `INVALID`
+  sources whose value is exactly `null`, `""` or `[]`. `false`, `0` and nonempty
+  invalid answers are not empty.
+
+Both options are disabled by default. With at least one `CODING_COMPLETE`
+source, enabled partials contribute score/code `0` to sums or placeholder `x`
+to concatenation. `0_x` therefore remains distinct from `0_0`. A derived text
+value containing `x` can be coded with ordinary text rules and numeric code IDs.
+`SORT` also sorts placeholders. Pending answers are never replaced: a pending
+answer plus otherwise coded or allowed partial sources yields `DERIVE_PENDING`,
+including when no answer has completed coding yet. Existing error precedence
+still applies.
+
+Without a completed or pending answer, aggregation remains unchanged: all
+`DISPLAYED` stays `DISPLAYED`; all empty `INVALID`, or a mix of `DISPLAYED` and
+empty `INVALID`, stays `INVALID`. There is no automatic zero score or `x_x`.
+Only the contribution to this derivation changes. Source status, value, code
+and score, sibling derivations, base-variable normalization (including
+`TAKE_EMPTY_AS_VALID`) and SOLVER policies remain unchanged.
+
+The options require `@iqbspecs/coding-scheme` 3.5.0 or later. The native .NET
+engine implements the same replacements and source descriptions.
+
+Before publishing the new specification, package-consumer verification can use
+its locally built tarball:
+
+```bash
+IQB_CODING_SCHEME_TARBALL=/absolute/path/to/iqbspecs-coding-scheme-3.5.0.tgz npm run test:package
+```
+
+The release lockfile contains the integrity of the prepared specification
+tarball. Publish that exact artifact first, or refresh the lockfile after its
+release before a registry-based `npm ci`.
+
 ## Installation
 
 ```bash
@@ -14,8 +55,10 @@ npm i @iqb/responses
 
 ### .NET 10
 
-The repository also contains the native .NET package `Iqb.Responses`. It uses
-the same camel-case JSON contracts and does not require Node.js at runtime.
+The repository also contains the preview of the native .NET package
+`Iqb.Responses`. It uses the same camel-case JSON contracts and does not require
+Node.js at runtime. Its supported feature set is narrower than the stable
+JavaScript package; the preview does not establish full behavioral parity.
 
 ```bash
 dotnet add package Iqb.Responses --version 5.2.2-preview.1
@@ -56,24 +99,41 @@ coding results are still compared exactly. `gcd` requires at least two finite
 integer arguments and is always compared exactly.
 
 Number-to-string conversion and Unicode lowercasing follow JavaScript semantics
-in both runtimes. `MATCH_REGEX` deliberately uses a portable ASCII subset:
-character classes, groups, alternation and ordinary quantifiers are supported;
-lookaround, backreferences, Unicode property classes, Unicode/hex escapes and
-non-ASCII pattern text are rejected during validation and produce a controlled
-coding error if validation is bypassed.
+in both runtimes. JavaScript `MATCH_REGEX` keeps the native `RegExp` behavior of
+the stable 5.4.0 package, including non-ASCII patterns, lookaround,
+backreferences, and Unicode/hex escapes. It uses no flags or `i` with
+`IGNORE_CASE`; it does not enable the Unicode `u` flag. A pattern such as
+`\p{L}+` therefore keeps its existing non-Unicode JavaScript interpretation.
+
+The .NET preview limits `MATCH_REGEX` to a portable ASCII subset: character
+classes, groups, alternation and ordinary quantifiers. Unsupported constructs
+produce the .NET-specific validation problem `RULE_REGEX_UNSUPPORTED`.
+Bypassing validation produces `CODING_ERROR` and reports a
+`NotSupportedException` through the error callback. Malformed patterns within
+the supported subset still produce `RULE_REGEX_INVALID` during validation.
 
 ### Differential parity testing
 
 `npm run test:differential` compares all checked-in golden vectors and 20,000
-reproducible generated cases with the native .NET implementation. A failure is
-automatically minimized and written to `artifacts/differential/`. Replay it with
+reproducible generated cases in the shared feature set with the native .NET
+preview. A failure is automatically minimized and written to
+`artifacts/differential/`. Replay it with
 `npm run test:differential:generated -- --case <minimized.request.json>`.
 
-Before a stable release, `npm run test:differential:stress` runs 100,000 cases.
+Before a stable .NET release, `npm run test:differential:stress` runs 100,000 cases.
 Locale, Unicode, regex-dialect and SOLVER-language boundaries are tracked
 separately in `test/differential/boundaries/manifest.json`. Large-number
-formatting, Unicode lowercasing and rejection of non-portable regular
-expressions are blocking parity cases.
+formatting and Unicode lowercasing are blocking parity cases. Regex features
+outside the preview's subset have exact expectations for each runtime; these
+checks enforce JavaScript compatibility and explicit .NET rejection without
+claiming full parity. Unknown boundary expectations fail the test run.
+
+### Release policy
+
+JavaScript and .NET share `master`, with independent package versions and release
+decisions. The stable npm behavior remains the compatibility reference. Passing
+the shared-feature differential tests does not promote the .NET preview to a
+stable package. See [Release checks](./RELEASING.md) for the package-specific gates.
 
 ## Documentation
 
@@ -270,7 +330,9 @@ functions, configuration and tolerances; it does not substitute the reduced
 `npm run prepare_publish` builds both formats from the same TypeScript source.
 `npm run test:package` installs the tarball in a fresh consumer and checks both
 runtime formats, subpaths, type resolution, SOLVER results and golden coding
-fixtures. Building and verifying the package does not publish it to npm.
+fixtures against the published 5.4.0 package. It also checks partial-credit
+derivations and stable regex behavior in both formats. Building and verifying
+the package does not publish it to npm.
 
 ## Versionsänderungen npm-package `@iqb/responses`
 

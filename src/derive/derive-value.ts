@@ -70,7 +70,32 @@ type DeriveContext = {
   coding: VariableCodingData;
   sourceResponses: Response[];
   sourceResponseById: Map<string, Response>;
+  partialSourceIds: ReadonlySet<string>;
   subformSource: string | undefined;
+};
+
+const partialCreditMethods: VariableCodingData['sourceType'][] = ['SUM_SCORE', 'SUM_CODE', 'CONCAT_CODE'];
+
+const isEmptyPartialValue = (value: Response['value']): boolean => (
+  value === null || value === '' || (Array.isArray(value) && value.length === 0)
+);
+
+const getPartialSourceIds = (coding: VariableCodingData, sources: Response[]): ReadonlySet<string> => {
+  if (!partialCreditMethods.includes(coding.sourceType)) return new Set();
+  const declaredSources = new Set(coding.deriveSources || []);
+  const relevantSources = sources.filter(r => declaredSources.has(r.id));
+
+  // A pending answer permits only deferral, never a calculation without a coded answer.
+  if (!relevantSources.some(r => r.status === CODING_SCHEME_STATUS.CODING_COMPLETE ||
+    isPendingStatus(r.status as CodingSchemeStatus))) return new Set();
+
+  const processing = coding.sourceParameters?.processing || [];
+  return new Set(relevantSources.filter(r => (
+    r.status === CODING_SCHEME_STATUS.DISPLAYED && processing.includes('TAKE_DISPLAYED_AS_ZERO_IF_PARTIAL')
+  ) || (
+    r.status === CODING_SCHEME_STATUS.INVALID && isEmptyPartialValue(r.value) &&
+    processing.includes('TAKE_EMPTY_AS_ZERO_IF_PARTIAL')
+  )).map(r => r.id));
 };
 
 type SolverReplacement = {
@@ -142,9 +167,12 @@ const handleCopyValue = ({ coding, sourceResponses, subformSource }: DeriveConte
   };
 };
 
-const handleConcatCode = ({ coding, sourceResponseById, subformSource }: DeriveContext): Response => {
+const handleConcatCode = ({
+  coding, sourceResponseById, partialSourceIds, subformSource
+}: DeriveContext): Response => {
   const deriveSources = coding.deriveSources ?? [];
   const extractCode = (sourceId: string): string => {
+    if (partialSourceIds.has(sourceId)) return 'x';
     const response = sourceResponseById.get(sourceId);
     return response && (response.code || response.code === 0) ? response.code.toString(10) : '?';
   };
@@ -535,6 +563,16 @@ export const deriveValue = (
 ): Response => {
   const subformSource = sourceResponses.find(r => r.subform !== undefined)?.subform;
   const sourceCodingById = new Map(variableCodings.map(c => [c.id, c] as const));
+  const partialSourceIds = getPartialSourceIds(coding, sourceResponses);
+
+  // Only local contributions change; no status, value, code or score is written to the original sources.
+  const effectiveSources: Response[] = sourceResponses.map(r => (partialSourceIds.has(r.id) ? {
+    ...r,
+    value: null,
+    status: CODING_SCHEME_STATUS.CODING_COMPLETE,
+    code: 0,
+    score: 0
+  } : r));
 
   const statusPrecedence: Array<{
     from: CodingSchemeStatus;
@@ -583,7 +621,7 @@ export const deriveValue = (
 
   // eslint-disable-next-line no-restricted-syntax
   for (const mapping of statusPrecedence) {
-    if (sourceResponses.some(r => shouldApplyStatusPrecedence(r, mapping))) {
+    if (effectiveSources.some(r => shouldApplyStatusPrecedence(r, mapping))) {
       return <Response>{
         id: coding.id,
         value: null,
@@ -593,11 +631,18 @@ export const deriveValue = (
     }
   }
 
-  const hasPending = sourceResponses.some(r => isPendingStatus(r.status as CodingSchemeStatus));
+  if (partialSourceIds.size > 0) {
+    const sourceIds = new Set(sourceResponses.map(r => r.id));
+    if (coding.deriveSources?.some(id => !sourceIds.has(id))) {
+      return deriveErrorResponse(coding, subformSource);
+    }
+  }
+
+  const hasPending = effectiveSources.some(r => isPendingStatus(r.status as CodingSchemeStatus));
 
   if (
     hasPending &&
-    sourceResponses.every(r => VALID_STATES_TO_START_DERIVE_PENDING_CHECK.includes(
+    effectiveSources.every(r => VALID_STATES_TO_START_DERIVE_PENDING_CHECK.includes(
       r.status as (typeof VALID_STATES_TO_START_DERIVE_PENDING_CHECK)[number]
     )
     ) &&
@@ -611,11 +656,11 @@ export const deriveValue = (
     };
   }
 
-  const falseStates = amountFalseStates(coding, sourceResponses, variableCodings);
+  const falseStates = amountFalseStates(coding, effectiveSources, variableCodings);
 
-  if (sourceResponses.length >= falseStates && falseStates > 0) {
-    const allHaveSameStatus = sourceResponses.every(r => r.status === sourceResponses[0].status);
-    const allArePartlyDisplayedStatuses = sourceResponses
+  if (effectiveSources.length >= falseStates && falseStates > 0) {
+    const allHaveSameStatus = effectiveSources.every(r => r.status === effectiveSources[0].status);
+    const allArePartlyDisplayedStatuses = effectiveSources
       .every(r => PARTLY_DISPLAYED_STATUSES.includes(r.status as (typeof PARTLY_DISPLAYED_STATUSES)[number])
       );
 
@@ -623,7 +668,7 @@ export const deriveValue = (
       return <Response>{
         id: coding.id,
         value: null,
-        status: sourceResponses[0].status,
+        status: effectiveSources[0].status,
         subform: subformSource
       };
     }
@@ -648,8 +693,9 @@ export const deriveValue = (
   const ctx: DeriveContext = {
     variableCodings,
     coding,
-    sourceResponses,
-    sourceResponseById: new Map(sourceResponses.map(r => [r.id, r] as const)),
+    sourceResponses: effectiveSources,
+    sourceResponseById: new Map(effectiveSources.map(r => [r.id, r] as const)),
+    partialSourceIds,
     subformSource
   };
 

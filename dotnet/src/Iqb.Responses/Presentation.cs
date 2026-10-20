@@ -82,11 +82,12 @@ public static class ToTextFactory
                 return sources.Count > 0 ? $"Kopie von Variable '{sources[0]}'" : "Kopie, aber keine Quelle angegeben";
             case "CONCAT_CODE":
                 var sorted = parameters?.Processing?.Contains("SORT") == true ? " (sortiert)" : string.Empty;
-                return $"Codes von Variablen '{string.Join(", ", sources)}' aneinandergehängt mit Trennzeichen '_'{sorted}";
+                return $"Codes von Variablen '{string.Join(", ", sources)}' aneinandergehängt mit Trennzeichen '_'{sorted}" +
+                    PartialCreditDescription(sourceType, parameters);
             case "SUM_CODE":
-                return $"Codes von Variablen '{string.Join(", ", sources)}' summiert";
+                return $"Codes von Variablen '{string.Join(", ", sources)}' summiert" + PartialCreditDescription(sourceType, parameters);
             case "SUM_SCORE":
-                return $"Scores von Variablen '{string.Join(", ", sources)}' summiert";
+                return $"Scores von Variablen '{string.Join(", ", sources)}' summiert" + PartialCreditDescription(sourceType, parameters);
             case "UNIQUE_VALUES":
                 var uniqueMessages = new Dictionary<string, string>
                 {
@@ -104,6 +105,18 @@ public static class ToTextFactory
             default:
                 return "Unbekannte Quelle";
         }
+    }
+
+    private static string PartialCreditDescription(string sourceType, VariableSourceParameters? parameters)
+    {
+        var replacement = sourceType == "CONCAT_CODE" ? "x" : "0";
+        var descriptions = new List<string>();
+        if (parameters?.Processing?.Contains("TAKE_DISPLAYED_AS_ZERO_IF_PARTIAL") == true)
+            descriptions.Add($"angezeigte Quellantworten als {replacement}");
+        if (parameters?.Processing?.Contains("TAKE_EMPTY_AS_ZERO_IF_PARTIAL") == true)
+            descriptions.Add($"leere ungültige Quellantworten als {replacement}");
+        return descriptions.Count == 0 ? string.Empty :
+            $" (bei mindestens einer regulär kodierten Teilantwort: {string.Join("; ", descriptions)})";
     }
 
     /// <summary>Describes response-processing parameters.</summary>
