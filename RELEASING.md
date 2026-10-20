@@ -9,14 +9,22 @@ of the .NET preview must not narrow that behavior.
 
 Validate the exact commit intended for the release:
 
-1. Run `npm ci`, `npm run lint`, and `npm run test:coverage` on every Node
-   version in the CI matrix.
+1. Run `npm ci`, `npm run lint`, `npm run test:coverage` and
+   `npm run test:toolchain` on the Node 22/24 development matrix.
+   Babel 8 is isolated in the private tooling workspace; Jest's Babel 7 helpers
+   retain their own compatible dependency graph. The IQB lint policy uses its
+   local typescript-eslint 8/Stylistic adapter and explicit peer overrides.
 2. Run `npm run prepare_publish` and `npm run test:package`. The latter installs
    the produced tarball in an independent consumer, checks public exports and
    TypeScript resolution, and exercises partial credit and the regex behavior
    retained from 5.4.0. VariableInfo checks compile actual published 1.3/1.4/2.1
    declarations against the candidate in classic Node, NodeNext ESM/CommonJS and
    bundler modes, including previous public API assignments and mutable legacy lists.
+   Both the build compiler (5.9.3) and the previous consumer compiler (5.4.5)
+   must pass. The separate Node 18/20 jobs download the built artifact and run
+   `node scripts/verify-package.js --runtime-only` without installing the newer
+   development toolchain. Keep these package-runtime checks when changing the
+   development Node requirements.
 3. Confirm both package manifests agree on the version and runtime dependencies,
    and check the consuming application's affected flows before publication.
 4. Require successful CI on that commit. After publication, verify the registry

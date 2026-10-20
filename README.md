@@ -336,6 +336,18 @@ remain available for comparisons; ingestion does not rewrite stored data.
 
 ## JavaScript module formats
 
+Development uses Node 22.18+ or 24.11+ (`.nvmrc` selects 24), TypeScript 5.9.3
+and Node 26 declarations. Babel Core/preset 8 run in the private `tooling/babel`
+workspace so Jest can retain its Babel 7 helpers. `npm ci` installs both and
+`npm run test:toolchain` exercises the Babel 8 TypeScript transform.
+The IQB lint policy is adapted to typescript-eslint 8 and ESLint Stylistic;
+the explicit peer overrides are paired with `scripts/eslint-typescript.cjs`.
+
+These are development requirements. The packed npm manifest excludes the
+development dependencies, workspaces and development Node engine. CI also
+tests the packed JavaScript on Node 18/20, and its declarations with both
+TypeScript 5.4.5 and 5.9.3.
+
 The package provides native ESM for `import` and the existing CommonJS files for
 `require`. The package root and existing file subpaths such as
 `@iqb/responses/coding-factory` and `@iqb/responses/value-transform.js` select the
@@ -352,8 +364,8 @@ functions, configuration and tolerances; it does not substitute the reduced
 runtime formats, subpaths, type resolution, SOLVER results and golden coding
 fixtures against the published 5.4.0 package. It also checks partial-credit
 derivations, stable regex behavior and VariableInfo compatibility in both formats.
-Type checks use the actual published 1.3, 1.4 and 2.1 declarations in all four
-resolution modes, including assignments to the previous public API. Building and verifying
+Type checks use the actual published 1.3, 1.4 and 2.1 declarations with both
+compilers in all four resolution modes, including assignments to the previous public API. Building and verifying
 the package does not publish it to npm.
 
 ## Versionsänderungen npm-package `@iqb/responses`
