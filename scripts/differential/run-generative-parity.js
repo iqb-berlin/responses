@@ -2,6 +2,7 @@ const fc = require('fast-check');
 const { existsSync, readFileSync, readdirSync } = require('node:fs');
 const { join, resolve } = require('node:path');
 const { artifactDirectory, writeFinal, writeOriginal } = require('./artifacts');
+const { assertBoundary } = require('./boundaries');
 const { evaluateTypeScript } = require('./evaluate-typescript');
 const {
   ARRAY_POSITIONS,
@@ -128,30 +129,17 @@ async function runBoundaries(worker) {
   const manifestPath = join(repositoryRoot, 'test', 'differential', 'boundaries', 'manifest.json');
   if (!existsSync(manifestPath)) return;
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
-  let known = 0;
+  let runtimeSpecific = 0;
   for (const boundary of manifest.cases) {
     const result = await compare(worker, boundary.request);
-    if (boundary.expectation === 'must-match' && result.difference) {
-      throw new Error(`Boundary '${boundary.id}' differs at ${result.difference.path}.`);
-    }
-    if (boundary.expectation === 'must-reject') {
-      const outcomes = [result.typescript, result.dotnet]
-        .flatMap(response => response.calls || []).map(call => call.outcome);
-      if (outcomes.some(outcome => outcome.kind !== 'error')) {
-        throw new Error(`Boundary '${boundary.id}' was not rejected by both runtimes.`);
-      }
-    }
-    if (boundary.expectation === 'known-divergence') {
-      known++;
-      console.log(result.difference
-        ? `Known boundary divergence '${boundary.id}' observed.`
-        : `Known boundary divergence '${boundary.id}' is now aligned; tighten the manifest.`);
-    }
+    assertBoundary(boundary, result);
+    if (boundary.expectation === 'runtime-specific') runtimeSpecific++;
     if (result.tolerated.length > 0) {
       console.log(`Boundary '${boundary.id}' matched within the 1-ULP derive-value tolerance.`);
     }
   }
-  console.log(`Boundary manifest: ${manifest.cases.length} case(s), ${known} documented divergence(s).`);
+  console.log(`Boundary manifest: ${manifest.cases.length} case(s), ` +
+    `${runtimeSpecific} runtime-specific contract(s) passed.`);
 }
 
 async function runProfile(worker, definition, options, counters) {

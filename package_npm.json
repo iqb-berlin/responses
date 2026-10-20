@@ -19,5 +19,50 @@
   },
   "homepage": "https://github.com/iqb-berlin/responses#readme",
   "main": "index.js",
-  "types": "index.d.ts"
+  "types": "index.d.ts",
+  "module": "./esm/index.js",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./esm/index.d.ts",
+        "default": "./esm/index.js"
+      },
+      "require": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      }
+    },
+    "./package.json": "./package.json",
+    "./*.js": {
+      "import": {
+        "types": "./esm/*.d.ts",
+        "default": "./esm/*.js"
+      },
+      "require": {
+        "types": "./*.d.ts",
+        "default": "./*.js"
+      }
+    },
+    "./*": {
+      "import": {
+        "types": "./esm/*.d.ts",
+        "default": "./esm/*.js"
+      },
+      "require": {
+        "types": "./*.d.ts",
+        "default": "./*.js"
+      }
+    },
+    "./presentation": {
+      "import": {
+        "types": "./esm/presentation/index.d.ts",
+        "default": "./esm/presentation/index.js"
+      },
+      "require": {
+        "types": "./presentation/index.d.ts",
+        "default": "./presentation/index.js"
+      }
+    }
+  }
 }

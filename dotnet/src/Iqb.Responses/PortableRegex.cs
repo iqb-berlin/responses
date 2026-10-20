@@ -32,7 +32,7 @@ internal static class PortableRegex
     {
         var status = Analyze(pattern);
         if (status == PortableRegexStatus.Unsupported)
-            throw new InvalidOperationException("Pattern is outside the portable ECMAScript subset.");
+            throw new NotSupportedException("Pattern is outside the .NET preview's portable ECMAScript subset.");
         if (status == PortableRegexStatus.Invalid)
             throw new ArgumentException("The regular expression is invalid.", nameof(pattern));
         var options = RegexOptions.ECMAScript | (ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None);

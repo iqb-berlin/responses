@@ -81,7 +81,35 @@
     {
       "id": "unicode-property-regex",
       "category": "regex-dialect",
-      "expectation": "must-match",
+      "expectation": "runtime-specific",
+      "expectedCalls": {
+        "typescript": [
+          { "op": "validate", "outcome": { "kind": "value", "value": [] }, "diagnostics": [] },
+          {
+            "op": "singleCode",
+            "outcome": {
+              "kind": "value",
+              "value": { "id": "x", "status": "CODING_COMPLETE", "value": "p{L}", "code": 1, "score": 1 }
+            },
+            "diagnostics": []
+          }
+        ],
+        "dotnet": [
+          {
+            "op": "validate",
+            "outcome": {
+              "kind": "value",
+              "value": [{ "type": "RULE_REGEX_UNSUPPORTED", "breaking": true, "variableId": "x", "variableLabel": "", "code": "1" }]
+            },
+            "diagnostics": []
+          },
+          {
+            "op": "singleCode",
+            "outcome": { "kind": "value", "value": { "id": "x", "status": "CODING_ERROR", "value": "p{L}" } },
+            "diagnostics": [{ "phase": "singleCode", "category": "INVALID_OPERATION" }]
+          }
+        ]
+      },
       "request": {
         "protocolVersion": 1,
         "kind": "case",
@@ -93,10 +121,10 @@
               "id": "x",
               "alias": "x",
               "sourceType": "BASE",
-              "codes": [{ "id": 1, "ruleSets": [{ "rules": [{ "method": "MATCH_REGEX", "parameters": ["\\p{L}+"] }] }] }]
+              "codes": [{ "id": 1, "type": "FULL_CREDIT", "score": 1, "ruleSets": [{ "rules": [{ "method": "MATCH_REGEX", "parameters": ["\\p{L}+"] }] }] }]
             }
           ],
-          "responses": [{ "id": "x", "status": "VALUE_CHANGED", "value": "abc" }]
+          "responses": [{ "id": "x", "status": "VALUE_CHANGED", "value": "p{L}" }]
         },
         "calls": [{ "op": "validate" }, { "op": "singleCode", "codingIndex": 0, "responseIndex": 0 }]
       }

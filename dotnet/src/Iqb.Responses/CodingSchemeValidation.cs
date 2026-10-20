@@ -148,7 +148,10 @@ internal static class CodingSchemeValidation
         {
             foreach (var pattern in parameters.SelectMany(SplitLines))
             {
-                if (PortableRegex.Analyze(pattern) != PortableRegexStatus.Portable)
+                var status = PortableRegex.Analyze(pattern);
+                if (status == PortableRegexStatus.Unsupported)
+                    Add(problems, "RULE_REGEX_UNSUPPORTED", true, id, label, code);
+                else if (status == PortableRegexStatus.Invalid)
                     Add(problems, "RULE_REGEX_INVALID", true, id, label, code);
             }
         }

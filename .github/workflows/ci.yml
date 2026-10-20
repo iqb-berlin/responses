@@ -64,7 +64,7 @@ jobs:
       - name: Build project
         run: npm run prepare_publish
 
-      - name: Verify packed package
+      - name: Verify npm package and stable JavaScript compatibility
         run: npm run test:package
 
       - name: Upload build artifacts
@@ -115,7 +115,7 @@ jobs:
           /p:ThresholdType=line%2cbranch
           /p:ThresholdStat=total
 
-      - name: Compare TypeScript and .NET results
+      - name: Check shared-feature parity and runtime-specific boundaries
         run: npm run test:differential
 
       - name: Upload differential failure artifacts
