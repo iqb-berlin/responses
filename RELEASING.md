@@ -26,6 +26,26 @@ compatibility restoration is merged, subsequent JavaScript releases can be
 prepared from `master`; ongoing backports onto `release/responses-5.4.0` are
 unnecessary.
 
+### Studio and Kodierbox qualification
+
+The `Consumer qualification` workflow installs the candidate npm tarball into
+fresh Studio and Kodierbox checkouts. Review its pinned host commits before each
+release. Each host runs its frontend and backend checks sequentially on Node 22:
+
+- Build the unchanged frontend as the bundle-size reference.
+- Install the exact candidate and exercise CommonJS plus bundled browser ESM:
+  coding, native JavaScript regex features, full SOLVER functions, VariableInfo
+  normalization, chemistry labels and the floating-point type text.
+- Run affected coding/Codebook tests, build the frontend and backend, and verify
+  that the real frontend build includes the ESM entrypoints.
+- Start the built backend against disposable PostgreSQL and Redis services.
+  Only this smoke test synchronizes entity schemas into its isolated database.
+  It checks application startup, not production migrations or deployed data.
+
+The `qualification-*` artifacts record the installed version, behavior checks,
+raw emitted JavaScript size before/after, backend HTTP availability and startup
+logs. These checks do not publish npm, NuGet, a GitHub release, or either host.
+
 ## .NET preview and stable qualification
 
 The `dotnet-test` and `dotnet-package` CI jobs remain required checks for changes
