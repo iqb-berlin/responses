@@ -1,9 +1,11 @@
 const assert = require('node:assert/strict');
 const fc = require('fast-check');
+const { assertBoundary } = require('./boundaries');
 const { materialize, modelArbitrary } = require('./generators');
 const { compareWithSolverTolerance, ulpDistance } = require('./numeric-comparison');
 const { canonicalJson } = require('./protocol');
 const { WorkerClient } = require('./worker-client');
+const boundaryManifest = require('../../test/differential/boundaries/manifest.json');
 
 const readyLine = `${JSON.stringify({
   protocolVersion: 1,
@@ -42,6 +44,26 @@ async function assertWorkerFailureModes() {
 }
 
 async function main() {
+  const boundary = boundaryManifest.cases.find(item => item.expectation === 'runtime-specific');
+  const boundaryResult = Object.fromEntries(['typescript', 'dotnet'].map(runtime => [runtime, {
+    protocolVersion: boundary.request.protocolVersion,
+    kind: 'result',
+    id: boundary.request.id,
+    calls: structuredClone(boundary.expectedCalls[runtime])
+  }]));
+  assertBoundary(boundary, boundaryResult);
+  for (const runtime of ['typescript', 'dotnet']) {
+    const changed = structuredClone(boundaryResult);
+    changed[runtime].calls[1].outcome.value.status = 'CODING_INCOMPLETE';
+    assert.throws(() => assertBoundary(boundary, changed), /changed its/);
+  }
+  const aligned = { ...boundaryResult, dotnet: boundaryResult.typescript };
+  assert.throws(() => assertBoundary(boundary, aligned), /changed its dotnet/);
+  assert.throws(() => assertBoundary({ ...boundary, expectedCalls: {} }, boundaryResult),
+    /needs explicit/);
+  assert.throws(() => assertBoundary({ ...boundary, expectation: 'unknown' }, boundaryResult),
+    /unknown expectation/);
+
   assert.equal(ulpDistance(1, 1.0000000000000002), 1n);
   assert.equal(ulpDistance(1, 1.0000000000000004), 2n);
   assert.equal(ulpDistance(Number.POSITIVE_INFINITY, 1), null);

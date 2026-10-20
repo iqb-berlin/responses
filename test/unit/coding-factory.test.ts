@@ -429,7 +429,7 @@ describe('CodingFactory', () => {
       expect(onError).not.toHaveBeenCalled();
     });
 
-    test('rejects MATCH_REGEX outside the portable subset', () => {
+    test('matches legacy property escapes using JavaScript without a Unicode flag', () => {
       const coding = baseCoding();
       coding.codes = [
         {
@@ -449,9 +449,9 @@ describe('CodingFactory', () => {
       ];
 
       const onError = jest.fn();
-      const result = CodingFactory.code(baseResponse('abc'), coding, { onError });
-      expect(result.status).toBe('CODING_ERROR');
-      expect(onError).toHaveBeenCalledWith(expect.any(TypeError));
+      const result = CodingFactory.code(baseResponse('p{L}'), coding, { onError });
+      expect(result).toMatchObject({ status: 'CODING_COMPLETE', code: 1, score: 1 });
+      expect(onError).not.toHaveBeenCalled();
     });
 
     test('returns CODING_ERROR if rule evaluation throws (and calls onError)', () => {

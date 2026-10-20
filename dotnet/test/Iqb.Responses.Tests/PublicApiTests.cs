@@ -251,10 +251,17 @@ public sealed class PublicApiTests
         Assert.Equal(ResponseStatus.IntendedIncomplete, CodingFactory.Code(response, coding).Status);
     }
 
-    [Fact]
-    public void Coding_and_validation_reject_nonportable_match_regex()
+    [Theory]
+    [InlineData("\\p{L}+", "p{L}")]
+    [InlineData("^[äöü]+$", "äöü")]
+    [InlineData("^(?=abc$)abc$", "abc")]
+    [InlineData("(?<=a)b", "ab")]
+    [InlineData("^(ab)\\1$", "abab")]
+    [InlineData("^\\u00e4$", "ä")]
+    [InlineData("^\\x61$", "a")]
+    public void Coding_and_validation_report_unsupported_preview_regex(string pattern, string value)
     {
-        var response = new Response { Id = "x", Status = ResponseStatus.ValueChanged, Value = "abc" };
+        var response = new Response { Id = "x", Status = ResponseStatus.ValueChanged, Value = value };
         var coding = Coding("x", "BASE");
         coding.Codes =
         [
@@ -265,7 +272,7 @@ public sealed class PublicApiTests
                 [
                     new RuleSet
                     {
-                        Rules = [new CodingRule { Method = "MATCH_REGEX", Parameters = ["\\p{L}+"] }]
+                        Rules = [new CodingRule { Method = "MATCH_REGEX", Parameters = [pattern] }]
                     }
                 ]
             }
@@ -276,8 +283,9 @@ public sealed class PublicApiTests
         var problems = CodingSchemeFactory.Validate([Info("x", "string")], [coding]);
 
         Assert.Equal(ResponseStatus.CodingError, result.Status);
-        Assert.IsType<InvalidOperationException>(reported);
-        Assert.Contains(problems, problem => problem.Type == "RULE_REGEX_INVALID" && problem.Breaking);
+        Assert.IsType<NotSupportedException>(reported);
+        Assert.Contains(problems, problem => problem.Type == "RULE_REGEX_UNSUPPORTED" && problem.Breaking);
+        Assert.DoesNotContain(problems, problem => problem.Type == "RULE_REGEX_INVALID");
     }
 
     [Fact]
@@ -575,6 +583,12 @@ public sealed class PublicApiTests
     [InlineData("no-value", "no-value")]
     public void VariableInfo_format_is_normalized_to_the_2x_spelling(string format, string expected) =>
         Assert.Equal(expected, VariableInfoSpelling.NormalizeFormat(format));
+
+    [Theory]
+    [InlineData("number")]
+    [InlineData("NUMBER")]
+    public void VariableInfo_floating_point_label_is_spelled_correctly(string type) =>
+        Assert.Equal(["Datentyp: Zahl (Fließkomma)"], ToTextFactory.VarInfoAsText(Info("value", type)));
 
     [Theory]
     [InlineData("string", "STRING", "text-selection", "TEXT_SELECTION")]

@@ -17,7 +17,7 @@ import { normalizeVariableInfoFormat, normalizeVariableInfoType } from '../norma
 const VARINFO_TYPE_TEXT: Readonly<Record<string, string>> = {
   STRING: 'String/Text',
   INTEGER: 'Ganze Zahl',
-  NUMBER: 'Zahl (Fließkoma)',
+  NUMBER: 'Zahl (Fließkomma)',
   BOOLEAN: 'Ja/Nein',
   ATTACHMENT: 'Datei',
   JSON: 'Daten im JSON-Format',
