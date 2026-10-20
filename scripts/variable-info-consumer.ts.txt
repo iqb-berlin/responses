@@ -1,0 +1,60 @@
+// Compiled against the packed candidate and actual published 1.3/1.4/2.1 declarations.
+import type { VariableInfo as V13 } from '@iqbspecs/variable-info-v13/variable-info.interface.js';
+import type { VariableInfo as V14 } from '@iqbspecs/variable-info-v14/variable-info.interface.js';
+import type { VariableInfo as V21 } from '@iqbspecs/variable-info/variable-info.interface.js';
+import {
+  CodingSchemeFactory as CandidateSchemeFactory,
+  ToTextFactory as CandidateTextFactory, VariableList as CandidateList,
+  LegacyVariableInfo, VariableInfoInput, VariableInfoV2
+} from '@iqb/responses';
+import {
+  CodingSchemeFactory as PreviousSchemeFactory,
+  ToTextFactory as PreviousTextFactory,
+  VariableList as PreviousList
+} from '@iqb/responses-reference';
+
+const old: V13 = {
+  id: 'old', type: 'string', format: 'ggb-file', multiple: false, nullable: false,
+  values: [], valuePositionLabels: [], page: 'P1'
+};
+const old14: V14 = { ...old, visualAnchor: 'widget' };
+const current: V21 = { ...old, id: 'current', type: 'STRING', format: 'GGB_FILE' };
+const exportedCurrent: VariableInfoV2 = current;
+const exportedLegacy: LegacyVariableInfo = old;
+const oldList: V13[] = new CandidateList([old]).variables;
+const old14List: V14[] = new CandidateList([old14]).variables;
+const currentList: V21[] = new CandidateList([current]).variables;
+const empty: CandidateList = new CandidateList(null);
+const oldEmpty: V13[] = empty.variables;
+empty.variables.push(old14);
+const inferredEmpty = new CandidateList([]);
+inferredEmpty.variables.push(old);
+const nullList = new CandidateList(null);
+nullList.variables.push(old);
+const narrowLegacy = new CandidateList([{ ...old, type: 'string' as const, multiple: false as const }]);
+narrowLegacy.variables[0].type = 'number';
+narrowLegacy.variables[0].multiple = true;
+narrowLegacy.variables.push({ ...old, type: 'boolean' });
+const oldConstructor: typeof PreviousList = CandidateList;
+const oldValidator: typeof PreviousSchemeFactory.validate = CandidateSchemeFactory.validate;
+const oldFormatter: typeof PreviousTextFactory.varInfoAsText = CandidateTextFactory.varInfoAsText;
+const oldInstance: PreviousList = new CandidateList([old]);
+const oldAnnotation: CandidateList = new CandidateList([old]);
+const minimal = { id: ' minimal ', type: 'STRING' } as const;
+const inputs: readonly VariableInfoInput[] = Object.freeze([
+  old, old14, current, minimal,
+  { id: 'chemistry', type: 'STRING', format: 'chem-molecule', values: [{ value: 'H2O' }] }
+]);
+const mixed = new CandidateList(inputs);
+CandidateSchemeFactory.validate(inputs, []);
+inputs.forEach(info => CandidateTextFactory.varInfoAsText(info));
+const extended = new CandidateList([{ ...current, extension: { owner: 'player' } }]);
+const extension: string = extended.variables[0].extension.owner;
+const literalList = new CandidateList([minimal]);
+const trimmedId: string = literalList.variables[0].id;
+// Trimming can change an id; the output must not retain the input's literal type.
+// @ts-expect-error id becomes string
+const unchangedLiteral: ' minimal ' = literalList.variables[0].id;
+void [exportedCurrent, exportedLegacy, oldList, old14List, currentList, oldEmpty,
+  oldConstructor, oldValidator, oldFormatter, oldInstance, oldAnnotation, mixed,
+  extension, trimmedId, unchangedLiteral];

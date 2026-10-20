@@ -314,6 +314,26 @@ const lines = ToTextFactory.varInfoAsText(varInfo);
 
 Status strings used by this package include (among others) `VALUE_CHANGED`, `CODING_COMPLETE`, `CODING_INCOMPLETE`, `CODING_ERROR`, `DERIVE_ERROR`, `INVALID`, `NO_CODING`, `UNSET`, ...
 
+## VariableInfo compatibility
+
+Starting with Responses 5.5.0, `CodingSchemeFactory.validate`,
+`ToTextFactory.varInfoAsText` and `VariableList` accept both VariableInfo 1.x
+and 2.1. The dependency is 2.1, while existing consumers can keep their own
+1.x declarations. The exported `LegacyVariableInfo` preserves the structural
+1.x contract; `VariableInfoV2` names the published 2.1 interface.
+
+`VariableInfoInput` also accepts minimal 2.1 schema data containing only `id`
+and `type`, optional metadata and values without labels. Formatting handles
+omitted value lists. Validation retains the existing treatment of omitted
+`multiple` as unknown; explicitly setting it to `false` checks scalar rules.
+
+`VariableList` retains the mutable 1.x output contract for legacy inputs,
+empty lists and existing annotations. For new input shapes it infers the
+metadata type. Legacy fields such as `page` and `visualAnchor` are retained.
+It trims and deduplicates ids as before, while
+preserving type/format spelling and extension fields. Normalization helpers
+remain available for comparisons; ingestion does not rewrite stored data.
+
 ## JavaScript module formats
 
 The package provides native ESM for `import` and the existing CommonJS files for
@@ -331,7 +351,9 @@ functions, configuration and tolerances; it does not substitute the reduced
 `npm run test:package` installs the tarball in a fresh consumer and checks both
 runtime formats, subpaths, type resolution, SOLVER results and golden coding
 fixtures against the published 5.4.0 package. It also checks partial-credit
-derivations and stable regex behavior in both formats. Building and verifying
+derivations, stable regex behavior and VariableInfo compatibility in both formats.
+Type checks use the actual published 1.3, 1.4 and 2.1 declarations in all four
+resolution modes, including assignments to the previous public API. Building and verifying
 the package does not publish it to npm.
 
 ## Versionsänderungen npm-package `@iqb/responses`

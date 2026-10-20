@@ -1,6 +1,6 @@
 import { Response } from '@iqbspecs/response/response.interface';
 import { VariableCodingData } from '@iqbspecs/coding-scheme';
-import { VariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
+import { VariableInfoInput } from './variable-info';
 import { CodingSchemeProblem } from './coding-interfaces';
 import { deepClone } from './utils/deep-clone';
 import { getVariableDependencyTree, type VariableGraphNode } from './graph/dependency-tree';
@@ -146,7 +146,10 @@ export abstract class CodingSchemeFactory {
     return finalizeAndDeduplicateResponses(allCodedResponses, subformGroups, variableCodings);
   }
 
-  static validate(baseVariables: VariableInfo[], variableCodings: VariableCodingData[]): CodingSchemeProblem[] {
+  static validate(
+    baseVariables: readonly VariableInfoInput[],
+    variableCodings: VariableCodingData[]
+  ): CodingSchemeProblem[] {
     return validateCodingScheme(baseVariables, variableCodings);
   }
 

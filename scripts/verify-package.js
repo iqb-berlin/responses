@@ -64,6 +64,8 @@ try {
       '--package-lock=false',
       tarballPath,
       '@iqb/responses-reference@npm:@iqb/responses@5.4.0',
+      '@iqbspecs/variable-info-v13@npm:@iqbspecs/variable-info@1.3.0',
+      '@iqbspecs/variable-info-v14@npm:@iqbspecs/variable-info@1.4.0',
       ...(process.env.IQB_CODING_SCHEME_TARBALL ? [resolve(process.env.IQB_CODING_SCHEME_TARBALL)] : [])
     ],
     { cwd: consumerDirectory, stdio: 'inherit' }
@@ -120,7 +122,7 @@ try {
       'void CodingFactory;',
       'void CodingSchemeFactory;',
       'void VariableList;'
-    ].join('\n')
+    ].join('\n') + '\n' + readFileSync(join(__dirname, 'variable-info-consumer.ts.txt'), 'utf8')
   );
   writeFileSync(
     join(consumerDirectory, 'tsconfig.json'),
@@ -160,7 +162,8 @@ try {
     ['node-cjs', 'cts', 'NodeNext', 'NodeNext'],
     ['browser', 'mts', 'ES2020', 'bundler']
   ].forEach(([name, extension, module, moduleResolution]) => {
-    writeFileSync(join(consumerDirectory, `${name}.${extension}`), source);
+    writeFileSync(join(consumerDirectory, `${name}.${extension}`),
+      source + '\n' + readFileSync(join(__dirname, 'variable-info-consumer.ts.txt'), 'utf8'));
     writeFileSync(join(consumerDirectory, `${name}.json`), JSON.stringify({
       compilerOptions: {
         module,
