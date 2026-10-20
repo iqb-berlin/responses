@@ -1,0 +1,77 @@
+{
+  "protocolVersion": 1,
+  "kind": "case",
+  "id": "regression:regex-control-and-noncapturing-groups",
+  "input": {
+    "baseVariables": [
+      {
+        "id": "v",
+        "type": "STRING",
+        "multiple": false
+      }
+    ],
+    "variableCodings": [
+      {
+        "id": "v",
+        "alias": "v",
+        "label": "",
+        "sourceType": "BASE",
+        "sourceParameters": {
+          "solverExpression": "",
+          "processing": []
+        },
+        "deriveSources": [],
+        "processing": [],
+        "fragmenting": "",
+        "manualInstruction": "",
+        "codeModel": "RULES_ONLY",
+        "codes": [
+          {
+            "id": 1,
+            "type": "FULL_CREDIT",
+            "score": 1,
+            "ruleSets": [
+              {
+                "rules": [
+                  {
+                    "method": "MATCH_REGEX",
+                    "parameters": [
+                      "^(?:\\f\\n\\r\\t\\v|[\\b])$"
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "responses": [
+      {
+        "id": "v",
+        "status": "VALUE_CHANGED",
+        "value": "\f\n\r\t\u000b"
+      },
+      {
+        "id": "v",
+        "status": "VALUE_CHANGED",
+        "value": "\b"
+      }
+    ]
+  },
+  "calls": [
+    {
+      "op": "validate"
+    },
+    {
+      "op": "singleCode",
+      "responseIndex": 0,
+      "codingIndex": 0
+    },
+    {
+      "op": "singleCode",
+      "responseIndex": 1,
+      "codingIndex": 0
+    }
+  ]
+}

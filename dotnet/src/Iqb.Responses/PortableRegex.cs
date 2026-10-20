@@ -161,7 +161,7 @@ internal static class PortableRegex
                 additions.Append(lower).Append(upper);
             }
         }
-        return characterClass[..^1] + additions + "]";
+        return characterClass[..^1] + additions.ToString() + "]";
     }
 
     private static NotSupportedException Unsupported() =>
