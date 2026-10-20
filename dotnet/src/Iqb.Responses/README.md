@@ -46,6 +46,10 @@ var result = CodingFactory.Code(
 `CodingFactory` and `CodingSchemeFactory` never mutate caller-owned inputs.
 The package includes coding, derivation, validation, dependency inspection,
 base-variable resolution and the SIMPLE/EXTENDED text renderers.
+Native numeric `ValueArrayPos` assignments (for example `0` or `1m`) are
+normalized to the same numeric representation as JSON input. An omitted
+VariableInfo `multiple` remains unknown (`bool?`); explicit `false` still
+declares a scalar variable.
 
 ## SOLVER compatibility
 
@@ -58,6 +62,10 @@ placeholder, fragment and policy syntax. It also supports the scalar constants
 - `min`, `max`, `gcd`, `pow`, `mod`, `square`, `cube`, `nthRoot`
 - `exp`, `log`, `log10`, `log2`
 - `sin`, `cos`, `tan`, `asin`, `acos`, `atan`, `atan2`, `hypot`
+
+Conditional expressions execute only their selected branch. Comparison chains
+compare adjacent operands, including mixed equality/ordering operators, and
+stop evaluating operands after the first false comparison.
 
 Matrices, units, assignments, user-defined functions, complex values and other
 unrestricted `mathjs` features are not supported. Unsupported syntax and
@@ -81,6 +89,19 @@ pattern text produce the .NET-specific validation problem
 reaches the rule engine, it returns `CODING_ERROR` and reports a
 `NotSupportedException` through the error callback. Syntactically invalid
 patterns within the subset produce `RULE_REGEX_INVALID` during validation.
+
+The supported subset translates dot, anchors, word classes/boundaries and
+whitespace to the JavaScript rules. `IGNORE_CASE` uses ASCII case pairs without
+the Unicode `u` flag or dependence on the current .NET culture. Numeric and
+string normalization use the ECMAScript whitespace set, including BOM and
+excluding NEL.
+
+`fragmenting` uses the same portable subset and additionally supports ASCII
+named capture groups. Fragments retain their source order and distinguish a
+nonparticipating group from a captured empty string. Unsupported and malformed
+fragment patterns produce `FRAGMENT_REGEX_UNSUPPORTED` and
+`FRAGMENT_REGEX_INVALID`, respectively; bypassing validation produces
+`CODING_ERROR`. These fragment diagnostics are specific to the .NET preview.
 
 These restrictions apply only to this .NET preview. The JavaScript package
 retains its native `RegExp` behavior, including non-ASCII patterns, lookaround,
