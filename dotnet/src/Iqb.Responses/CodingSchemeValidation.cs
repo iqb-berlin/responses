@@ -37,10 +37,11 @@ internal static class CodingSchemeValidation
 
         foreach (var coding in codings)
         {
-            var publicId = coding.Alias ?? coding.Id;
+            var publicId = coding.PublicIdentifier;
             var label = coding.Label ?? string.Empty;
             if (codings.Count(item => item.Id == coding.Id) > 1) Add(problems, "INVALID_SOURCE", true, publicId, label);
-            if (coding.Alias is not null && aliasGroups[coding.Alias].Count > 1 && !AllowedShadowGroup(coding.Alias, aliasGroups, codingById))
+            if (coding.Alias is not null && aliasGroups.TryGetValue(coding.Alias, out var aliasGroup) &&
+                aliasGroup.Count > 1 && !AllowedShadowGroup(coding.Alias, aliasGroups, codingById))
                 Add(problems, "INVALID_SOURCE", true, publicId, label);
             if (HasPublicCollision(coding, codingById) && !ShadowsBase(coding, codingById))
                 Add(problems, "INVALID_SOURCE", true, publicId, label);
@@ -53,7 +54,7 @@ internal static class CodingSchemeValidation
 
         foreach (var coding in codings)
         {
-            var publicId = coding.Alias ?? coding.Id;
+            var publicId = coding.PublicIdentifier;
             var label = coding.Label ?? string.Empty;
             ValidateSources(coding, publicId, label, baseById, baseIds, possibleSources, problems);
             var shape = GetShape(coding, baseById, codingById, []);
@@ -117,7 +118,7 @@ internal static class CodingSchemeValidation
         var allowed = position is null || position is double || position is string text &&
             text is "ANY" or "ANY_OPEN" or "SUM" or "LENGTH";
         if (!allowed) Add(problems, "RULESET_VALUE_ARRAY_POS_INVALID", true, id, label, code);
-        if (position is double number && (number < 0 || number != Math.Truncate(number)))
+        if (position is double number && (!double.IsFinite(number) || number < 0 || number != Math.Truncate(number)))
             Add(problems, "RULESET_VALUE_ARRAY_POS_INVALID", true, id, label, code);
         if (position is not null && shape.Multiple == false)
             Add(problems, "RULESET_VALUE_ARRAY_POS_INVALID", true, id, label, code);
@@ -223,7 +224,7 @@ internal static class CodingSchemeValidation
 
     private static bool HasPublicCollision(VariableCodingData coding, IReadOnlyDictionary<string, VariableCodingData> byId) =>
         coding.Alias is not null && coding.Alias != coding.Id && byId.TryGetValue(coding.Alias, out var match) &&
-        match.SourceType != "BASE_NO_VALUE" && (match.Alias ?? match.Id) == coding.Alias;
+        match.SourceType != "BASE_NO_VALUE" && match.PublicIdentifier == coding.Alias;
 
     private static string CodeRef(CodeData code) => code.Id switch
     {

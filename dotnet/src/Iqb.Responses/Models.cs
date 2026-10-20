@@ -45,6 +45,8 @@ public sealed class CodingRule
 
 public sealed class RuleSet
 {
+    private object? _valueArrayPos;
+
     [JsonPropertyName("rules")]
     public List<CodingRule> Rules { get; set; } = [];
 
@@ -55,7 +57,13 @@ public sealed class RuleSet
     [JsonPropertyName("valueArrayPos")]
     [JsonConverter(typeof(ScalarUnionJsonConverter))]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public object? ValueArrayPos { get; set; }
+    public object? ValueArrayPos
+    {
+        get => _valueArrayPos;
+        set => _valueArrayPos = value is byte or sbyte or short or ushort or int or uint or long or ulong or float or decimal
+            ? Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture)
+            : value;
+    }
 }
 
 public sealed class CodeData
@@ -111,6 +119,8 @@ public sealed class VariableCodingData
     [JsonPropertyName("alias")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Alias { get; set; }
+
+    internal string PublicIdentifier => string.IsNullOrEmpty(Alias) ? Id : Alias;
 
     [JsonPropertyName("label")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -184,7 +194,7 @@ public sealed class VariableInfo
     public string Format { get; set; } = string.Empty;
 
     [JsonPropertyName("multiple")]
-    public bool Multiple { get; set; }
+    public bool? Multiple { get; set; }
 
     [JsonPropertyName("nullable")]
     public bool Nullable { get; set; }
