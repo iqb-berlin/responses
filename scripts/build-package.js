@@ -48,7 +48,7 @@ function explicitExtensions(context) {
           node.modifiers,
           node.importClause,
           specifier(node.moduleSpecifier),
-          node.assertClause
+          node.attributes
         );
       }
       if (ts.isExportDeclaration(node) && node.moduleSpecifier) {
@@ -58,7 +58,7 @@ function explicitExtensions(context) {
           node.isTypeOnly,
           node.exportClause,
           specifier(node.moduleSpecifier),
-          node.assertClause
+          node.attributes
         );
       }
       return ts.visitEachChild(node, visit, context);

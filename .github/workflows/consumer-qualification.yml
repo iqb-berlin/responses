@@ -1,0 +1,144 @@
+name: Consumer qualification
+
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - package_npm.json
+      - .github/workflows/consumer-qualification.yml
+      - scripts/consumers/**
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run prepare_publish
+      - run: mkdir candidate && npm pack ./dist --pack-destination candidate
+      - uses: actions/upload-artifact@v4
+        with:
+          name: consumer-candidate
+          path: candidate/*.tgz
+
+  host:
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: studio
+            repository: iqb-berlin/studio-lite
+            ref: 448ecb6bbf349d5e25948c87d0d5165d59b97d28
+            backend: api
+            frontendTests: (export-coding-book|coding-report|unit-preview).*spec
+            backendTests: (download-docx|download-workspaces|workspace.service).*spec
+          - name: coding-box
+            repository: iqb-berlin/coding-box
+            ref: df946eb3212cc18909c57c5a3d93a8191d8d0618
+            backend: backend
+            frontendTests: (export-coding-book|coding-scheme.service|coding-management.service).*spec
+            backendTests: (coding.module|codebook-generator.class|codebook-docx-generator|test-person-coding.processor).*spec
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: responses_consumer
+          POSTGRES_PASSWORD: consumer-test-only
+          POSTGRES_DB: responses_consumer
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U responses_consumer"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: [6379:6379]
+    env:
+      NX_DAEMON: 'false'
+      NX_SKIP_NX_CACHE: 'true'
+      NX_NO_CLOUD: 'true'
+      NODE_OPTIONS: --max-old-space-size=6144
+      RESPONSES_CONSUMER_TEST: 'true'
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: responses_consumer
+      POSTGRES_PASSWORD: consumer-test-only
+      POSTGRES_DB: responses_consumer
+      REDIS_HOST: 127.0.0.1
+      REDIS_PORT: 6379
+      REDIS_PREFIX: responses-consumer
+      JWT_SECRET: synthetic-consumer-test-secret
+      OAUTH2_CLIENT_ID: responses-consumer
+      OIDC_ISSUER: https://issuer.example.test
+      OIDC_JWKS_URI: https://issuer.example.test/certs
+      API_HOST: 127.0.0.1
+    defaults:
+      run:
+        working-directory: host
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: responses
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.repository }}
+          ref: ${{ matrix.ref }}
+          path: host
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: consumer-candidate
+          path: candidate
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Repair the pinned Studio baseline's missing optional peers
+        if: matrix.name == 'studio'
+        run: |
+          mkdir qualification
+          git apply ../responses/scripts/consumers/studio-optional-peers.patch
+          git diff -- package-lock.json > qualification/baseline-lock-repair.patch
+      - name: Install unchanged host dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Build baseline frontend
+        run: npx nx build frontend --configuration=production --stats-json
+      - name: Record baseline JavaScript size
+        run: node ../responses/scripts/consumers/verify-host.cjs baseline
+      - name: Install the exact candidate tarball
+        run: npm install --ignore-scripts --no-audit --no-fund ../candidate/*.tgz
+      - name: Clear baseline compiler and task caches
+        run: rm -rf .angular/cache .nx dist/apps/frontend
+      - name: Check CommonJS and browser ESM behavior
+        run: node ../responses/scripts/consumers/verify-host.cjs runtime
+      - name: Test frontend coding and Codebook consumers
+        run: npx nx test frontend --runInBand --testPathPatterns='${{ matrix.frontendTests }}'
+      - name: Build candidate frontend
+        run: npx nx build frontend --configuration=production --stats-json
+      - name: Verify the host bundle uses ESM
+        run: node ../responses/scripts/consumers/verify-host.cjs bundle
+      - name: Test backend coding and Codebook consumers
+        env:
+          NODE_OPTIONS: ${{ matrix.name == 'studio' && '--experimental-vm-modules --max-old-space-size=6144' || '--max-old-space-size=6144' }}
+        run: npx nx test ${{ matrix.backend }} --runInBand --testPathPatterns='${{ matrix.backendTests }}'
+      - name: Build backend
+        run: npx nx build ${{ matrix.backend }} --configuration=production
+      - name: Start the built backend with disposable infrastructure
+        run: node ../responses/scripts/consumers/verify-host.cjs startup ${{ matrix.backend }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qualification-${{ matrix.name }}
+          path: host/qualification/
+

@@ -20,6 +20,10 @@ const readJson = filePath => JSON.parse(readFileSync(filePath, 'utf8'));
 const rootManifest = readJson(join(repositoryRoot, 'package.json'));
 const publishManifest = readJson(join(distDirectory, 'package.json'));
 
+for (const field of ['devDependencies', 'workspaces', 'engines']) {
+  assert.equal(publishManifest[field], undefined, `Development-only ${field} must not enter the npm artifact.`);
+}
+
 assert.equal(
   publishManifest.version,
   rootManifest.version,
@@ -115,70 +119,39 @@ try {
     cwd: consumerDirectory, stdio: 'inherit'
   });
 
-  writeFileSync(
-    join(consumerDirectory, 'consumer.ts'),
-    [
-      "import { CodingFactory, CodingSchemeFactory, VariableList } from '@iqb/responses';",
-      'void CodingFactory;',
-      'void CodingSchemeFactory;',
-      'void VariableList;'
-    ].join('\n') + '\n' + readFileSync(join(__dirname, 'variable-info-consumer.ts.txt'), 'utf8')
-  );
-  writeFileSync(
-    join(consumerDirectory, 'tsconfig.json'),
-    JSON.stringify(
-      {
+  // The runtime-only CI jobs intentionally do not install development tooling.
+  if (!process.argv.includes('--runtime-only')) {
+    const source = [
+      "import { CodingFactory, CodingSchemeFactory } from '@iqb/responses';",
+      "import { CodingAsText } from '@iqb/responses/coding-interfaces';",
+      "import { transformValue } from '@iqb/responses/value-transform.js';",
+      "import { ToTextFactory } from '@iqb/responses/presentation';",
+      'void CodingFactory; void CodingSchemeFactory; void transformValue; void ToTextFactory;',
+      'const variables: CodingAsText[] = []; void variables;'
+    ].join('\n') + '\n' + readFileSync(join(__dirname, 'variable-info-consumer.ts.txt'), 'utf8');
+    const compilers = ['typescript', 'typescript-compat'];
+    for (const [name, extension, module, moduleResolution] of [
+      ['node-classic', 'ts', 'commonjs', 'node'],
+      ['node-esm', 'mts', 'NodeNext', 'NodeNext'],
+      ['node-cjs', 'cts', 'NodeNext', 'NodeNext'],
+      ['browser', 'mts', 'ES2020', 'bundler']
+    ]) {
+      writeFileSync(join(consumerDirectory, `${name}.${extension}`), source);
+      writeFileSync(join(consumerDirectory, `${name}.json`), JSON.stringify({
         compilerOptions: {
-          module: 'commonjs',
-          moduleResolution: 'node',
-          noEmit: true,
-          skipLibCheck: false,
-          strict: true,
-          target: 'ES2020'
+          module, moduleResolution, noEmit: true, strict: true,
+          skipLibCheck: false, target: 'ES2020'
         },
-        files: ['consumer.ts']
-      },
-      null,
-      2
-    )
-  );
-
-  const typescriptCompiler = require.resolve('typescript/bin/tsc');
-  execFileSync(process.execPath, [typescriptCompiler, '--project', 'tsconfig.json'], {
-    cwd: consumerDirectory,
-    stdio: 'inherit'
-  });
-
-  const source = [
-    "import { CodingFactory, CodingSchemeFactory } from '@iqb/responses';",
-    "import { CodingAsText } from '@iqb/responses/coding-interfaces';",
-    "import { transformValue } from '@iqb/responses/value-transform.js';",
-    "import { ToTextFactory } from '@iqb/responses/presentation';",
-    'void CodingFactory; void CodingSchemeFactory; void transformValue; void ToTextFactory;',
-    'const variables: CodingAsText[] = []; void variables;'
-  ].join('\n');
-  [
-    ['node-esm', 'mts', 'NodeNext', 'NodeNext'],
-    ['node-cjs', 'cts', 'NodeNext', 'NodeNext'],
-    ['browser', 'mts', 'ES2020', 'bundler']
-  ].forEach(([name, extension, module, moduleResolution]) => {
-    writeFileSync(join(consumerDirectory, `${name}.${extension}`),
-      source + '\n' + readFileSync(join(__dirname, 'variable-info-consumer.ts.txt'), 'utf8'));
-    writeFileSync(join(consumerDirectory, `${name}.json`), JSON.stringify({
-      compilerOptions: {
-        module,
-        moduleResolution,
-        noEmit: true,
-        strict: true,
-        skipLibCheck: false,
-        target: 'ES2020'
-      },
-      files: [`${name}.${extension}`]
-    }));
-    execFileSync(process.execPath, [typescriptCompiler, '--project', `${name}.json`], {
-      cwd: consumerDirectory, stdio: 'inherit'
-    });
-  });
+        files: [`${name}.${extension}`]
+      }));
+      for (const compiler of compilers) {
+        execFileSync(process.execPath, [require.resolve(`${compiler}/bin/tsc`), '--project', `${name}.json`], {
+          cwd: consumerDirectory, stdio: 'inherit'
+        });
+      }
+    }
+    console.log('Package declarations pass TypeScript 5.4.5 and 5.9.3 in all four resolution modes.');
+  }
 } finally {
   rmSync(temporaryRoot, { recursive: true, force: true });
 }

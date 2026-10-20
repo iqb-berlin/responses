@@ -27,17 +27,17 @@ export abstract class CodingSchemeFactory {
   variableCodings: VariableCodingData[] = [];
 
   private static buildCodingPipeline(options?: { onError?: (error: unknown) => void }): Array<
-  (ctx: {
-    responses: Response[];
-    variableCodings: VariableCodingData[];
-    notSubformResponses: Response[];
-    allResponses: Response[];
-  }) => {
-    responses: Response[];
-    variableCodings: VariableCodingData[];
-    notSubformResponses: Response[];
-    allResponses: Response[];
-  }
+    (ctx: {
+      responses: Response[];
+      variableCodings: VariableCodingData[];
+      notSubformResponses: Response[];
+      allResponses: Response[];
+    }) => {
+      responses: Response[];
+      variableCodings: VariableCodingData[];
+      notSubformResponses: Response[];
+      allResponses: Response[];
+    }
   > {
     return [
       ctx => ({

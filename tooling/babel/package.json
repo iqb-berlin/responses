@@ -1,0 +1,13 @@
+{
+  "name": "@iqb/responses-babel-tooling",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^22.18.0 || >=24.11.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^8.0.7",
+    "@babel/preset-typescript": "^8.0.7"
+  }
+}
