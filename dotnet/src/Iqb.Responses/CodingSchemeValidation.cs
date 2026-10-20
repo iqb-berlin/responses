@@ -57,6 +57,14 @@ internal static class CodingSchemeValidation
             var publicId = coding.PublicIdentifier;
             var label = coding.Label ?? string.Empty;
             ValidateSources(coding, publicId, label, baseById, baseIds, possibleSources, problems);
+            if (!string.IsNullOrEmpty(coding.Fragmenting))
+            {
+                var fragmentStatus = PortableRegex.Analyze(coding.Fragmenting, allowNamedCaptures: true);
+                if (fragmentStatus == PortableRegexStatus.Unsupported)
+                    Add(problems, "FRAGMENT_REGEX_UNSUPPORTED", true, publicId, label);
+                else if (fragmentStatus == PortableRegexStatus.Invalid)
+                    Add(problems, "FRAGMENT_REGEX_INVALID", true, publicId, label);
+            }
             var shape = GetShape(coding, baseById, codingById, []);
             if (coding.Codes is { Count: > 0 })
             {

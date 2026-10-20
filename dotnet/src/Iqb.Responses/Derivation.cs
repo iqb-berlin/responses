@@ -314,7 +314,7 @@ internal static class Derivation
     {
         var parts = content.Split(':');
         if (parts.Length > 3) return null;
-        var alias = parts[0].Trim();
+        var alias = EcmaScript.Trim(parts[0]);
         int? fragment = null;
         var empty = parts.Length > 1 ? ParsePolicy(parts[1]) : SolverPolicy.Error;
         var nonNumeric = parts.Length > 2 ? ParsePolicy(parts[2]) : SolverPolicy.Error;
@@ -322,9 +322,9 @@ internal static class Derivation
         if (alias.EndsWith(']'))
         {
             var bracket = alias.LastIndexOf('[');
-            if (bracket < 0 || !int.TryParse(alias[(bracket + 1)..^1].Trim(), out var index) || index < 0) return null;
+            if (bracket < 0 || !int.TryParse(EcmaScript.Trim(alias[(bracket + 1)..^1]), out var index) || index < 0) return null;
             fragment = index;
-            alias = alias[..bracket].Trim();
+            alias = EcmaScript.Trim(alias[..bracket]);
         }
         if (alias.Length == 0 || alias.Any(character => !(char.IsAsciiLetterOrDigit(character) || character is '_' or ',' or '-')))
             return null;
@@ -333,7 +333,7 @@ internal static class Derivation
 
     private static SolverPolicy? ParsePolicy(string value)
     {
-        var trimmed = value.Trim();
+        var trimmed = EcmaScript.Trim(value);
         if (trimmed.Equals("ERROR", StringComparison.OrdinalIgnoreCase)) return SolverPolicy.Error;
         if (trimmed.Equals("INC", StringComparison.OrdinalIgnoreCase)) return SolverPolicy.Incomplete;
         if (trimmed.Length == 0) return null;
@@ -356,7 +356,7 @@ internal static class Derivation
             {
                 transformed = ValueTransforms.TransformValue(response.Value, sourceCoding.Fragmenting ?? string.Empty, false);
             }
-            catch (ArgumentException)
+            catch (Exception error) when (error is ArgumentException or NotSupportedException or RegexMatchTimeoutException)
             {
                 return SolverResolution.DeriveError;
             }
@@ -364,7 +364,8 @@ internal static class Derivation
             var list = fragments.ToList();
             if (replacement.Fragment.Value >= list.Count) return SolverResolution.Empty;
             var fragment = list[replacement.Fragment.Value];
-            if (fragment is string text && string.IsNullOrWhiteSpace(text)) return SolverResolution.Empty;
+            if (ReferenceEquals(fragment, EcmaScript.Undefined)) return SolverResolution.Empty;
+            if (fragment is string text && EcmaScript.IsWhiteSpaceOnly(text)) return SolverResolution.Empty;
             if (fragment is IEnumerable<object?>) return SolverResolution.DeriveError;
             var fragmentNumber = ValueTransforms.GetValueAsNumber(fragment);
             return fragmentNumber is null ? SolverResolution.NonNumeric : SolverResolution.Value(fragmentNumber.Value);
@@ -382,7 +383,7 @@ internal static class Derivation
         _ => new PolicyResult(0, Error(coding, subform))
     };
 
-    private static bool IsSolverEmpty(object? value) => value is null || value is string text && string.IsNullOrWhiteSpace(text);
+    private static bool IsSolverEmpty(object? value) => value is null || value is string text && EcmaScript.IsWhiteSpaceOnly(text);
     private static bool HasSourceProcessing(VariableCodingData coding, string processing) =>
         coding.SourceParameters?.Processing?.Contains(processing) == true;
 

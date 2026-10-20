@@ -54,7 +54,7 @@ public static class CodingFactory
                 coding.Fragmenting ?? string.Empty,
                 coding.Processing?.Contains("SORT_ARRAY") == true);
         }
-        catch (Exception error) when (error is ArgumentException or System.Text.RegularExpressions.RegexMatchTimeoutException)
+        catch (Exception error) when (error is ArgumentException or NotSupportedException or System.Text.RegularExpressions.RegexMatchTimeoutException)
         {
             onError?.Invoke(error);
             result.Status = ResponseStatus.CodingError;
