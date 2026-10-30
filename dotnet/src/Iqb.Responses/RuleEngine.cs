@@ -18,9 +18,7 @@ internal static class RuleEngine
         var member = ResolveArrayMember(valueToCheck, ruleSet, isValueArray, out var hasMember);
         var valueToEvaluate = hasMember ? member : valueToCheck;
         var arrayForRules = !hasMember && isValueArray;
-        var matches = ruleSet.RuleOperatorAnd == true
-            ? ruleSet.Rules.All(rule => IsMatchRule(valueToEvaluate, rule, arrayForRules, codingProcessing))
-            : ruleSet.Rules.Any(rule => IsMatchRule(valueToEvaluate, rule, arrayForRules, codingProcessing));
+        var matches = EvaluateRules(valueToEvaluate, ruleSet, arrayForRules, codingProcessing);
 
         if (!matches || !isValueArray || valueToCheck is not IEnumerable<object?> sequence)
         {
@@ -31,14 +29,22 @@ internal static class RuleEngine
         var position = ruleSet.ValueArrayPos as string;
         if (position == "ANY_OPEN" && values.Count > 0)
         {
-            return values.Any(value => ruleSet.Rules.All(rule => IsMatchRule(value, rule, false, codingProcessing)));
+            return values.Any(value => EvaluateRules(value, ruleSet, false, codingProcessing));
         }
         if (position == "ANY" && values.Count > 1)
         {
-            return values.All(value => ruleSet.Rules.All(rule => IsMatchRule(value, rule, false, codingProcessing)));
+            return values.All(value => EvaluateRules(value, ruleSet, false, codingProcessing));
         }
         return matches;
     }
+
+    private static bool EvaluateRules(
+        object? value,
+        RuleSet ruleSet,
+        bool isValueArray,
+        IReadOnlyCollection<string> codingProcessing) => ruleSet.RuleOperatorAnd == true
+            ? ruleSet.Rules.All(rule => IsMatchRule(value, rule, isValueArray, codingProcessing))
+            : ruleSet.Rules.Any(rule => IsMatchRule(value, rule, isValueArray, codingProcessing));
 
     private static object? ResolveArrayMember(object? value, RuleSet ruleSet, bool isArray, out bool found)
     {

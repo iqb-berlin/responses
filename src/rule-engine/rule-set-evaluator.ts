@@ -30,9 +30,7 @@ function evaluateAnyOpen(
   if (valueToCheck.length === 0) return false;
   if (ruleSet.valueArrayPos !== 'ANY_OPEN') return false;
 
-  return valueToCheck.some(value => (ruleSet.rules ?? [])
-    .every(rule => isMatchRule(value, rule, false, codingProcessing))
-  );
+  return valueToCheck.some(value => evaluateRuleSetRules(value, ruleSet, false, codingProcessing));
 }
 
 function evaluateAllMembers(
@@ -44,10 +42,7 @@ function evaluateAllMembers(
   if (valueToCheck.length <= 1) return false;
   if (ruleSet.valueArrayPos !== 'ANY') return false;
 
-  return valueToCheck.every(value => (ruleSet.rules ?? [])
-    .every(rule => isMatchRule(value, rule, false, codingProcessing)
-    )
-  );
+  return valueToCheck.every(value => evaluateRuleSetRules(value, ruleSet, false, codingProcessing));
 }
 
 export function isMatchRuleSet(
