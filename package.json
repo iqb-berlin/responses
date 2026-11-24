@@ -68,6 +68,19 @@
   "overrides": {
     "ts-api-utils": {
       "typescript": "6.0.3"
+    },
+    "test-exclude": {
+      "minimatch": "^11.0.9",
+      "glob": "^14.0.6"
+    },
+    "@jest/reporters": {
+      "glob": "^14.0.6"
+    },
+    "jest-config": {
+      "glob": "^14.0.6"
+    },
+    "jest-runtime": {
+      "glob": "^14.0.6"
     }
   }
 }
