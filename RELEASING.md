@@ -10,7 +10,7 @@ of the .NET preview must not narrow that behavior.
 Validate the exact commit intended for the release:
 
 1. Run `npm ci`, `npm run lint`, `npm run test:coverage` and
-   `npm run test:toolchain` on the Node 22/24 development matrix.
+   `npm run test:toolchain` on the Node 22/24/26 development matrix.
    The Jest coverage command type-checks all sources and tests before running
    SWC. ESLint uses the repository’s rules and a private TypeScript 6 parser
    dependency. The package build uses TypeScript 7.
