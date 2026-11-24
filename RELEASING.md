@@ -13,7 +13,9 @@ Validate the exact commit intended for the release:
    `npm run test:toolchain` on the Node 22/24/26 development matrix.
    The Jest coverage command type-checks all sources and tests before running
    SWC. ESLint uses the repository’s rules and a private TypeScript 6 parser
-   dependency. The package build uses TypeScript 7.
+   dependency. The package build uses TypeScript 7. The npm overrides for Jest
+   and Istanbul select patched glob and minimatch versions for test discovery
+   and coverage (GHSA-3g3m-2fjr-6pw4 and GHSA-g3hv-75wg-m249).
 2. Run `npm run prepare_publish` and `npm run test:package`. The latter installs
    the produced tarball in an independent consumer, checks public exports and
    TypeScript resolution, and exercises partial credit and the regex behavior
