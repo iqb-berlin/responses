@@ -11,17 +11,17 @@ Validate the exact commit intended for the release:
 
 1. Run `npm ci`, `npm run lint`, `npm run test:coverage` and
    `npm run test:toolchain` on the Node 22/24 development matrix.
-   Babel 8 is isolated in the private tooling workspace; Jest's Babel 7 helpers
-   retain their own compatible dependency graph. The IQB lint policy uses its
-   local typescript-eslint 8/Stylistic adapter and explicit peer overrides.
+   The Jest coverage command type-checks all sources and tests before running
+   SWC. ESLint uses the repository’s rules and a private TypeScript 6 parser
+   dependency. The package build uses TypeScript 7.
 2. Run `npm run prepare_publish` and `npm run test:package`. The latter installs
    the produced tarball in an independent consumer, checks public exports and
    TypeScript resolution, and exercises partial credit and the regex behavior
    retained from 5.4.0. VariableInfo checks compile actual published 1.3/1.4/2.1
    declarations against the candidate in classic Node, NodeNext ESM/CommonJS and
    bundler modes, including previous public API assignments and mutable legacy lists.
-   Both the build compiler (5.9.3) and the previous consumer compiler (5.4.5)
-   must pass. The separate Node 18/20 jobs download the built artifact and run
+   TypeScript 5.4.5 and 5.9.3 must pass in all four modes. TypeScript 7.0.2
+   must pass in NodeNext ESM/CommonJS and bundler modes. The separate Node 18/20 jobs download the built artifact and run
    `node scripts/verify-package.js --runtime-only` without installing the newer
    development toolchain. Keep these package-runtime checks when changing the
    development Node requirements.

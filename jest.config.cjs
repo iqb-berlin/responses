@@ -1,9 +1,12 @@
-/** @type {import('ts-jest').JestConfigWithTsJest} */
+/** @type {import('jest').Config} */
 module.exports = {
-  preset: 'ts-jest',
   transform: {
-    '^.+\\.tsx?$': ['ts-jest', { tsconfig: { types: ['node', 'jest'] } }]
+    '^.+\\.tsx?$': ['@swc/jest', {
+      jsc: { parser: { syntax: 'typescript' }, target: 'es2016' },
+      module: { type: 'commonjs' }
+    }]
   },
+  moduleNameMapper: { '^(\\.{1,2}/.*)\\.js$': '$1' },
   testEnvironment: 'node',
   testMatch: ['**/test/**/test.ts', '**/test/**/*.test.ts', '**/test/**/*.spec.ts'],
   collectCoverageFrom: ['src/**/*.ts'],

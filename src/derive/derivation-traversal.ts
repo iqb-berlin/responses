@@ -1,12 +1,12 @@
-import { Response } from '@iqbspecs/response/response.interface';
+import { Response } from '@iqbspecs/response/response.interface.js';
 import {
   validStatesToStartDeriving,
   VariableCodingData
 } from '@iqbspecs/coding-scheme';
-import { CODING_SCHEME_STATUS } from '../constants';
-import type { VariableGraphNode } from '../graph/dependency-tree';
-import { CodingFactory } from '../coding-factory';
-import { deriveValue } from './derive-value';
+import { CODING_SCHEME_STATUS } from '../constants.js';
+import type { VariableGraphNode } from '../graph/dependency-tree.js';
+import { CodingFactory } from '../coding-factory.js';
+import { deriveValue } from './derive-value.js';
 
 export function applyDerivationsAndCoding(
   responses: Response[],

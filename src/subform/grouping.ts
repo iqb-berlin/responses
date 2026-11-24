@@ -1,4 +1,4 @@
-import { Response } from '@iqbspecs/response/response.interface';
+import { Response } from '@iqbspecs/response/response.interface.js';
 
 export const groupResponsesBySubform = (
   responses: Response[]

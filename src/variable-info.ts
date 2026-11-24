@@ -1,4 +1,4 @@
-import { VariableInfo as CurrentVariableInfo } from '@iqbspecs/variable-info/variable-info.interface';
+import { VariableInfo as CurrentVariableInfo } from '@iqbspecs/variable-info/variable-info.interface.js';
 
 /** The structural 1.x contract, retained for existing VariableList consumers. */
 export interface LegacyVariableInfo {

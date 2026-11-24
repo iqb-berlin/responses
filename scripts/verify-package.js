@@ -9,7 +9,7 @@ const {
   writeFileSync
 } = require('node:fs');
 const { tmpdir } = require('node:os');
-const { join, resolve } = require('node:path');
+const { dirname, join, resolve } = require('node:path');
 
 const repositoryRoot = resolve(__dirname, '..');
 const distDirectory = join(repositoryRoot, 'dist');
@@ -129,7 +129,7 @@ try {
       'void CodingFactory; void CodingSchemeFactory; void transformValue; void ToTextFactory;',
       'const variables: CodingAsText[] = []; void variables;'
     ].join('\n') + '\n' + readFileSync(join(__dirname, 'variable-info-consumer.ts.txt'), 'utf8');
-    const compilers = ['typescript', 'typescript-compat'];
+    const previousCompilers = ['typescript-compat', 'typescript-compat-5-9'];
     for (const [name, extension, module, moduleResolution] of [
       ['node-classic', 'ts', 'commonjs', 'node'],
       ['node-esm', 'mts', 'NodeNext', 'NodeNext'],
@@ -144,13 +144,16 @@ try {
         },
         files: [`${name}.${extension}`]
       }));
+      // TypeScript 7 removed node10 resolution. Older consumers still rely on it.
+      const compilers = name === 'node-classic' ? previousCompilers : [...previousCompilers, 'typescript'];
       for (const compiler of compilers) {
-        execFileSync(process.execPath, [require.resolve(`${compiler}/bin/tsc`), '--project', `${name}.json`], {
+        const tsc = join(dirname(require.resolve(`${compiler}/package.json`)), 'bin/tsc');
+        execFileSync(process.execPath, [tsc, '--project', `${name}.json`], {
           cwd: consumerDirectory, stdio: 'inherit'
         });
       }
     }
-    console.log('Package declarations pass TypeScript 5.4.5 and 5.9.3 in all four resolution modes.');
+    console.log('Package declarations pass TypeScript 5.4, 5.9 and 7 in their supported resolution modes.');
   }
 } finally {
   rmSync(temporaryRoot, { recursive: true, force: true });

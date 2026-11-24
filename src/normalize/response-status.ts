@@ -1,7 +1,7 @@
-import { Response } from '@iqbspecs/response/response.interface';
+import { Response } from '@iqbspecs/response/response.interface.js';
 import { SourceProcessingType, VariableCodingData } from '@iqbspecs/coding-scheme';
-import { CodingFactory } from '../coding-factory';
-import { CODING_SCHEME_STATUS } from '../constants';
+import { CodingFactory } from '../coding-factory.js';
+import { CODING_SCHEME_STATUS } from '../constants.js';
 
 export const normalizeDisplayedToValueChanged = (
   responses: Response[],

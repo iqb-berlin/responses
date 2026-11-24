@@ -1,12 +1,12 @@
 import {
   ResponseValueSingleType,
   ResponseValueType
-} from '@iqbspecs/response/response.interface';
+} from '@iqbspecs/response/response.interface.js';
 import {
   ProcessingParameterType,
   SourceProcessingType,
   TransformedResponseValueType
-} from '@iqbspecs/coding-scheme/coding-scheme.interface';
+} from '@iqbspecs/coding-scheme/coding-scheme.interface.js';
 
 export function compileFragmentRegExp(fragmenting: string): RegExp | undefined {
   return fragmenting ? new RegExp(fragmenting, 'g') : undefined;

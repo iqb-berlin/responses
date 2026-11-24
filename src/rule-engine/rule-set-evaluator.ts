@@ -2,9 +2,9 @@ import {
   ProcessingParameterType,
   RuleSet,
   TransformedResponseValueType
-} from '@iqbspecs/coding-scheme/coding-scheme.interface';
-import { isMatchRule } from './rule-matcher';
-import { resolveValueArrayPosMember } from './array-position';
+} from '@iqbspecs/coding-scheme/coding-scheme.interface.js';
+import { isMatchRule } from './rule-matcher.js';
+import { resolveValueArrayPosMember } from './array-position.js';
 
 function evaluateRuleSetRules(
   valueToEvaluate: TransformedResponseValueType,

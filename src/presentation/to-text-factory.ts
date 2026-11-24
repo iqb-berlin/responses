@@ -6,11 +6,11 @@ import {
   SourceType,
   VariableSourceParameters
 } from '@iqbspecs/coding-scheme';
-import { ResponseValueSingleType } from '@iqbspecs/response/response.interface';
-import { VariableInfoInput } from '../variable-info';
-import { CodeAsText, CodingToTextMode } from '../coding-interfaces';
-import { CodingFactory } from '../coding-factory';
-import { normalizeVariableInfoFormat, normalizeVariableInfoType } from '../normalize/variable-info-spelling';
+import { ResponseValueSingleType } from '@iqbspecs/response/response.interface.js';
+import { VariableInfoInput } from '../variable-info.js';
+import { CodeAsText, CodingToTextMode } from '../coding-interfaces.js';
+import { CodingFactory } from '../coding-factory.js';
+import { normalizeVariableInfoFormat, normalizeVariableInfoType } from '../normalize/variable-info-spelling.js';
 
 // Keyed by the VariableInfo 2.x spelling; values in 1.x spelling are
 // normalized before the lookup.

@@ -1,4 +1,4 @@
-import { Response } from '@iqbspecs/response/response.interface';
+import { Response } from '@iqbspecs/response/response.interface.js';
 import { VariableCodingData } from '@iqbspecs/coding-scheme';
 
 const isDerivedVariable = (coding: VariableCodingData): boolean => (
