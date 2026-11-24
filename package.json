@@ -86,6 +86,6 @@
     "@iqbspecs/coding-scheme": "^3.5.0",
     "@iqbspecs/response": "^2.0.0",
     "@iqbspecs/variable-info": "^2.1.0",
-    "mathjs": "^15.1.0"
+    "mathjs": "^15.2.0"
   }
 }
