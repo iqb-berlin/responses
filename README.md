@@ -55,6 +55,8 @@ npm i @iqb/responses
 
 ### .NET 10
 
+Build with the .NET 11 SDK and install the .NET 10 runtime to run the tests and package smoke check.
+
 The repository also contains the preview of the native .NET package
 `Iqb.Responses`. It uses the same camel-case JSON contracts and does not require
 Node.js at runtime. Its supported feature set is narrower than the stable
@@ -336,8 +338,8 @@ remain available for comparisons; ingestion does not rewrite stored data.
 
 ## JavaScript module formats
 
-Development uses Node 22.18+ or 24.11+ and TypeScript 7.0.2. TypeScript compiles
-both package formats and type-checks the source and tests. Jest uses SWC to run
+Development uses Node 22.18+ or 24.11+ and TypeScript 7.0.2. The default in
+`.nvmrc` is Node 26 LTS. TypeScript compiles both package formats and type-checks the source and tests. Jest uses SWC to run
 the TypeScript tests. ESLint uses the project’s rules and an isolated TypeScript
 6 installation for the parser. The private Babel workspace verifies the Babel 8
 TypeScript preset with `npm run test:toolchain`.
