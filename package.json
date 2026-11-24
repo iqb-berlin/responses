@@ -34,36 +34,16 @@
     "url": "https://github.com/iqb-berlin/responses/issues"
   },
   "homepage": "https://github.com/iqb-berlin/responses#readme",
-  "eslintConfig": {
-    "overrides": [
-      {
-        "files": [
-          "*.ts"
-        ],
-        "extends": "./scripts/eslint-typescript.cjs",
-        "parserOptions": {
-          "project": [
-            "./tsconfig.eslint.json"
-          ]
-        }
-      },
-      {
-        "files": [
-          "*.js"
-        ],
-        "extends": "@iqb/eslint-config/javascript"
-      }
-    ]
-  },
   "devDependencies": {
     "@babel/core": "^7.28.6",
-    "@iqb/eslint-config": "^2.2.0",
+    "@eslint/js": "^10.0.1",
+    "@iqb/eslint-config": "^3.0.1",
     "@jest/globals": "^30.2.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.5",
-    "@typescript-eslint/parser": "^8.72.0",
-    "@typescript-eslint/eslint-plugin": "^8.72.0",
-    "@stylistic/eslint-plugin": "^2.13.0",
+    "eslint": "^10.15.0",
+    "eslint-plugin-import-x": "^4.18.1",
+    "globals": "^15.0.0",
     "ajv": "^8.14.0",
     "fast-check": "^4.9.0",
     "jest": "^30.2.0",
@@ -73,13 +53,8 @@
     "typescript-compat": "npm:typescript@5.4.5"
   },
   "overrides": {
-    "@iqb/eslint-config": {
-      "@typescript-eslint/parser": "$@typescript-eslint/parser",
-      "@typescript-eslint/eslint-plugin": "$@typescript-eslint/eslint-plugin"
-    },
-    "eslint-config-airbnb-typescript": {
-      "@typescript-eslint/parser": "$@typescript-eslint/parser",
-      "@typescript-eslint/eslint-plugin": "$@typescript-eslint/eslint-plugin"
+    "eslint-plugin-sonarjs": {
+      "minimatch": "^11.0.4"
     }
   },
   "dependencies": {
