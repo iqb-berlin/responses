@@ -1,7 +1,7 @@
-import { Response } from '@iqbspecs/response/response.interface';
+import { Response } from '@iqbspecs/response/response.interface.js';
 import { VariableCodingData } from '@iqbspecs/coding-scheme';
-import { CODING_SCHEME_STATUS } from '../constants';
-import { type CodingSchemeStatus, isUnsetLikeResponse } from '../status-helpers';
+import { CODING_SCHEME_STATUS } from '../constants.js';
+import { type CodingSchemeStatus, isUnsetLikeResponse } from '../status-helpers.js';
 
 export const removeBaseResponsesShadowedByDerived = (
   responses: Response[],

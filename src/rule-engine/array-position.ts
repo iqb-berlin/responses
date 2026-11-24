@@ -1,9 +1,9 @@
-import { ResponseValueSingleType } from '@iqbspecs/response/response.interface';
+import { ResponseValueSingleType } from '@iqbspecs/response/response.interface.js';
 import {
   RuleSet,
   TransformedResponseValueType
-} from '@iqbspecs/coding-scheme/coding-scheme.interface';
-import { getValueAsNumber } from '../value-transform';
+} from '@iqbspecs/coding-scheme/coding-scheme.interface.js';
+import { getValueAsNumber } from '../value-transform.js';
 
 export function resolveValueArrayPosMember(
   valueToCheck: TransformedResponseValueType,

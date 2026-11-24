@@ -1,16 +1,16 @@
 import {
   ResponseValueSingleType,
   ResponseValueType
-} from '@iqbspecs/response/response.interface';
+} from '@iqbspecs/response/response.interface.js';
 import {
   CodingRule,
   ProcessingParameterType
-} from '@iqbspecs/coding-scheme/coding-scheme.interface';
+} from '@iqbspecs/coding-scheme/coding-scheme.interface.js';
 import {
   getValueAsNumber,
   isEmptyValue,
   transformString
-} from '../value-transform';
+} from '../value-transform.js';
 
 function findString(
   value: string,

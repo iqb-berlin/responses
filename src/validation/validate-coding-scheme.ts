@@ -3,9 +3,9 @@ import {
   RuleMethodParameterCount,
   VariableCodingData
 } from '@iqbspecs/coding-scheme';
-import { VariableInfoInput } from '../variable-info';
-import { CodingSchemeProblem } from '../coding-interfaces';
-import { normalizeVariableInfoType } from '../normalize/variable-info-spelling';
+import { VariableInfoInput } from '../variable-info.js';
+import { CodingSchemeProblem } from '../coding-interfaces.js';
+import { normalizeVariableInfoType } from '../normalize/variable-info-spelling.js';
 
 type CodingValueType = 'numeric' | 'boolean' | 'string' | 'other' | 'unknown';
 

@@ -1,6 +1,6 @@
-import { Response } from '@iqbspecs/response/response.interface';
+import { Response } from '@iqbspecs/response/response.interface.js';
 import { VariableCodingData } from '@iqbspecs/coding-scheme';
-import { CODING_SCHEME_STATUS } from '../constants';
+import { CODING_SCHEME_STATUS } from '../constants.js';
 
 export function finalizeAndDeduplicateResponses(
   allCodedResponses: Response[],

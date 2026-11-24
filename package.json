@@ -7,7 +7,10 @@
   "engines": {
     "node": "^22.18.0 || >=24.11.0"
   },
-  "workspaces": ["tooling/babel"],
+  "workspaces": [
+    "tooling/babel",
+    "tooling/lint"
+  ],
   "scripts": {
     "test": "jest",
     "test_coding": "jest test/coding",
@@ -19,12 +22,15 @@
     "test:differential:stress": "node scripts/differential/run-generative-parity.js --multiplier 5",
     "test:package": "node scripts/verify-package.js",
     "test:toolchain": "node tooling/babel/verify.mjs",
-    "test_coding2text": "cd test && ts-node test-code2text case1",
-    "test_getBaseVarsList": "cd test && ts-node test-getBaseVarsList get-base-vars-case",
+    "test_coding2text": "cd test && tsx test-code2text.ts case1",
+    "test_getBaseVarsList": "cd test && tsx test-getBaseVarsList.ts get-base-vars-case",
     "prepare_publish": "node scripts/build-package.js",
     "npm_publish": "cd dist && npm publish --access public",
     "lint": "eslint \"**/*.ts\"",
-    "lint:fix": "eslint \"**/*.ts\" --fix"
+    "lint:fix": "eslint \"**/*.ts\" --fix",
+    "typecheck": "tsc --noEmit -p test/tsconfig.json",
+    "pretest": "npm run typecheck",
+    "pretest:coverage": "npm run typecheck"
   },
   "repository": {
     "type": "git",
@@ -35,32 +41,33 @@
   },
   "homepage": "https://github.com/iqb-berlin/responses#readme",
   "devDependencies": {
-    "@babel/core": "^7.28.6",
     "@eslint/js": "^10.0.1",
-    "@iqb/eslint-config": "^3.0.1",
-    "@jest/globals": "^30.2.0",
+    "@jest/globals": "^30.5.2",
+    "@stylistic/eslint-plugin": "^6.0.1",
+    "@swc/core": "^1.16.22",
+    "@swc/jest": "^0.2.39",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
+    "ajv": "^8.20.0",
     "eslint": "^10.15.0",
     "eslint-plugin-import-x": "^4.18.1",
-    "globals": "^15.0.0",
-    "ajv": "^8.14.0",
-    "fast-check": "^4.9.0",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.1.2",
-    "ts-node": "^10.9.1",
-    "typescript": "5.9.3",
-    "typescript-compat": "npm:typescript@5.4.5"
-  },
-  "overrides": {
-    "eslint-plugin-sonarjs": {
-      "minimatch": "^11.0.4"
-    }
+    "fast-check": "^4.11.0",
+    "globals": "^17.14.0",
+    "jest": "^30.5.2",
+    "tsx": "^4.23.15",
+    "typescript": "7.0.2",
+    "typescript-compat": "npm:typescript@5.4.5",
+    "typescript-compat-5-9": "npm:typescript@5.9.3"
   },
   "dependencies": {
     "@iqbspecs/coding-scheme": "^3.5.0",
     "@iqbspecs/response": "^2.0.0",
     "@iqbspecs/variable-info": "^2.1.0",
-    "mathjs": "^15.2.0"
+    "mathjs": "^15.3.0"
+  },
+  "overrides": {
+    "ts-api-utils": {
+      "typescript": "6.0.3"
+    }
   }
 }

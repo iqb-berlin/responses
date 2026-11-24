@@ -1,1 +1,1 @@
-export { ToTextFactory } from './presentation/to-text-factory';
+export { ToTextFactory } from './presentation/to-text-factory.js';

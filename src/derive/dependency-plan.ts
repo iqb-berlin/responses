@@ -1,7 +1,7 @@
-import { Response } from '@iqbspecs/response/response.interface';
+import { Response } from '@iqbspecs/response/response.interface.js';
 import { VariableCodingData } from '@iqbspecs/coding-scheme';
-import { CODING_SCHEME_STATUS } from '../constants';
-import type { VariableGraphNode } from '../graph/dependency-tree';
+import { CODING_SCHEME_STATUS } from '../constants.js';
+import type { VariableGraphNode } from '../graph/dependency-tree.js';
 
 export type DependencyPlan = {
   varDependencies: VariableGraphNode[];

@@ -1,5 +1,5 @@
-import { Response } from '@iqbspecs/response/response.interface';
-import { CODING_SCHEME_STATUS } from './constants';
+import { Response } from '@iqbspecs/response/response.interface.js';
+import { CODING_SCHEME_STATUS } from './constants.js';
 
 export type CodingSchemeStatus = (typeof CODING_SCHEME_STATUS)[keyof typeof CODING_SCHEME_STATUS];
 

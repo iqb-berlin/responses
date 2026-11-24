@@ -1,10 +1,10 @@
-import { LegacyVariableInfo, VariableInfoInput } from './variable-info';
+import { LegacyVariableInfo, VariableInfoInput } from './variable-info.js';
 
 // Preserve the old, mutable 1.x output contract, including inferred empty lists.
 // For new inputs retain their metadata, widening ids because trimming can change them.
 type ListEntry<T> = [T] extends [never] ? LegacyVariableInfo :
   T extends LegacyVariableInfo ? LegacyVariableInfo :
-    T extends VariableInfoInput ? Omit<T, 'id'> & { id: string } : never;
+  T extends VariableInfoInput ? Omit<T, 'id'> & { id: string } : never;
 
 export class VariableList<T extends VariableInfoInput = LegacyVariableInfo> {
   variables: ListEntry<T>[] = [];

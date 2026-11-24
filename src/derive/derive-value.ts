@@ -1,5 +1,5 @@
 import { evaluate } from 'mathjs';
-import { Response, ResponseValueSingleType } from '@iqbspecs/response/response.interface';
+import { Response, ResponseValueSingleType } from '@iqbspecs/response/response.interface.js';
 import { DeriveConcatDelimiter, validStatesForDerivingValue, VariableCodingData } from '@iqbspecs/coding-scheme';
 import {
   CODING_SCHEME_STATUS,
@@ -8,10 +8,10 @@ import {
   MANUAL_VALID_STATES,
   PARTLY_DISPLAYED_STATUSES,
   VALID_STATES_TO_START_DERIVE_PENDING_CHECK
-} from '../constants';
-import { CodingFactory } from '../coding-factory';
-import { type CodingSchemeStatus, isPendingStatus } from '../status-helpers';
-import { transformValue } from '../value-transform';
+} from '../constants.js';
+import { CodingFactory } from '../coding-factory.js';
+import { type CodingSchemeStatus, isPendingStatus } from '../status-helpers.js';
+import { transformValue } from '../value-transform.js';
 
 const deriveErrorResponse = (coding: VariableCodingData, subform: string | undefined): Response => <Response>{
   id: coding.id,

@@ -336,17 +336,14 @@ remain available for comparisons; ingestion does not rewrite stored data.
 
 ## JavaScript module formats
 
-Development uses Node 22.18+ or 24.11+ (`.nvmrc` selects 24), TypeScript 5.9.3
-and Node 26 declarations. Babel Core/preset 8 run in the private `tooling/babel`
-workspace so Jest can retain its Babel 7 helpers. `npm ci` installs both and
-`npm run test:toolchain` exercises the Babel 8 TypeScript transform.
-The IQB lint policy is adapted to typescript-eslint 8 and ESLint Stylistic;
-the explicit peer overrides are paired with `scripts/eslint-typescript.cjs`.
+Development uses Node 22.18+ or 24.11+ and TypeScript 7.0.2. TypeScript compiles
+both package formats and type-checks the source and tests. Jest uses SWC to run
+the TypeScript tests. ESLint uses the project’s rules and an isolated TypeScript
+6 installation for the parser. The private Babel workspace verifies the Babel 8
+TypeScript preset with `npm run test:toolchain`.
 
-These are development requirements. The packed npm manifest excludes the
-development dependencies, workspaces and development Node engine. CI also
-tests the packed JavaScript on Node 18/20, and its declarations with both
-TypeScript 5.4.5 and 5.9.3.
+CI checks the packed JavaScript on Node 18/20 and its declarations with
+TypeScript 5.4.5, 5.9.3 and 7.0.2. Development tools stay out of the package.
 
 The package provides native ESM for `import` and the existing CommonJS files for
 `require`. The package root and existing file subpaths such as

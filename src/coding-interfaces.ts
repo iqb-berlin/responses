@@ -1,4 +1,4 @@
-import { CodingSchemeProblemType } from '@iqbspecs/coding-scheme/coding-scheme.interface';
+import { CodingSchemeProblemType } from '@iqbspecs/coding-scheme/coding-scheme.interface.js';
 
 export interface CodingSchemeProblem {
   type: CodingSchemeProblemType,

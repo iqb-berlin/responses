@@ -1,27 +1,27 @@
-import { Response } from '@iqbspecs/response/response.interface';
+import { Response } from '@iqbspecs/response/response.interface.js';
 import { VariableCodingData } from '@iqbspecs/coding-scheme';
-import { VariableInfoInput } from './variable-info';
-import { CodingSchemeProblem } from './coding-interfaces';
-import { deepClone } from './utils/deep-clone';
-import { getVariableDependencyTree, type VariableGraphNode } from './graph/dependency-tree';
-import { deriveValue } from './derive/derive-value';
-import { buildDependencyPlan, ensureResponsesExist, executeDependencyPlan } from './derive/dependency-plan';
-import { applyDerivationsAndCoding } from './derive/derivation-traversal';
-import { validateCodingScheme } from './validation/validate-coding-scheme';
-import { groupResponsesBySubform } from './subform/grouping';
-import { mapResponseAliasToId, mapResponseIdToAlias } from './mapping/alias-mapper';
+import { VariableInfoInput } from './variable-info.js';
+import { CodingSchemeProblem } from './coding-interfaces.js';
+import { deepClone } from './utils/deep-clone.js';
+import { getVariableDependencyTree, type VariableGraphNode } from './graph/dependency-tree.js';
+import { deriveValue } from './derive/derive-value.js';
+import { buildDependencyPlan, ensureResponsesExist, executeDependencyPlan } from './derive/dependency-plan.js';
+import { applyDerivationsAndCoding } from './derive/derivation-traversal.js';
+import { validateCodingScheme } from './validation/validate-coding-scheme.js';
+import { groupResponsesBySubform } from './subform/grouping.js';
+import { mapResponseAliasToId, mapResponseIdToAlias } from './mapping/alias-mapper.js';
 import {
   markEmptyValuesInvalidForBaseUnlessAllowed,
   normalizeDisplayedToValueChanged,
   normalizeNotReachedToValueChanged
-} from './normalize/response-status';
+} from './normalize/response-status.js';
 import {
   removeBaseResponsesShadowedByDerived,
   removeBaseResponsesShadowedByDerivedAlias
-} from './merge/resolve-derived-conflicts';
-import { finalizeAndDeduplicateResponses } from './finalize/finalize-and-deduplicate';
+} from './merge/resolve-derived-conflicts.js';
+import { finalizeAndDeduplicateResponses } from './finalize/finalize-and-deduplicate.js';
 
-export type { VariableGraphNode } from './graph/dependency-tree';
+export type { VariableGraphNode } from './graph/dependency-tree.js';
 
 export abstract class CodingSchemeFactory {
   variableCodings: VariableCodingData[] = [];

@@ -1,6 +1,6 @@
 import { VariableCodingData } from '@iqbspecs/coding-scheme';
-import { CodingAsText, CodingToTextMode } from '../coding-interfaces';
-import { ToTextFactory } from './to-text-factory';
+import { CodingAsText, CodingToTextMode } from '../coding-interfaces.js';
+import { ToTextFactory } from './to-text-factory.js';
 
 export abstract class CodingSchemeTextFactory {
   static asText(

@@ -1,19 +1,9 @@
 {
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "declaration": true,
-    "strictNullChecks": true,
-    "strict": true,
-    "target": "ES2015",
-    "module": "CommonJS",
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
-    "moduleResolution": "node",
-    "sourceMap": true,
-    "lib": ["es2015", "dom"],
-    "types": ["node", "jest"],
-    "rootDir": ".."
+    "rootDir": "..",
+    "noEmit": true,
+    "types": ["node", "jest"]
   },
-  "include": ["./**/*.ts", "../src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["./**/*.ts", "../src/**/*.ts"]
 }

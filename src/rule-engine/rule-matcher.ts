@@ -1,10 +1,10 @@
-import { ResponseValueSingleType } from '@iqbspecs/response/response.interface';
+import { ResponseValueSingleType } from '@iqbspecs/response/response.interface.js';
 import {
   CodingRule,
   ProcessingParameterType,
   TransformedResponseValueType
-} from '@iqbspecs/coding-scheme/coding-scheme.interface';
-import { checkOneValue } from './scalar-evaluator';
+} from '@iqbspecs/coding-scheme/coding-scheme.interface.js';
+import { checkOneValue } from './scalar-evaluator.js';
 
 export function isMatchRule(
   valueToCheck: TransformedResponseValueType,

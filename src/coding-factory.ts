@@ -2,24 +2,24 @@ import {
   ResponseValueSingleType,
   ResponseValueType,
   Response
-} from '@iqbspecs/response/response.interface';
+} from '@iqbspecs/response/response.interface.js';
 import {
   ProcessingParameterType,
   RuleSet,
   SourceProcessingType,
   TransformedResponseValueType,
   VariableCodingData
-} from '@iqbspecs/coding-scheme/coding-scheme.interface';
+} from '@iqbspecs/coding-scheme/coding-scheme.interface.js';
 
 import {
   getValueAsNumber as getValueAsNumberInternal,
   getValueAsString as getValueAsStringInternal,
   isEmptyValue as isEmptyValueInternal,
   transformValue as transformValueInternal
-} from './value-transform';
-import { isMatchRuleSet as isMatchRuleSetInternal } from './rule-engine';
-import { deepClone } from './utils/deep-clone';
-import { CODING_SCHEME_STATUS } from './constants';
+} from './value-transform.js';
+import { isMatchRuleSet as isMatchRuleSetInternal } from './rule-engine.js';
+import { deepClone } from './utils/deep-clone.js';
+import { CODING_SCHEME_STATUS } from './constants.js';
 
 export abstract class CodingFactory {
   static createBaseCodingVariable(

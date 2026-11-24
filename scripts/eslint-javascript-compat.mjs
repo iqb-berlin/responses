@@ -24,7 +24,7 @@ SOFTWARE.
 */
 
 // JavaScript settings from @iqb/eslint-config 2.2.0 and airbnb-base 15.
-// IQB 3 provides a compatibility preset only for TypeScript.
+// Preserve the historical JavaScript checks alongside the project TypeScript rules.
 export default {
   '@stylistic/indent': [
     'error',

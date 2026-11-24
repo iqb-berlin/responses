@@ -1,14 +1,14 @@
 {
   "name": "@iqb/responses",
   "version": "5.5.0",
-  "author": "IQB - Institut zur Qualitätsentwicklung im Bildungswesen",
+  "author": "IQB - Institut zur Qualit\u00e4tsentwicklung im Bildungswesen",
   "license": "CC0 1.0",
   "description": "Automatic coding.",
   "dependencies": {
     "@iqbspecs/coding-scheme": "^3.5.0",
     "@iqbspecs/response": "^2.0.0",
     "@iqbspecs/variable-info": "^2.1.0",
-    "mathjs": "^15.2.0"
+    "mathjs": "^15.3.0"
   },
   "repository": {
     "type": "git",
