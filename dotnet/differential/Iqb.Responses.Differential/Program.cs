@@ -1,7 +1,12 @@
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Iqb.Responses;
 using Iqb.Responses.Differential;
+
+// The TypeScript driver exchanges UTF-8 over redirected stdio; Windows consoles default to an OEM code page.
+Console.InputEncoding = new UTF8Encoding(false);
+Console.OutputEncoding = new UTF8Encoding(false);
 
 if (args.Length == 1 && args[0] == "--jsonl")
 {

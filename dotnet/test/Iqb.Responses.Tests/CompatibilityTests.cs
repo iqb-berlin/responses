@@ -42,12 +42,134 @@ public sealed class CompatibilityTests
     [InlineData(1e-6, "0.000001")]
     [InlineData(1e-7, "1e-7")]
     [InlineData(1_000_000_000_000_000_100d, "1000000000000000100")]
+    [InlineData(9223372036854775808d, "9223372036854776000")]
+    [InlineData(-9223372036854775808d, "-9223372036854776000")]
+    [InlineData(1d / 3d, "0.3333333333333333")]
+    [InlineData(0.1d + 0.2d, "0.30000000000000004")]
+    [InlineData(5e-324, "5e-324")]
+    [InlineData(double.MaxValue, "1.7976931348623157e+308")]
+    // Exact powers of two have an asymmetric round-trip interval; .NET's "R" format gets these wrong.
+    [InlineData(2.9802322387695312e-8, "2.9802322387695312e-8")]
+    [InlineData(7.120236347223045e-307, "7.120236347223045e-307")]
     [InlineData(-0d, "0")]
     [InlineData(double.NaN, "NaN")]
     [InlineData(double.PositiveInfinity, "Infinity")]
     [InlineData(double.NegativeInfinity, "-Infinity")]
     public void Number_formatting_matches_ECMAScript(double value, string expected) =>
         Assert.Equal(expected, ValueTransforms.NumberToString(value));
+
+    // The expected values are C# literals, which the compiler rounds correctly independent of the test runtime.
+    [Theory]
+    [InlineData("0.1", 0.1d)]
+    [InlineData("-.5e-3", -0.0005d)]
+    [InlineData("1e23", 1e23d)]
+    [InlineData("9007199254740993", 9007199254740992d)]
+    [InlineData("9007199254740995", 9007199254740996d)]
+    [InlineData("0.30000000000000004", 0.30000000000000004d)]
+    [InlineData("2.9802322387695312e-8", 2.9802322387695312e-8d)]
+    [InlineData("7.120236347223045e-307", 7.120236347223045e-307d)]
+    [InlineData("2.2250738585072011e-308", 2.2250738585072011e-308d)]
+    [InlineData("2.4703282292062327e-324", 0d)]
+    [InlineData("2.4703282292062328e-324", 5e-324d)]
+    [InlineData("1.7976931348623158e308", double.MaxValue)]
+    [InlineData("1.7976931348623159e308", double.PositiveInfinity)]
+    [InlineData("1e400", double.PositiveInfinity)]
+    [InlineData("1e-400", 0d)]
+    [InlineData("00012.3400e002", 1234d)]
+    public void Number_parsing_is_correctly_rounded(string text, double expected)
+    {
+        Assert.True(DoubleConversion.TryParse(text, out var actual));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(expected), BitConverter.DoubleToInt64Bits(actual));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(".")]
+    [InlineData("-")]
+    [InlineData("e5")]
+    [InlineData("1e")]
+    [InlineData("1e+")]
+    [InlineData(" 1")]
+    [InlineData("١")]
+    public void Number_parsing_rejects_malformed_text(string text) =>
+        Assert.False(DoubleConversion.TryParse(text, out _));
+
+    [Fact]
+    public void Number_formatting_and_parsing_round_trip_and_round_half_to_even()
+    {
+        var random = new Random(20261124);
+        for (var i = 0; i < 20_000; i++)
+        {
+            var bits = (long)(random.NextDouble() * 0x7FEFFFFFFFFFFFFFL) + 1;
+            var value = BitConverter.Int64BitsToDouble(bits);
+            Assert.True(DoubleConversion.TryParse(ValueTransforms.ToShortestRoundTripString(value), out var parsed));
+            Assert.Equal(bits, BitConverter.DoubleToInt64Bits(parsed));
+
+            // The exact midpoint between value and its successor rounds to the one with the even mantissa.
+            var biasedExponent = (int)((bits >> 52) & 0x7FF);
+            var mantissa = biasedExponent == 0 ? bits & 0xFFFFFFFFFFFFFL : (bits & 0xFFFFFFFFFFFFFL) | (1L << 52);
+            var exponent = (biasedExponent == 0 ? -1074 : biasedExponent - 1075) - 1;
+            var twiceMidpoint = new System.Numerics.BigInteger(2 * mantissa + 1);
+            var midpoint = exponent >= 0
+                ? (twiceMidpoint << exponent).ToString()
+                : (twiceMidpoint * System.Numerics.BigInteger.Pow(5, -exponent)) + "e" + exponent;
+            Assert.True(DoubleConversion.TryParse(midpoint, out var rounded));
+            Assert.Equal(bits % 2 == 0 ? bits : bits + 1, BitConverter.DoubleToInt64Bits(rounded));
+        }
+    }
+
+    [Fact]
+    public void Json_numbers_round_trip_exactly()
+    {
+        const string json = "{\"id\":\"x\",\"status\":\"VALUE_CHANGED\",\"value\":[2.9802322387695312e-8,0.30000000000000004,-0]," +
+                            "\"score\":7.120236347223045e-307}";
+        var response = JsonSerializer.Deserialize<Response>(json, IqbJson.Options)!;
+        var values = Assert.IsType<List<object?>>(response.Value);
+        Assert.Equal(2.9802322387695312e-8d, values[0]);
+        Assert.Equal(0.30000000000000004d, values[1]);
+        Assert.Equal(7.120236347223045e-307d, response.Score);
+
+        var clone = IqbJson.Clone(response);
+        var cloned = Assert.IsType<List<object?>>(clone.Value);
+        Assert.Equal(BitConverter.DoubleToInt64Bits(2.9802322387695312e-8d), BitConverter.DoubleToInt64Bits((double)cloned[0]!));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(0.30000000000000004d), BitConverter.DoubleToInt64Bits((double)cloned[1]!));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(-0d), BitConverter.DoubleToInt64Bits((double)cloned[2]!));
+        Assert.Equal(BitConverter.DoubleToInt64Bits(7.120236347223045e-307d), BitConverter.DoubleToInt64Bits(clone.Score!.Value));
+    }
+
+    [Theory]
+    [InlineData(0d, "0")]
+    [InlineData(-0d, "-0")]
+    [InlineData(123.456d, "123.456")]
+    [InlineData(-1.5d, "-1.5")]
+    [InlineData(0.0001d, "0.0001")]
+    [InlineData(0.00001d, "1E-05")]
+    [InlineData(1e15d, "1000000000000000")]
+    [InlineData(72057594037927936d, "72057594037927940")]
+    [InlineData(1e17d, "1E+17")]
+    [InlineData(1e21d, "1E+21")]
+    [InlineData(0.30000000000000004d, "0.30000000000000004")]
+    [InlineData(2.9802322387695312e-8d, "2.9802322387695312E-08")]
+    [InlineData(7.120236347223045e-307d, "7.120236347223045E-307")]
+    [InlineData(double.MaxValue, "1.7976931348623157E+308")]
+    [InlineData(5e-324d, "5E-324")]
+    public void Json_numbers_are_written_like_System_Text_Json_on_NET_10(double value, string expected)
+    {
+        Assert.Equal(expected, JsonSerializer.Serialize(value, IqbJson.Options));
+        var response = new Response { Id = "x", Status = ResponseStatus.Unset, Value = new List<object?> { value }, Score = value };
+        Assert.Equal("{\"id\":\"x\",\"status\":\"UNSET\",\"value\":[" + expected + "],\"score\":" + expected + "}",
+            JsonSerializer.Serialize(response, IqbJson.Options));
+    }
+
+    [Fact]
+    public void Json_numbers_keep_the_System_Text_Json_contract()
+    {
+        var overflow = JsonSerializer.Deserialize<Response>("{\"id\":\"x\",\"value\":[1e400,-1e400],\"score\":1e400}", IqbJson.Options)!;
+        Assert.Equal([double.PositiveInfinity, double.NegativeInfinity], Assert.IsType<List<object?>>(overflow.Value));
+        Assert.Equal(double.PositiveInfinity, overflow.Score);
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<Response>("{\"id\":\"x\",\"score\":\"1\"}", IqbJson.Options));
+        Assert.Null(JsonSerializer.Deserialize<Response>("{\"id\":\"x\",\"score\":null}", IqbJson.Options)!.Score);
+    }
 
     [Theory]
     [InlineData("İ", "i\u0307")]
@@ -97,6 +219,20 @@ public sealed class CompatibilityTests
     [InlineData("true != false", true)]
     public void Solver_parser_supports_its_declared_grammar(string expression, object expected) =>
         Assert.Equal(expected, SolverExpression.Evaluate(expression));
+
+    // Expected values are V8's Math.cbrt and Math.log2; .NET's Math.Cbrt and Math.Log2 differ in the last bit here.
+    [Theory]
+    [InlineData("cbrt(-486)", -7.86222418262669d)]
+    [InlineData("cbrt(812)", 9.329363390985685d)]
+    [InlineData("cbrt(3051.8446667361277)", 14.505102709418592d)]
+    [InlineData("cbrt(-231)", -6.135792439661959d)]
+    [InlineData("log2(2.723193961532422)", 1.4452997430777266d)]
+    [InlineData("log2(0.8452806602443008)", -0.2424976530024595d)]
+    [InlineData("log2(0.08035121792012412)", -3.637536298120694d)]
+    [InlineData("log2(0.3622858030080264)", -1.4647998232701231d)]
+    public void Solver_cbrt_and_log2_match_V8_exactly(string expression, double expected) =>
+        Assert.Equal(BitConverter.DoubleToInt64Bits(expected),
+            BitConverter.DoubleToInt64Bits((double)SolverExpression.Evaluate(expression)!));
 
     [Theory]
     [InlineData("garbage")]

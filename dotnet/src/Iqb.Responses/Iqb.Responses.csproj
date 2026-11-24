@@ -1,5 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <!-- Clear the single TargetFramework inherited from Directory.Build.props so TargetFrameworks takes effect. -->
+    <TargetFramework></TargetFramework>
+    <TargetFrameworks>net10.0;netstandard2.0</TargetFrameworks>
     <PackageId>Iqb.Responses</PackageId>
     <Version>5.2.2-preview.1</Version>
     <Authors>IQB - Institut zur Qualitätsentwicklung im Bildungswesen</Authors>
@@ -13,6 +16,16 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <!-- The netstandard2.0 reference assemblies carry no nullable annotations; nullability is enforced by the net10.0 build. -->
+    <Nullable>annotations</Nullable>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+    <Compile Remove="Polyfills/**" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Text.Json" Version="10.0.0" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Runs the Iqb.Responses.Tests suite on .NET Framework 4.8 against the netstandard2.0 build of the library.
+    Windows only; deliberately not part of Iqb.Responses.sln (see Iqb.Responses.Net48.sln).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Iqb.Responses.Tests/**/*.cs" Exclude="../Iqb.Responses.Tests/bin/**;../Iqb.Responses.Tests/obj/**" LinkBase="Iqb.Responses.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="xunit.v3" Version="3.2.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Iqb.Responses/Iqb.Responses.csproj" />
+  </ItemGroup>
+</Project>

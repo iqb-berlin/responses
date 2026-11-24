@@ -3,7 +3,7 @@ const { firstDifference } = require('./protocol');
 /* eslint-disable no-bitwise -- IEEE-754 ULP comparison requires raw bit ordering. */
 
 const TRANSCENDENTAL_FUNCTIONS = [
-  'exp', 'log', 'log10', 'log2', 'sin', 'cos', 'tan',
+  'exp', 'log', 'log10', 'sin', 'cos', 'tan',
   'asin', 'acos', 'atan', 'atan2', 'hypot'
 ];
 const functionPattern = new RegExp(

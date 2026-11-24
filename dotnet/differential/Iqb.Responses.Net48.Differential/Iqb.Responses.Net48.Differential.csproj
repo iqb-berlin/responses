@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    The differential worker on .NET Framework 4.8, using the netstandard2.0 build of the library.
+    Windows only; run with `npm run test:differential:net48`. Not part of Iqb.Responses.sln (see Iqb.Responses.Net48.sln).
+  -->
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../Iqb.Responses.Differential/**/*.cs" Exclude="../Iqb.Responses.Differential/bin/**;../Iqb.Responses.Differential/obj/**" LinkBase="Iqb.Responses.Differential" />
+    <Compile Include="../../test/Iqb.Responses.Net48.Tests/Polyfills/PathPolyfills.cs;../../test/Iqb.Responses.Net48.Tests/Polyfills/TestEnumerablePolyfills.cs" LinkBase="Polyfills" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/Iqb.Responses/Iqb.Responses.csproj" />
+  </ItemGroup>
+</Project>

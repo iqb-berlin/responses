@@ -229,14 +229,14 @@ internal static class SolverExpression
             {
                 "abs" => Unary(name, numbers, Math.Abs),
                 "sqrt" => Unary(name, numbers, Math.Sqrt),
-                "cbrt" => Unary(name, numbers, Math.Cbrt),
+                "cbrt" => Unary(name, numbers, Fdlibm.Cbrt),
                 "ceil" => Unary(name, numbers, Math.Ceiling),
                 "floor" => Unary(name, numbers, Math.Floor),
                 "fix" => Unary(name, numbers, Math.Truncate),
                 "sign" => Unary(name, numbers, Sign),
                 "exp" => Unary(name, numbers, Math.Exp),
                 "log10" => Unary(name, numbers, Math.Log10),
-                "log2" => Unary(name, numbers, Math.Log2),
+                "log2" => Unary(name, numbers, Fdlibm.Log2),
                 "sin" => Unary(name, numbers, Math.Sin),
                 "cos" => Unary(name, numbers, Math.Cos),
                 "tan" => Unary(name, numbers, Math.Tan),
@@ -292,7 +292,7 @@ internal static class SolverExpression
                 if (_position == exponentStart) throw Error("Invalid exponent");
             }
             var token = text[start.._position];
-            if (!double.TryParse(token, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
+            if (!DoubleConversion.TryParse(token, out var number))
             {
                 throw Error("Invalid number");
             }
@@ -397,7 +397,7 @@ internal static class SolverExpression
             if (decimals != Math.Truncate(decimals) || decimals is < 0 or > 15)
                 throw new FormatException("The number of decimals must be an integer from 0 through 15.");
             if (!double.IsFinite(values[0])) return values[0];
-            var textValue = values[0].ToString("R", CultureInfo.InvariantCulture);
+            var textValue = ValueTransforms.ToShortestRoundTripString(values[0]);
             return decimal.TryParse(textValue, NumberStyles.Float, CultureInfo.InvariantCulture, out var decimalValue)
                 ? (double)Math.Round(decimalValue, (int)decimals, MidpointRounding.AwayFromZero)
                 : Math.Round(values[0], (int)decimals, MidpointRounding.AwayFromZero);

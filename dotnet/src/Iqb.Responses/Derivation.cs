@@ -173,7 +173,7 @@ internal static class Derivation
     private static Response HandleConcatCode(
         VariableCodingData coding,
         IReadOnlyDictionary<string, Response> responseById,
-        IReadOnlySet<string> partialSourceIds,
+        ISet<string> partialSourceIds,
         string? subform)
     {
         var values = (coding.DeriveSources ?? []).Select(sourceId =>

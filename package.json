@@ -13,6 +13,7 @@
     "test_coding": "jest test/coding",
     "test:coverage": "jest --coverage",
     "test:differential": "npm run test:differential:golden && npm run test:differential:self && npm run test:differential:generated",
+    "test:differential:net48": "set \"DIFF_WORKER=dotnet\\differential\\Iqb.Responses.Net48.Differential\\bin\\Release\\net48\\Iqb.Responses.Net48.Differential.exe\" && npm run test:differential",
     "test:differential:golden": "node scripts/verify-dotnet-parity.js",
     "test:differential:generated": "node scripts/differential/run-generative-parity.js",
     "test:differential:self": "node scripts/differential/self-test.js",

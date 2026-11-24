@@ -19,6 +19,7 @@ public static class IqbJson
         };
         options.Converters.Add(new ResponseValueJsonConverter());
         options.Converters.Add(new ScalarUnionJsonConverter());
+        options.Converters.Add(new ExactDoubleJsonConverter());
         return options;
     }
 
@@ -66,11 +67,42 @@ internal static class JsonValue
     {
         JsonTokenType.Null => null,
         JsonTokenType.String => reader.GetString(),
-        JsonTokenType.Number => reader.GetDouble(),
+        JsonTokenType.Number => ReadDouble(ref reader),
         JsonTokenType.True => true,
         JsonTokenType.False => false,
         _ => throw new JsonException($"Unsupported JSON value token {reader.TokenType}.")
     };
+
+    /// <summary>
+    /// Reads a JSON number with <see cref="DoubleConversion.TryParse"/>, so that every target rounds it identically.
+    /// System.Text.Json parses through the runtime, which on .NET Framework does not round numbers with more than
+    /// 15 significant digits correctly.
+    /// </summary>
+    internal static double ReadDouble(ref Utf8JsonReader reader)
+    {
+        // Other tokens are rejected by GetDouble exactly as without this converter.
+        if (reader.TokenType != JsonTokenType.Number) return reader.GetDouble();
+        var bytes = reader.HasValueSequence
+            ? System.Buffers.BuffersExtensions.ToArray(reader.ValueSequence)
+            : reader.ValueSpan.ToArray();
+        // Every JSON number token is valid input; numbers beyond the double range become infinities, as before.
+        if (!DoubleConversion.TryParse(System.Text.Encoding.UTF8.GetString(bytes), out var value))
+            throw new JsonException("Invalid JSON number.");
+        return value;
+    }
+
+    /// <summary>
+    /// Writes a JSON number in the text form of System.Text.Json on .NET 10, but with digits from
+    /// <see cref="DoubleConversion.ToRoundTripString"/>, so that every target and runtime version writes the same text
+    /// and the number reads back as the same double.
+    /// </summary>
+    internal static void WriteDouble(Utf8JsonWriter writer, double value)
+    {
+        if (double.IsFinite(value))
+            writer.WriteRawValue(DoubleConversion.ToRoundTripString(value), skipInputValidation: true);
+        else
+            writer.WriteNumberValue(value); // rejects NaN and infinities as before
+    }
 
     internal static void Write(Utf8JsonWriter writer, object? value, JsonSerializerOptions options)
     {
@@ -98,7 +130,7 @@ internal static class JsonValue
                 writer.WriteNumberValue(number);
                 break;
             case double number:
-                writer.WriteNumberValue(number);
+                WriteDouble(writer, number);
                 break;
             case decimal number:
                 writer.WriteNumberValue(number);
@@ -116,4 +148,14 @@ internal static class JsonValue
                 break;
         }
     }
+}
+
+/// <summary>Reads and writes <see cref="double"/> properties like <see cref="JsonValue.ReadDouble"/> and <see cref="JsonValue.WriteDouble"/>.</summary>
+internal sealed class ExactDoubleJsonConverter : JsonConverter<double>
+{
+    public override double Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options) =>
+        JsonValue.ReadDouble(ref reader);
+
+    public override void Write(Utf8JsonWriter writer, double value, JsonSerializerOptions options) =>
+        JsonValue.WriteDouble(writer, value);
 }

@@ -71,15 +71,19 @@ const temporaryRoot = mkdtempSync(join(tmpdir(), 'iqb-responses-differential-'))
 const dotnetOutput = join(temporaryRoot, 'dotnet-results.json');
 
 try {
+  // DIFF_WORKER runs a prebuilt worker executable instead, e.g. the .NET Framework 4.8 build.
+  const workerExecutable = process.env.DIFF_WORKER ? resolve(repositoryRoot, process.env.DIFF_WORKER) : undefined;
   execFileSync(
-    dotnetExecutable,
-    [
-      'run',
-      '--project', differentialProject,
-      '--configuration', 'Release',
-      '--no-build',
-      '--', dotnetOutput
-    ],
+    workerExecutable || dotnetExecutable,
+    workerExecutable
+      ? [dotnetOutput]
+      : [
+        'run',
+        '--project', differentialProject,
+        '--configuration', 'Release',
+        '--no-build',
+        '--', dotnetOutput
+      ],
     { cwd: repositoryRoot, stdio: 'inherit' }
   );
 

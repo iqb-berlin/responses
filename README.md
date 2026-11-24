@@ -53,12 +53,15 @@ release before a registry-based `npm ci`.
 npm i @iqb/responses
 ```
 
-### .NET 10
+### .NET
 
 The repository also contains the preview of the native .NET package
 `Iqb.Responses`. It uses the same camel-case JSON contracts and does not require
-Node.js at runtime. Its supported feature set is narrower than the stable
-JavaScript package; the preview does not establish full behavioral parity.
+Node.js at runtime. The package targets .NET 10 and .NET Standard 2.0, so it
+also runs on .NET Framework 4.6.2 or later (tested with 4.8); on .NET Standard
+2.0 it depends on `System.Text.Json`. Its supported feature set is narrower
+than the stable JavaScript package; the preview does not establish full
+behavioral parity.
 
 ```bash
 dotnet add package Iqb.Responses --version 5.2.2-preview.1

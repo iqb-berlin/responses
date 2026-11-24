@@ -15,10 +15,12 @@ const project = join(
 class WorkerClient {
   constructor(options = {}) {
     this.dotnet = options.dotnet || (process.platform === 'win32' ? 'dotnet.exe' : 'dotnet');
-    this.command = options.command || this.dotnet;
-    this.args = options.args || [
-      'run', '--project', project, '--configuration', 'Release', '--no-build', '--', '--jsonl'
-    ];
+    // DIFF_WORKER runs a prebuilt worker executable instead, e.g. the .NET Framework 4.8 build.
+    const workerExecutable = process.env.DIFF_WORKER ? resolve(repositoryRoot, process.env.DIFF_WORKER) : undefined;
+    this.command = options.command || workerExecutable || this.dotnet;
+    this.args = options.args || (workerExecutable
+      ? ['--jsonl']
+      : ['run', '--project', project, '--configuration', 'Release', '--no-build', '--', '--jsonl']);
     this.timeoutMs = options.timeoutMs || 2000;
     this.pending = [];
     this.stderr = '';

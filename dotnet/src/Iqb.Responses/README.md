@@ -1,6 +1,6 @@
 # Iqb.Responses
 
-Preview of the native .NET 10 implementation of the IQB response coding engine.
+Preview of the native .NET implementation of the IQB response coding engine.
 The package accepts the same camel-case JSON models as `@iqb/responses` and has
 no Node.js runtime dependency. Its narrower regex and SOLVER contracts do not
 establish full behavioral parity with the stable JavaScript package. The two
@@ -11,6 +11,15 @@ packages have independent versions and release decisions.
 ```bash
 dotnet add package Iqb.Responses --version 5.2.2-preview.1
 ```
+
+## Supported frameworks
+
+| Target | Runs on | Dependencies |
+|---|---|---|
+| `net10.0` | .NET 10 and later | none |
+| `netstandard2.0` | .NET Framework 4.6.2 or later (tested with 4.8) and other .NET Standard 2.0 runtimes | `System.Text.Json` 10.0.0 |
+
+Both targets expose the same API and produce the same coding results.
 
 ## Code a complete response set
 
@@ -69,11 +78,12 @@ stop evaluating operands after the first false comparison.
 
 Matrices, units, assignments, user-defined functions, complex values and other
 unrestricted `mathjs` features are not supported. Unsupported syntax and
-non-finite final results produce `DERIVE_ERROR`. Transcendental results can
-differ from V8 by one final IEEE-754 bit because the runtimes use different
-math implementations. Differential tests allow at most one IEEE-754 ULP for a
-direct, finite result using `exp`, logarithmic, trigonometric or `hypot`
-functions. Status, error and downstream coding results remain exact
+non-finite final results produce `DERIVE_ERROR`. `cbrt` and `log2` use ports of
+the fdlibm implementations that V8 uses and match it exactly. Other
+transcendental results can differ from V8 by one final IEEE-754 bit because the
+runtimes use different math implementations. Differential tests allow at most
+one IEEE-754 ULP for a direct, finite result using `exp`, `log`, `log10`,
+trigonometric or `hypot` functions. Status, error and downstream coding results remain exact
 comparisons. `gcd` requires at least two finite integer arguments and remains
 an exact comparison.
 
