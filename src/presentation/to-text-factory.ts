@@ -460,7 +460,6 @@ export abstract class ToTextFactory {
     }
     if (fragmenting) {
       if (returnText.length > 0) returnText += '; ';
-      // eslint-disable-next-line max-len
       returnText += `Es wurde ein Ausdruck festgelegt, mit dem Teile der Antwort
         vor der Kodierung extrahiert werden (Fragmentierung): '${fragmenting}'`;
     }

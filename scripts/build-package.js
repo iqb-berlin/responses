@@ -1,5 +1,5 @@
 /* Build-time compiler tooling is not a runtime package dependency. */
-/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable import-x/no-extraneous-dependencies */
 const { execFileSync } = require('node:child_process');
 const {
   copyFileSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync

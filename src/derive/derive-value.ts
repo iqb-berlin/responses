@@ -114,15 +114,15 @@ type SolverToken = {
 };
 
 type SolverValuePolicy =
-  | { kind: 'ERROR' }
-  | { kind: 'INC' }
-  | { kind: 'DEFAULT'; value: number };
+  { kind: 'ERROR' } |
+  { kind: 'INC' } |
+  { kind: 'DEFAULT'; value: number };
 
 type SolverValueResolution =
-  | { kind: 'value'; value: number }
-  | { kind: 'empty' }
-  | { kind: 'nonNumeric' }
-  | { kind: 'deriveError' };
+  { kind: 'value'; value: number } |
+  { kind: 'empty' } |
+  { kind: 'nonNumeric' } |
+  { kind: 'deriveError' };
 
 const SOLVER_ERROR_POLICY: SolverValuePolicy = { kind: 'ERROR' };
 
